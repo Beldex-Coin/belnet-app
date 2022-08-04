@@ -1,4 +1,4 @@
-package io.beldex.belnet_app
+package io.beldex.belnet
 
 import io.flutter.embedding.android.FlutterActivity
 

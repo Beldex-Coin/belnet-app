@@ -10,7 +10,7 @@ class ThemedBelnetLogo extends StatelessWidget {
 
     return Image.asset(
       belnetLogo,
-      width: MediaQuery.of(context).size.width * 0.60,
+      width: MediaQuery.of(context).size.width * 0.65,
     );
   }
 }

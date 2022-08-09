@@ -32,7 +32,7 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton> with SingleTicker
 
 @override
   void dispose() {
-    widget.animationController.dispose();
+   // widget.animationController.dispose();
     super.dispose();
   }
 
@@ -47,13 +47,13 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton> with SingleTicker
         decoration:BoxDecoration(
           // color: Colors.yellow,
           shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color:BelnetLib.isConnected ? Color(0xff00C000).withOpacity(0.6): Colors.transparent,
-              blurRadius:BelnetLib.isConnected ? 10 : 0,
-              spreadRadius: BelnetLib.isConnected ? 10 : 0,
-            ),
-          ],
+          // boxShadow: [
+          //   BoxShadow(
+          //     color:BelnetLib.isConnected ? Color(0xff00C000).withOpacity(0.6): Colors.transparent,
+          //     blurRadius:BelnetLib.isConnected ? 10 : 0,
+          //     spreadRadius: BelnetLib.isConnected ? 10 : 0,
+          //   ),
+          // ],
         ),
         height: MediaQuery.of(context).size.height * 0.85 / 3,
         width: MediaQuery.of(context).size.width * 1.58 / 3,

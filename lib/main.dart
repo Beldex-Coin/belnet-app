@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
 // import 'package:dropdown_button2/dropdown_button2.dart';
@@ -13,6 +14,7 @@ import 'package:belnet_mobile/src/settings.dart';
 import 'package:belnet_mobile/src/widget/belnet_power_button.dart';
 import 'package:belnet_mobile/src/widget/themed_belnet_logo.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -80,7 +82,6 @@ class BelnetHomePageState extends State<BelnetHomePage> {
     final key = new GlobalKey<ScaffoldState>();
     double mHeight = MediaQuery.of(context).size.height;
     double mWidth = MediaQuery.of(context).size.width;
-    //final bool darkModeOn = inDarkMode(context);
     final appModel = Provider.of<AppModel>(context);
     return Scaffold(
       key: key,
@@ -206,53 +207,52 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    String val = 'test ';
     final appModel = Provider.of<AppModel>(context);
     Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
     double mHeight = MediaQuery.of(context).size.height;
     double mWidth = MediaQuery.of(context).size.width;
-    return Form(
-      key: key,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        // crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          BelnetPowerButton(
-            onPressed: toggleBelnet,
-            isClick: isClick,
-            animation: _animation,
-            animationController: _animationController,
-          ),
-          ConnectingStatus(
-            isConnect: BelnetLib.isConnected,
-          ),
-          Row(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(
-                    left: mHeight * 0.10 / 3, top: mHeight * 0.15 / 3),
-                child: Text(
-                  'Exit Node',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontFamily: 'Poppins',
-                  ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      // crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        BelnetPowerButton(
+          onPressed: toggleBelnet,
+          isClick: isClick,
+          animation: _animation,
+          animationController: _animationController,
+        ),
+        ConnectingStatus(
+          isConnect: BelnetLib.isConnected,
+        ),
+        Row(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(
+                  left: mHeight * 0.10 / 3, top: mHeight * 0.15 / 3),
+              child: Text(
+                'Exit Node',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontFamily: 'Poppins',
                 ),
               ),
-            ],
-          ),
-          Padding(
-            padding: EdgeInsets.only(
-                left: MediaQuery.of(context).size.height * 0.10 / 3,
-                right: MediaQuery.of(context).size.height * 0.10 / 3,
-                top: MediaQuery.of(context).size.height * 0.06 / 3),
-            child: Container(
-              decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.all(Radius.circular(5))),
-              child: Padding(
-                  padding: const EdgeInsets.only(
-                      left: 6.0, right: 6.0, top: 3.0, bottom: 3.0),
-                  child:
+            ),
+          ],
+        ),
+        Padding(
+          padding: EdgeInsets.only(
+              left: MediaQuery.of(context).size.height * 0.08 / 3,
+              right: MediaQuery.of(context).size.height * 0.10 / 3,
+              top: MediaQuery.of(context).size.height * 0.06 / 3),
+          child: Container(
+            decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.all(Radius.circular(5))),
+            child: Padding(
+                padding: const EdgeInsets.only(
+                    left: 0.0, right: 6.0, top: 3.0, bottom: 3.0),
+                child:
 //                 DropdownButton<String>(
 //                   isExpanded: true,
 //                            value: selectedValue,
@@ -275,85 +275,88 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 //     );
 //   }).toList(),
 // ),
-                      DropdownButtonHideUnderline(
-                    child: DropdownButton(
-                        isExpanded: true,
-                        //underline: const SizedBox(),
-                        value: selectedValue,
-                        icon: Icon(Icons.arrow_drop_down,
-                            color: Color(0xffD4D4D4)),
-                        style: TextStyle(
-                            color: Color(0xff00DC00),
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Poppins',
-                            fontSize: mHeight*0.06/3,
-                            overflow: TextOverflow.ellipsis),
-                        items: exitItems
-                            .map((item) => DropdownMenuItem<String>(
-                                  value: item,
-                                  child: Center(
-                                    child: Text(
-                                      item,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          color: Color(0xff00DC00),
-                                          fontFamily: 'Poppins'),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                    DropdownButtonHideUnderline(
+                  child: DropdownButton(
+                    enableFeedback: true,
+                      isExpanded: true,
+                      //underline: const SizedBox(),
+                      value: selectedValue,
+                      icon: Icon(Icons.arrow_drop_down,
+                          color: Color(0xffD4D4D4)),
+                      style: TextStyle(
+                          color: Color(0xff00DC00),
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Poppins',
+                          fontSize: mHeight * 0.06 / 3,
+                          overflow: TextOverflow.ellipsis),
+                      items: exitItems
+                          .map((item) => DropdownMenuItem<String>(
+                                value: item,
+                                enabled: BelnetLib.isConnected ? false : true,
+                                child: Center(
+                                  child: Text(
+                                    item,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xff00DC00),
+                                        fontFamily: 'Poppins'),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedValue = value;
-                            print('$selectedValue');
-                          });
-                        }),
-                  )),
-            ),
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedValue = value;
+                          print('$selectedValue');
+                        });
+                      }),
+                )),
           ),
-
-          // Padding(
-          //   padding: EdgeInsets.only(left: 45, right: 45 , top: 20),
-          //   child: TextFormField(
-          //     validator: (value) {
-          //       final trimmed = value.trim();
-          //       if (trimmed == "") return null;
-          //       if (trimmed == ".beldex" || !trimmed.endsWith(".beldex"))
-          //         return "Invalid exit node value";
-          //       return null;
-          //     },
-          //     controller: exitInput,
-          //     cursorColor: color,
-          //     style: TextStyle(color: color),
-          //     decoration: InputDecoration(
-          //         filled: true,
-          //         fillColor: appModel.darkTheme
-          //             ? Color.fromARGB(255, 35, 35, 35)
-          //             : Color.fromARGB(255, 226, 226, 226),
-          //         border: InputBorder.none,
-          //         labelStyle: TextStyle(color: color),
-          //         labelText: 'Exit Node'),
-          //   ),
-          // ),
-          // Padding(
-          //   padding: EdgeInsets.all(8.0),
-          //   child: Text(
-          //     BelnetLib.isConnected ? "Connected" : "Not Connected",
-          //     style: TextStyle(
-          //         color: color,
-          //         fontSize: MediaQuery.of(context).size.height * 0.024),
-          //   ),
-          // ),
-          // TextButton(
-          //     onPressed: () async {
-          //       print(
-          //           'Test is the status${(await BelnetLib.status).toString()}');
-          //     },
-          //     child: Text("Test"))
-        ],
-      ),
+        ),
+        // Padding(
+        //   padding: EdgeInsets.only(left: 45, right: 45 , top: 20),
+        //   child: TextFormField(
+        //     validator: (value) {
+        //       final trimmed = value.trim();
+        //       if (trimmed == "") return null;
+        //       if (trimmed == ".beldex" || !trimmed.endsWith(".beldex"))
+        //         return "Invalid exit node value";
+        //       return null;
+        //     },
+        //     controller: exitInput,
+        //     cursorColor: color,
+        //     style: TextStyle(color: color),
+        //     decoration: InputDecoration(
+        //         filled: true,
+        //         fillColor: appModel.darkTheme
+        //             ? Color.fromARGB(255, 35, 35, 35)
+        //             : Color.fromARGB(255, 226, 226, 226),
+        //         border: InputBorder.none,
+        //         labelStyle: TextStyle(color: color),
+        //         labelText: 'Exit Node'),
+        //   ),
+        // ),
+        // Padding(
+        //   padding: EdgeInsets.all(8.0),
+        //   child: Text(
+        //     BelnetLib.isConnected ? "Connected" : "Not Connected",
+        //     style: TextStyle(
+        //         color: color,
+        //         fontSize: MediaQuery.of(context).size.height * 0.024),
+        //   ),
+        // ),
+        // TextButton(
+        //     onPressed: () async {
+        //       val= (await BelnetLib.status).toString();
+        //       print(
+        //           'Test is the status${(await BelnetLib.status).toString()}');
+        //     },
+        //     child: Text("$val"))
+      ],
     );
   }
 }
+
+

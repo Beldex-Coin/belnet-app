@@ -26,9 +26,10 @@ dependencies:
   belnet_lib:
     path: ./belnet_lib
   shared_preferences: ^0.5.12+4
-  flutter_svg: 
+  flutter_svg: ^0.19.3
   provider:
   dropdown_button2: 
+  lottie:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.0

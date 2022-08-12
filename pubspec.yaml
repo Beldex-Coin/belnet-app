@@ -18,34 +18,36 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 0.9.8
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
   belnet_lib:
     path: ./belnet_lib
-  shared_preferences: ^0.5.12+4
-  flutter_svg: ^0.19.3
-  provider:
-  dropdown_button2: 
-  lottie:
+  shared_preferences: ^2.0.15
+  flutter_svg: ^1.1.3
+  provider: ^6.0.3
+  dropdown_button2: ^1.7.1
+  awesome_notifications: ^0.6.21
+  flutter_local_notifications: ^9.7.0
+  lottie: ^1.4.1
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.0
+  cupertino_icons: ^1.0.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.8.1
+  flutter_launcher_icons: ^0.10.0
 
 #flutter pub run flutter_launcher_icons:main
 flutter_icons:
-  image_path: "assets/images/Belnet.png"
+  image_path: "assets/images/belnet_ic.png"
   ios: true
   android: true
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/images/Belnet.png"
+  adaptive_icon_foreground: "assets/images/belnet_ic.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

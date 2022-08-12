@@ -12,17 +12,19 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <!-- normal perm -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"></uses-permission>
 <!--    <uses-permission android:name="android.permission.BACKGROUND_ACCESS" />-->
     <application
         android:name="${applicationName}"
         android:label="Belnet"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher_round">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
             android:theme="@style/NormalTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
+            android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <!-- Specifies an Android theme to apply to this Activity as soon as
                  the Android process has started. This theme is visible to the user

@@ -12,4 +12,14 @@ class AppModel extends ChangeNotifier {
     appPreference.setThemePref(value);
     notifyListeners();
   }
+
+  bool _connecting_belnet = false;
+  bool get connecting_belnet => _connecting_belnet;
+
+  set connecting_belnet(bool value){
+    _connecting_belnet = value;
+    appPreference.setConnectingBelnet(value);
+    notifyListeners();
+
+  }
 }

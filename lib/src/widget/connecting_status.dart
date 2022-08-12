@@ -4,8 +4,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 class ConnectingStatus extends StatelessWidget {
-  bool isConnect;
-  ConnectingStatus({Key key, this.isConnect}) : super(key: key);
+  bool? isConnect;
+  ConnectingStatus({Key? key, this.isConnect}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,17 +21,17 @@ class ConnectingStatus extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: Text(
-                isConnect ? 'Connected' : 'Disconnected',
+                isConnect! ? 'Connected' : 'Disconnected',
                 style: TextStyle(
                     color: appModel.darkTheme
-                        ? isConnect
+                        ? isConnect!
                             ? Colors.white
                             : Color(0xffA8A8B7)
-                        : isConnect
+                        : isConnect!
                             ? Color(0xff222222)
                             : Color(0xffA8A8B7),
                     fontFamily: 'Poppins',
-                    fontWeight: isConnect ? FontWeight.bold : FontWeight.w500),
+                    fontWeight: isConnect! ? FontWeight.bold : FontWeight.w500),
               ),
             ),
             Container(
@@ -39,7 +39,7 @@ class ConnectingStatus extends StatelessWidget {
               width: 10,
               decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isConnect ? Color(0xff00C000) : Color(0xffFF3030)),
+                  color: isConnect! ? Color(0xff00C000) : Color(0xffFF3030)),
             )
           ],
         ),

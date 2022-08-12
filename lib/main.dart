@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
@@ -13,6 +14,7 @@ import 'package:belnet_mobile/src/settings.dart';
 //import 'package:belnet_mobile/src/widget/belnet_divider.dart';
 import 'package:belnet_mobile/src/widget/belnet_power_button.dart';
 import 'package:belnet_mobile/src/widget/themed_belnet_logo.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
@@ -20,8 +22,23 @@ import 'package:provider/provider.dart';
 void main() async {
   //Load settings
   WidgetsFlutterBinding.ensureInitialized();
-  await Settings.getInstance().initialize();
+  await Settings.getInstance()!.initialize();
   Provider.debugCheckInvalidValueType = null;
+  // AwesomeNotifications().initialize('resource://drawable/res_notification_app_icon',
+  // [
+  //   NotificationChannel(
+  //     channelKey: 'basic_channel',
+  //     channelDescription: '',
+  //     channelName: 'basic notifications',
+  //     defaultColor: Colors.teal,
+  //     importance: NotificationImportance.High,
+  //     //channelShowBadge: true,
+  //     locked: true,
+  //     defaultPrivacy: NotificationPrivacy.Private
+  //
+  //   )
+  // ]
+  // );
   runApp(BelnetApp());
 }
 
@@ -71,7 +88,7 @@ class _BelnetAppState extends State<BelnetApp> {
 }
 
 class BelnetHomePage extends StatefulWidget {
-  BelnetHomePage({Key key}) : super(key: key);
+  BelnetHomePage({Key? key}) : super(key: key);
 
   @override
   BelnetHomePageState createState() => BelnetHomePageState();
@@ -106,13 +123,37 @@ class BelnetHomePageState extends State<BelnetHomePage> {
                   //   ),
                   // ],
                   // ),
-                  child: SvgPicture.asset(
-                      appModel.darkTheme
-                          ? 'assets/images/BG_world.svg'
-                          : 'assets/images/bg_world_map_white.svg',
+                  child: appModel.darkTheme ?
+                  appModel.connecting_belnet ?
+                  Lottie.asset('assets/images/Mobile_Animation.json',
+                    // fit: BoxFit.cover,
+                    // height: mHeight * 1.5 / 3,
+                    // width: mHeight * 2.5 / 3
+                  ) :
+                  SvgPicture.asset('assets/images/BG_world.svg',
                       fit: BoxFit.cover,
                       height: mHeight * 1.5 / 3,
-                      width: mHeight * 2.5 / 3)),
+                      width: mHeight * 2.5 / 3
+                  )
+                      : appModel.connecting_belnet ?
+                  Lottie.asset('assets/images/Mobile_Animation.json',
+                    // fit: BoxFit.cover,
+                    height: mHeight * 1.8 / 3,
+                    // width: mHeight * 2.5 / 3
+                  ) :
+                  SvgPicture.asset('assets/images/bg_world_map_white.svg',
+                      fit: BoxFit.cover,
+                      height: mHeight * 1.5 / 3,
+                      width: mHeight * 2.5 / 3
+                  )
+                  // SvgPicture.asset(
+                  //     appModel.darkTheme
+                  //         ? 'assets/images/BG_world.svg'
+                  //         : 'assets/images/bg_world_map_white.svg',
+                  //     fit: BoxFit.cover,
+                  //     height: mHeight * 1.5 / 3,
+                  //     width: mHeight * 2.5 / 3)
+              ),
             ),
             Positioned(
               top: mHeight * 0.15 / 3,
@@ -140,9 +181,11 @@ class BelnetHomePageState extends State<BelnetHomePage> {
   }
 }
 
-final exitInput = TextEditingController(text: Settings.getInstance().exitNode);
+final exitInput = TextEditingController(text: Settings.getInstance()!.exitNode);
 final dnsInput =
-    TextEditingController(text: Settings.getInstance().upstreamDNS);
+    TextEditingController(text: Settings.getInstance()!.upstreamDNS);
+
+
 
 // Create a Form widget.
 class MyForm extends StatefulWidget {
@@ -154,25 +197,65 @@ class MyForm extends StatefulWidget {
 
 class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   static final key = new GlobalKey<FormState>();
-  StreamSubscription<bool> _isConnectedEventSubscription;
+  StreamSubscription<bool>? _isConnectedEventSubscription;
   bool isClick = false;
-
-  AnimationController _animationController;
-  Animation _animation;
+  late AppModel appModel;
+  AnimationController? _animationController;
+  Animation? _animation;
 
   final List<String> exitItems = [
     '8zhrwu36op5y6kz51qbwzgde1wrnhzmf8y14u7whmaiao3njn11y.beldex',
     'exit1.beldex',
     'exit.beldex',
   ];
-  String selectedValue =
+  String? selectedValue =
       '8zhrwu36op5y6kz51qbwzgde1wrnhzmf8y14u7whmaiao3njn11y.beldex';
-
+  final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   @override
-  initState() {
+  initState(){
     super.initState();
     _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
         .listen((bool isConnected) => setState(() {}));
+
+    var initializationSettingsAndroid =
+    new AndroidInitializationSettings('@drawable/res_notification_app_icon');
+    var initializationSettingsIOS = new IOSInitializationSettings();
+    var initializationSettings = new InitializationSettings(
+      android: initializationSettingsAndroid,iOS: initializationSettingsIOS
+    );
+    //lutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+    flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //for notification
+
+    // AwesomeNotifications().createdStream.listen((notification) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: Text('Notification Created on ${notification.channelKey}'),
+    //     ),
+    //   );
+    // });
+    //
+    // AwesomeNotifications().actionStream.listen((notification) {
+    //   Navigator.pushAndRemoveUntil(
+    //       context,
+    //       MaterialPageRoute(
+    //         builder: (_) => BelnetHomePage(),
+    //       ),
+    //           (route) => route.isFirst);
+    // });
   }
 
   @override
@@ -190,25 +273,77 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
     if (BelnetLib.isConnected) {
       await BelnetLib.disconnectFromBelnet();
+      appModel.connecting_belnet = false;
     } else {
       //Save the exit node and upstream dns
-      final Settings settings = Settings.getInstance();
+      final Settings settings = Settings.getInstance()!;
       settings.exitNode =
-          selectedValue.trim().toString(); //exitInput.value.text.trim();
+          selectedValue!.trim().toString(); //exitInput.value.text.trim();
       settings.upstreamDNS = dnsInput.value.text.trim();
 
       final result = await BelnetLib.prepareConnection();
+      appModel.connecting_belnet = true;
       if (result)
         BelnetLib.connectToBelnet(
-            exitNode: settings.exitNode, upstreamDNS: settings.upstreamDNS);
+            exitNode: settings.exitNode!, upstreamDNS: settings.upstreamDNS!);
+      // appModel.connecting_belnet = true;
+      _showNotificationWithoutSound();
+      //createNotificationForVpnConnect();
     }
     //  animationFunction();
   }
 
+
+  // Future createNotificationForVpnConnect() async{
+  //  return await AwesomeNotifications().createNotification(
+  //     content: NotificationContent(
+  //       id: 1,
+  //       channelKey: 'basic_channel',
+  //       title:
+  //       'Belnet vpn is running...',
+  //       body: 'click to go to belnet app',
+  //       //bigPicture: 'asset://assets/notification_map.png',
+  //       //notificationLayout: NotificationLayout.BigPicture,
+  //       //autoDismissible: false,
+  //       locked: true,
+  //       wakeUpScreen: true,
+  //       category: NotificationCategory.Workout
+  //       // displayOnForeground: false,
+  //       // displayOnBackground: true,
+  //
+  //     ),
+  //     // actionButtons: [
+  //     //   NotificationActionButton(key: 'disconnect', label:'DISCONNECT' )
+  //     // ]
+  //   );
+  // }
+
+  Future _showNotificationWithoutSound() async {
+    var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
+        'basic_channel','1',
+        playSound: false, importance: Importance.max, priority: Priority.max,
+    //fullScreenIntent: true,
+    ongoing: true,
+      //autoCancel: false
+    );
+    var iOSPlatformChannelSpecifics =  IOSNotificationDetails(presentSound: false);
+    var platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics
+    );
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Belnet is Running...',
+      'Click to go to BBelnet app',
+      platformChannelSpecifics,
+      payload: 'No_Sound',
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     String val = 'test ';
-    final appModel = Provider.of<AppModel>(context);
+    appModel = Provider.of<AppModel>(context);
     Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
     double mHeight = MediaQuery.of(context).size.height;
     double mWidth = MediaQuery.of(context).size.width;
@@ -306,7 +441,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                                 ),
                               ))
                           .toList(),
-                      onChanged: (value) {
+                      onChanged: (dynamic value) {
                         setState(() {
                           selectedValue = value;
                           print('$selectedValue');

@@ -7,10 +7,10 @@ import 'package:provider/provider.dart';
 import '../model/theme_set_provider.dart';
 
 class BelnetPowerButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  bool isClick;
-  final AnimationController animationController;
-  final Animation animation;
+  final VoidCallback? onPressed;
+  bool? isClick;
+  final AnimationController? animationController;
+  final Animation? animation;
   BelnetPowerButton({this.onPressed,
   this.animationController, this.animation,
   this.isClick

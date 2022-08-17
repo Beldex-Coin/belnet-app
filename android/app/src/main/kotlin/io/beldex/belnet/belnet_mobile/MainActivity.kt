@@ -3,6 +3,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.plugins.GeneratedPluginRegistrant
 import io.flutter.embedding.android.SplashScreen
+
 import io.beldex.belnet.SplashView
 import android.os.Build
 import android.os.Bundle

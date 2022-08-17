@@ -1,6 +1,5 @@
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:flutter/material.dart';
-//mport 'package:belnet_mobile/src/utils/is_darkmode.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
@@ -45,26 +44,21 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton> with SingleTicker
       onTap: widget.onPressed,
       child: Container(
         decoration:BoxDecoration(
-          // color: Colors.yellow,
+         // color: Colors.yellow,
           shape: BoxShape.circle,
-          // boxShadow: [
-          //   BoxShadow(
-          //     color:BelnetLib.isConnected ? Color(0xff00C000).withOpacity(0.6): Colors.transparent,
-          //     blurRadius:BelnetLib.isConnected ? 10 : 0,
-          //     spreadRadius: BelnetLib.isConnected ? 10 : 0,
-          //   ),
-          // ],
         ),
-        height: MediaQuery.of(context).size.height * 0.85 / 3,
-        width: MediaQuery.of(context).size.width * 1.58 / 3,
+        height: MediaQuery.of(context).size.height * 0.70 / 3,
+        width: MediaQuery.of(context).size.width * 1.48 / 3,
         child: appModel.darkTheme ? SvgPicture.asset(
          BelnetLib.isConnected
-            ? 'assets/images/dark_power_on.svg'
-            : 'assets/images/power_off.svg'):
+            ? 'assets/images/power_on (2).svg'
+            : 'assets/images/power_off.svg',
+        ):
             SvgPicture.asset(
             BelnetLib.isConnected
             ? 'assets/images/power_on.svg'
-            : 'assets/images/power_off_white.svg'),
+            : 'assets/images/power_off_white.svg',
+            ),
       ),
     );
   }

@@ -1,115 +1,497 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
-void main() {
-  runApp(const MyApp());
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/splash_screen.dart';
+import 'package:belnet_mobile/src/utils/styles.dart';
+import 'package:belnet_mobile/src/widget/connecting_status.dart';
+// import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:belnet_lib/belnet_lib.dart';
+import 'package:belnet_mobile/src/settings.dart';
+//import 'package:belnet_mobile/src/utils/is_darkmode.dart';
+//import 'package:belnet_mobile/src/widget/belnet_divider.dart';
+import 'package:belnet_mobile/src/widget/belnet_power_button.dart';
+import 'package:belnet_mobile/src/widget/themed_belnet_logo.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
+
+void main() async {
+  //Load settings
+  WidgetsFlutterBinding.ensureInitialized();
+  await Settings.getInstance()!.initialize();
+  Provider.debugCheckInvalidValueType = null;
+  // AwesomeNotifications().initialize('resource://drawable/res_notification_app_icon',
+  // [
+  //   NotificationChannel(
+  //     channelKey: 'basic_channel',
+  //     channelDescription: '',
+  //     channelName: 'basic notifications',
+  //     defaultColor: Colors.teal,
+  //     importance: NotificationImportance.High,
+  //     //channelShowBadge: true,
+  //     locked: true,
+  //     defaultPrivacy: NotificationPrivacy.Private
+  //
+  //   )
+  // ]
+  // );
+  runApp(BelnetApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class BelnetApp extends StatefulWidget {
+  @override
+  State<BelnetApp> createState() => _BelnetAppState();
+}
 
+class _BelnetAppState extends State<BelnetApp> {
   // This widget is the root of your application.
+
+  AppModel appModel = new AppModel();
+
+  void _initAppTheme() async {
+    appModel.darkTheme = await appModel.appPreference.getTheme();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initAppTheme();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
+    return ChangeNotifierProvider<AppModel>.value(
+      value: appModel,
+      child: Consumer<AppModel>(builder: (context, value, child) {
+        return MaterialApp(
+          title: 'Belnet App',
+          debugShowCheckedModeBanner: false,
+          theme: appModel.darkTheme ? buildDarkTheme() : buildLightTheme(),
+          // (
+          //   primarySwatch: Colors.teal,
+          //   visualDensity: VisualDensity.adaptivePlatformDensity,
+          // ),
+          home: BelnetHomePage(),
+        );
+      }),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class BelnetHomePage extends StatefulWidget {
+  BelnetHomePage({Key? key}) : super(key: key);
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  BelnetHomePageState createState() => BelnetHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
+class BelnetHomePageState extends State<BelnetHomePage> {
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final key = new GlobalKey<ScaffoldState>();
+    double mHeight = MediaQuery.of(context).size.height;
+    double mWidth = MediaQuery.of(context).size.width;
+    final appModel = Provider.of<AppModel>(context);
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+      key: key,
+      resizeToAvoidBottomInset:
+          false, //Prevents overflow when keyboard is shown
+      body: Container(
+        color: appModel.darkTheme ? Color(0xff242430) : Color(0xffF9F9F9),
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
+              child: Container(
+                  width: double.infinity,
+                  height: mHeight * 1.45 / 3,
+                  // decoration: BoxDecoration(
+                  //   boxShadow: [
+                  //   BoxShadow(
+                  //     color: Colors.grey,
+                  //     offset: Offset(0.0, 1.0), //(x,y)
+                  //     blurRadius: 8.0,
+                  //   ),
+                  // ],
+                  // ),
+                  child: appModel.darkTheme ?
+                  appModel.connecting_belnet ?
+                  Lottie.asset('assets/images/Mobile_Animation.json',
+                    // fit: BoxFit.cover,
+                    // height: mHeight * 1.5 / 3,
+                    // width: mHeight * 2.5 / 3
+                  ) :
+                  SvgPicture.asset('assets/images/BG_world.svg',
+                      fit: BoxFit.cover,
+                      height: mHeight * 1.5 / 3,
+                      width: mHeight * 2.5 / 3
+                  )
+                      : appModel.connecting_belnet ?
+                  Lottie.asset('assets/images/Mobile_Animation.json',
+                    // fit: BoxFit.cover,
+                    height: mHeight * 1.8 / 3,
+                    // width: mHeight * 2.5 / 3
+                  ) :
+                  SvgPicture.asset('assets/images/bg_world_map_white.svg',
+                      fit: BoxFit.cover,
+                      height: mHeight * 1.5 / 3,
+                      width: mHeight * 2.5 / 3
+                  )
+                  // SvgPicture.asset(
+                  //     appModel.darkTheme
+                  //         ? 'assets/images/BG_world.svg'
+                  //         : 'assets/images/bg_world_map_white.svg',
+                  //     fit: BoxFit.cover,
+                  //     height: mHeight * 1.5 / 3,
+                  //     width: mHeight * 2.5 / 3)
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+            Positioned(
+              top: mHeight * 0.15 / 3,
+              right: mHeight * 0.08 / 3,
+              child: GestureDetector(
+                onTap: () {
+                  appModel.darkTheme = !appModel.darkTheme;
+                },
+                child: appModel.darkTheme
+                    ? SvgPicture.asset('assets/images/dark_theme.svg')
+                    : SvgPicture.asset('assets/images/light_theme.svg'),
+              ),
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ThemedBelnetLogo(),
+                MyForm(),
+              ],
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
+
+final exitInput = TextEditingController(text: Settings.getInstance()!.exitNode);
+final dnsInput =
+    TextEditingController(text: Settings.getInstance()!.upstreamDNS);
+
+
+
+// Create a Form widget.
+class MyForm extends StatefulWidget {
+  @override
+  MyFormState createState() {
+    return MyFormState();
+  }
+}
+
+class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
+  static final key = new GlobalKey<FormState>();
+  StreamSubscription<bool>? _isConnectedEventSubscription;
+  bool isClick = false;
+  late AppModel appModel;
+  AnimationController? _animationController;
+  Animation? _animation;
+
+  final List<String> exitItems = [
+    '8zhrwu36op5y6kz51qbwzgde1wrnhzmf8y14u7whmaiao3njn11y.beldex',
+    'exit1.beldex',
+    'exit.beldex',
+  ];
+  String? selectedValue =
+      '8zhrwu36op5y6kz51qbwzgde1wrnhzmf8y14u7whmaiao3njn11y.beldex';
+  final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  @override
+  initState(){
+    super.initState();
+    _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
+        .listen((bool isConnected) => setState(() {}));
+
+    var initializationSettingsAndroid =
+    new AndroidInitializationSettings('@drawable/res_notification_app_icon');
+    var initializationSettingsIOS = new IOSInitializationSettings();
+    var initializationSettings = new InitializationSettings(
+      android: initializationSettingsAndroid,iOS: initializationSettingsIOS
+    );
+    //lutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+    flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //for notification
+
+    // AwesomeNotifications().createdStream.listen((notification) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: Text('Notification Created on ${notification.channelKey}'),
+    //     ),
+    //   );
+    // });
+    //
+    // AwesomeNotifications().actionStream.listen((notification) {
+    //   Navigator.pushAndRemoveUntil(
+    //       context,
+    //       MaterialPageRoute(
+    //         builder: (_) => BelnetHomePage(),
+    //       ),
+    //           (route) => route.isFirst);
+    // });
+  }
+
+  @override
+  void dispose() {
+    // _animationController.dispose();
+    super.dispose();
+
+    _isConnectedEventSubscription?.cancel();
+  }
+
+  Future toggleBelnet() async {
+    //if(BelnetLib.isConnected)
+    isClick = isClick ? false : true;
+    if (mounted) setState(() {});
+
+    if (BelnetLib.isConnected) {
+      await BelnetLib.disconnectFromBelnet();
+      appModel.connecting_belnet = false;
+    } else {
+      //Save the exit node and upstream dns
+      final Settings settings = Settings.getInstance()!;
+      settings.exitNode =
+          selectedValue!.trim().toString(); //exitInput.value.text.trim();
+      settings.upstreamDNS = dnsInput.value.text.trim();
+
+      final result = await BelnetLib.prepareConnection();
+      appModel.connecting_belnet = true;
+      if (result)
+        BelnetLib.connectToBelnet(
+            exitNode: settings.exitNode!, upstreamDNS: settings.upstreamDNS!);
+      // appModel.connecting_belnet = true;
+      _showNotificationWithoutSound();
+      //createNotificationForVpnConnect();
+    }
+    //  animationFunction();
+  }
+
+
+  // Future createNotificationForVpnConnect() async{
+  //  return await AwesomeNotifications().createNotification(
+  //     content: NotificationContent(
+  //       id: 1,
+  //       channelKey: 'basic_channel',
+  //       title:
+  //       'Belnet vpn is running...',
+  //       body: 'click to go to belnet app',
+  //       //bigPicture: 'asset://assets/notification_map.png',
+  //       //notificationLayout: NotificationLayout.BigPicture,
+  //       //autoDismissible: false,
+  //       locked: true,
+  //       wakeUpScreen: true,
+  //       category: NotificationCategory.Workout
+  //       // displayOnForeground: false,
+  //       // displayOnBackground: true,
+  //
+  //     ),
+  //     // actionButtons: [
+  //     //   NotificationActionButton(key: 'disconnect', label:'DISCONNECT' )
+  //     // ]
+  //   );
+  // }
+
+  Future _showNotificationWithoutSound() async {
+    var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
+        'basic_channel','1',
+        playSound: false, importance: Importance.max, priority: Priority.max,
+    //fullScreenIntent: true,
+    ongoing: true,
+      //autoCancel: false
+    );
+    var iOSPlatformChannelSpecifics =  IOSNotificationDetails(presentSound: false);
+    var platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics
+    );
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Belnet is Running...',
+      'Click to go to BBelnet app',
+      platformChannelSpecifics,
+      payload: 'No_Sound',
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    String val = 'test ';
+    appModel = Provider.of<AppModel>(context);
+    Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
+    double mHeight = MediaQuery.of(context).size.height;
+    double mWidth = MediaQuery.of(context).size.width;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      // crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        BelnetPowerButton(
+          onPressed: toggleBelnet,
+          isClick: isClick,
+          animation: _animation,
+          animationController: _animationController,
+        ),
+        ConnectingStatus(
+          isConnect: BelnetLib.isConnected,
+        ),
+        Row(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(
+                  left: mHeight * 0.10 / 3, top: mHeight * 0.15 / 3),
+              child: Text(
+                'Exit Node',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: EdgeInsets.only(
+              left: MediaQuery.of(context).size.height * 0.08 / 3,
+              right: MediaQuery.of(context).size.height * 0.10 / 3,
+              top: MediaQuery.of(context).size.height * 0.06 / 3),
+          child: Container(
+            decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.all(Radius.circular(5))),
+            child: Padding(
+                padding: const EdgeInsets.only(
+                    left: 0.0, right: 6.0, top: 3.0, bottom: 3.0),
+                child:
+//                 DropdownButton<String>(
+//                   isExpanded: true,
+//                            value: selectedValue,
+//                            style: const TextStyle(
+//                            color: Colors.deepPurple, //<-- SEE HERE
+//                            fontSize: 25,
+//                            fontWeight: FontWeight.bold),
+//                            onChanged: (String newValue) {
+//                             setState(() {
+//                              selectedValue = newValue;
+//     });
+//   },
+//   items: items
+//       .map<DropdownMenuItem<String>>((String value) {
+//     return DropdownMenuItem<String>(
+//       value: value,
+//       child: Text(
+//         value,
+//       ),
+//     );
+//   }).toList(),
+// ),
+                    DropdownButtonHideUnderline(
+                  child: DropdownButton(
+                    enableFeedback: true,
+                      isExpanded: true,
+                      //underline: const SizedBox(),
+                      value: selectedValue,
+                      icon: Icon(Icons.arrow_drop_down,
+                          color: Color(0xffD4D4D4)),
+                      style: TextStyle(
+                          color: Color(0xff00DC00),
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Poppins',
+                          fontSize: mHeight * 0.06 / 3,
+                          overflow: TextOverflow.ellipsis),
+                      items: exitItems
+                          .map((item) => DropdownMenuItem<String>(
+                                value: item,
+                                enabled: BelnetLib.isConnected ? false : true,
+                                child: Center(
+                                  child: Text(
+                                    item,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xff00DC00),
+                                        fontFamily: 'Poppins'),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: (dynamic value) {
+                        setState(() {
+                          selectedValue = value;
+                          print('$selectedValue');
+                        });
+                      }),
+                )),
+          ),
+        ),
+        // Padding(
+        //   padding: EdgeInsets.only(left: 45, right: 45 , top: 20),
+        //   child: TextFormField(
+        //     validator: (value) {
+        //       final trimmed = value.trim();
+        //       if (trimmed == "") return null;
+        //       if (trimmed == ".beldex" || !trimmed.endsWith(".beldex"))
+        //         return "Invalid exit node value";
+        //       return null;
+        //     },
+        //     controller: exitInput,
+        //     cursorColor: color,
+        //     style: TextStyle(color: color),
+        //     decoration: InputDecoration(
+        //         filled: true,
+        //         fillColor: appModel.darkTheme
+        //             ? Color.fromARGB(255, 35, 35, 35)
+        //             : Color.fromARGB(255, 226, 226, 226),
+        //         border: InputBorder.none,
+        //         labelStyle: TextStyle(color: color),
+        //         labelText: 'Exit Node'),
+        //   ),
+        // ),
+        // Padding(
+        //   padding: EdgeInsets.all(8.0),
+        //   child: Text(
+        //     BelnetLib.isConnected ? "Connected" : "Not Connected",
+        //     style: TextStyle(
+        //         color: color,
+        //         fontSize: MediaQuery.of(context).size.height * 0.024),
+        //   ),
+        // ),
+        // TextButton(
+        //     onPressed: () async {
+        //       val= (await BelnetLib.status).toString();
+        //       print(
+        //           'Test is the status${(await BelnetLib.status).toString()}');
+        //     },
+        //     child: Text("$val"))
+      ],
+    );
+  }
+}
+
+

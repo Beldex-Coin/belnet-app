@@ -6,7 +6,6 @@ ThemeData buildLightTheme() {
     cardColor: Colors.white,
     backgroundColor: Color(0xffF9F9F9),
     primaryColor: Colors.red,
-    
     scaffoldBackgroundColor: Color(0xffF9F9F9),
   );
 }

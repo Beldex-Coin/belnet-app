@@ -60,7 +60,6 @@ class _BelnetAppState extends State<BelnetApp> {
 
   void _initAppTheme() async {
     appModel.darkTheme = await appModel.appPreference.getTheme();
-
   }
 
   @override
@@ -122,6 +121,10 @@ class BelnetHomePageState extends State<BelnetHomePage>
     double mWidth = MediaQuery.of(context).size.width;
     final appModel = Provider.of<AppModel>(context);
 
+    final dark_static_map = SvgPicture.asset('assets/images/Map_dark_1.svg');
+    final blinking_dots = Lottie.asset('assets/images/map_dark.json');
+    final white_static_map = SvgPicture.asset('assets/images/Map_white.svg');
+
     return SafeArea(
       child: Container(
         decoration: BoxDecoration(
@@ -153,44 +156,22 @@ class BelnetHomePageState extends State<BelnetHomePage>
                     //color:Colors.green,
                     height: mHeight * 1.20 / 3,
                     child: appModel.darkTheme
-                        ? appModel.connecting_belnet
-                            ? Lottie.asset(
-                                'assets/images/Mobile_Animation.json',
-                                fit: BoxFit.fitHeight,
-                                // controller: lottieController,
-                                onLoaded: (composition) {
-                                setState(() {});
-                                loading =
-                                    composition.performanceTrackingEnabled;
-                                print('loading lottie image status $loading');
-                              }, errorBuilder: (context, obj, error) {
-                                return SvgPicture.asset(
-                                    'assets/images/Map_dark_1.svg');
-                              },
-                                // height: mHeight * 1.5 / 3,
-                                width: double.infinity)
-                            : SvgPicture.asset(
-                                'assets/images/Map_dark_1.svg',
-                                fit: BoxFit.fitHeight,
-                                // height: mHeight * 1.4 / 3,
-                                width: double.infinity,
-                                //width: mHeight * 2.5 / 3
-                              )
-                        :
-                           appModel.connecting_belnet
-                            ?
-                            // SvgPicture.asset('assets/images/map_white.svg',
-                            //   fit: BoxFit.fitHeight,
-                            // )
-                            Lottie.asset(
-                                'assets/images/map_white.json',
-                                fit: BoxFit.fitHeight,
-                                width: double.infinity,
-                              )
-                            : SvgPicture.asset('assets/images/Map_white.svg',
-                                fit: BoxFit.fitHeight,
-                                // height: mHeight * 1.5 / 3,
-                                width: mWidth)),
+                        ? Lottie.asset(
+                            appModel.connecting_belnet
+                                ? 'assets/images/dark_animations.json'
+                                : 'assets/images/Map_dark_BG.json',
+                            fit: BoxFit.fitHeight,
+                            // controller: lottieController,
+                            // height: mHeight * 1.5 / 3,
+                            width: double.infinity)
+                        : Lottie.asset(
+                            appModel.connecting_belnet
+                                ? 'assets/images/White_animation.json'
+                                : 'assets/images/white_static.json',
+                            fit: BoxFit.fitHeight,
+                            // controller: lottieController,
+                            // height: mHeight * 1.5 / 3,
+                            width: double.infinity)),
                 Positioned(
                   top: mHeight * 0.10 / 3,
                   right: mHeight * 0.08 / 3,
@@ -295,11 +276,9 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   }
 
   Future toggleBelnet() async {
-  //  isClick = isClick ? false : true;
+    //  isClick = isClick ? false : true;
     loading = true;
-    setState(() {
-
-    });
+    setState(() {});
     Future.delayed(const Duration(milliseconds: 1500), () {
       setState(() {
         loading = false;
@@ -308,12 +287,10 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     if (mounted) setState(() {});
 
     if (BelnetLib.isConnected) {
-
       await BelnetLib.disconnectFromBelnet();
       appModel.connecting_belnet = false;
       print('belnet status 2 ${appModel.status_belnet}');
     } else {
-
       //Save the exit node and upstream dns
       final Settings settings = Settings.getInstance()!;
       settings.exitNode =
@@ -321,28 +298,19 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       settings.upstreamDNS = dnsInput.value.text.trim();
 
       final result = await BelnetLib.prepareConnection();
-     // appModel.connecting_belnet = true;
+      // appModel.connecting_belnet = true;
 
       if (result)
         BelnetLib.connectToBelnet(
             exitNode: settings.exitNode!, upstreamDNS: settings.upstreamDNS!);
 
-      setState(() {
-
-      });
+      setState(() {});
       appModel.connecting_belnet = true;
       _showNotificationWithoutSound();
-
     }
 
     //appModel.status_belnet = false;
   }
-
-
-
-
-
-
 
   Future _showNotificationWithoutSound() async {
     var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
@@ -378,13 +346,13 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       mainAxisAlignment: MainAxisAlignment.center,
       // crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        BelnetPowerButton(
-          onPressed: toggleBelnet,
-          isClick: isClick,
-          isLoading: loading
+        Padding(
+          padding: EdgeInsets.only(top: mHeight * 0.15 / 3),
+          child: BelnetPowerButton(
+              onPressed: toggleBelnet, isClick: isClick, isLoading: loading),
         ),
         Padding(
-          padding: EdgeInsets.only(top: 8.0),
+          padding: EdgeInsets.only(top: mHeight * 0.10 / 3),
           child: ConnectingStatus(
             isConnect: BelnetLib.isConnected,
           ),
@@ -456,257 +424,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                 )),
           ),
         ),
-        // TextButton(
-        //     onPressed: () async {
-        //       val= (await BelnetLib.status).toString();
-        //       print(
-        //           'Test is the status${(await BelnetLib.status).toString()}');
-        //     },
-        //     child: Text("$val"))
-
-        TextButton(
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => GradientScaf()));
-            },
-            child: Text('Click me to see animation'))
       ],
     );
   }
 }
-
-// class SamplePage extends StatefulWidget {
-//   const SamplePage({Key? key}) : super(key: key);
-//
-//   @override
-//   State<SamplePage> createState() => _SamplePageState();
-// }
-//
-// class _SamplePageState extends State<SamplePage> {
-//   var selectedValues =
-//       '8zhrwu36op5y6kz51qbwzgde1wrnhzmf8y14u7whmaiao3njn11y.beldex';
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: Center(
-//         child: Padding(
-//           padding: EdgeInsets.only(
-//               left: MediaQuery.of(context).size.height * 0.08 / 3,
-//               right: MediaQuery.of(context).size.height * 0.10 / 3,
-//               top: MediaQuery.of(context).size.height * 0.06 / 3),
-//           child: Container(
-//             width: MediaQuery.of(context).size.height,
-//             child: DropdownButtonHideUnderline(
-//               child: Center(
-//                 child: DropdownButton2(
-//                   isExpanded: true,
-//                   items: [
-//                     '8zhrwu36op5y6kz51qbwzgde1wrnhzmf8y14u7whmaiao3njn11y.beldex',
-//                     'exit1.beldex',
-//                     'exit.beldex',
-//                     'bel.bdx',
-//                     'coin.bdx'
-//                   ]
-//                       .map((item) => DropdownMenuItem<String>(
-//                             value: item,
-//                             child: Center(
-//                               child: Text(
-//                                 item,
-//                                 style: TextStyle(
-//                                   fontSize: MediaQuery.of(context).size.height *
-//                                       0.06 /
-//                                       3,
-//                                   //fontWeight: FontWeight.bold,
-//                                   color: Colors.white,
-//                                 ),
-//                                 overflow: TextOverflow.ellipsis,
-//                               ),
-//                             ),
-//                           ))
-//                       .toList(),
-//                   value: selectedValues,
-//                   onChanged: (value) {
-//                     setState(() {
-//                       selectedValues = value as String;
-//                     });
-//                   },
-//                   icon: const Icon(
-//                     Icons.arrow_drop_down,
-//                   ),
-//                   iconSize: MediaQuery.of(context).size.height * 0.1 / 3,
-//                   iconEnabledColor: Colors.grey,
-//                   iconDisabledColor: Colors.grey,
-//                   buttonHeight: MediaQuery.of(context).size.height * 0.20 / 3,
-//                   buttonWidth: double.infinity,
-//                   buttonPadding: const EdgeInsets.only(left: 14, right: 14),
-//                   buttonDecoration: BoxDecoration(
-//                     borderRadius: BorderRadius.circular(
-//                         MediaQuery.of(context).size.height * 0.01 / 3),
-//                     border: Border.all(
-//                       color: Colors.black26,
-//                     ),
-//                     color: Color(0xff292937),
-//                   ),
-//                   alignment: AlignmentDirectional.centerStart,
-//                   buttonElevation: 2,
-//                   itemHeight: 40,
-//                   //itemPadding: EdgeInsets.only(left: 14, right: 14),
-//                   dropdownMaxHeight: 200,
-//                   dropdownWidth: MediaQuery.of(context).size.width * 2.5 / 3,
-//                   //dropdownPadding: EdgeInsets.only(left:30,right:30),
-//                   dropdownDecoration: BoxDecoration(
-//                     borderRadius: BorderRadius.circular(14),
-//                     color: Color(0xff292937),
-//                   ),
-//                   dropdownElevation: 8,
-//                   scrollbarRadius: const Radius.circular(40),
-//                   scrollbarThickness: 6,
-//                   scrollbarAlwaysShow: true,
-//                   offset: const Offset(-20, 0),
-//                 ),
-//               ),
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-//
-//
-//
-
-class GradientScaf extends StatefulWidget {
-  const GradientScaf({Key? key}) : super(key: key);
-
-  @override
-  State<GradientScaf> createState() => _GradientScafState();
-}
-
-class _GradientScafState extends State<GradientScaf> {
-  var white_loading_image = Lottie.asset('assets/images/loading_button.json');
-  var power_on_dark = SvgPicture.asset('assets/images/power_on (2).svg');
-  var power_off_dark = SvgPicture.asset('assets/images/power_off.svg');
-  var dark_loading_image = Lottie.asset('assets/images/loading_button.json');
-  var power_on_white = SvgPicture.asset('assets/images/power_on (3).svg');
-  var power_off_white = SvgPicture.asset('assets/images/power_off_white.svg');
-
-
-  @override
-  Widget build(BuildContext context) {
-    final appModel = Provider.of<AppModel>(context);
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: appModel.darkTheme
-              ? [
-                  Color(0xFFF9F9F9),
-                  Color(0xFFEBEBEB),
-                ]
-              : [
-                  Color(0xFF242430),
-                  Color(0xFF1C1C26),
-                ],
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Center(
-            child: GestureDetector(
-               onTap: ()async{
-                 loading = true;
-                 setState(() {
-
-                 });
-                 Future.delayed(const Duration(milliseconds: 1500), () {
-                   setState(() {
-                     loading = false;
-                   });
-                 });
-                 if (mounted) setState(() {});
-
-                 if (BelnetLib.isConnected) {
-
-                   await BelnetLib.disconnectFromBelnet();
-                   appModel.connecting_belnet = false;
-                   print('belnet status 2 ${appModel.status_belnet}');
-                 } else {
-
-                   //Save the exit node and upstream dns
-                   final Settings settings = Settings.getInstance()!;
-                   settings.exitNode ='8zhrwu36op5y6kz51qbwzgde1wrnhzmf8y14u7whmaiao3njn11y.beldex';
-
-                   settings.upstreamDNS = dnsInput.value.text.trim();
-
-                   final result = await BelnetLib.prepareConnection();
-                   // appModel.connecting_belnet = true;
-                   appModel.status_belnet = true;
-                   if (result)
-                     BelnetLib.connectToBelnet(
-                         exitNode: settings.exitNode!, upstreamDNS: settings.upstreamDNS!);
-
-                   setState(() {
-
-                   });
-                   appModel.connecting_belnet = true;
-
-
-                 }
-
-               },
-              child: Container(
-                height: 200, width:200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                ),
-                child:
-                loading ?
-                    white_loading_image :
-                appModel.connecting_belnet ?
-                power_on_white
-                : power_off_white,
-              ),
-            ),
-
-
-        ),
-      ),
-    );
-    // return ScaffoldGradientBackground(
-    //   gradient: LinearGradient(
-    //     begin: Alignment.topCenter,
-    //     end: Alignment.bottomCenter,
-    //     colors: appModel.darkTheme ? [
-    //       Color(0xFFF9F9F9),
-    //       Color(0xFFEBEBEB),
-    //     ]: [
-    //       Color(0xFF242430),
-    //       Color(0xFF1C1C26),
-    //     ],
-    //   ),
-    //   appBar: AppBar(
-    //     title: Text('Linear Gradient Example'),
-    //   ),
-    //   body: Center(
-    //     child: Text(
-    //       'Hello ^^',
-    //       style: TextStyle(
-    //         color: Colors.white,
-    //         fontSize: 30,
-    //       ),
-    //     ),
-    //   ),
-    // );
-  }
-}
-
-
-
-
-
-
-
-
-

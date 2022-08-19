@@ -9,7 +9,7 @@ import '../model/theme_set_provider.dart';
 class BelnetPowerButton extends StatefulWidget {
   final VoidCallback? onPressed;
   bool? isClick;
- bool isLoading=false;
+ bool? isLoading;
   BelnetPowerButton({this.onPressed, this.isClick, required this.isLoading});
 
   @override
@@ -33,17 +33,12 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
   Widget build(BuildContext context) {
     final appModel = Provider.of<AppModel>(context);
 
-    var white_loading_image = Lottie.asset('assets/images/loading_button.json');
-    var power_on_dark = SvgPicture.asset('assets/images/power_on (2).svg');
-    var power_off_dark = SvgPicture.asset('assets/images/power_off.svg');
-    var dark_loading_image = Lottie.asset('assets/images/loading_button.json');
-    var power_on_white = SvgPicture.asset('assets/images/power_on (3).svg');
-    var power_off_white = SvgPicture.asset('assets/images/power_off_white.svg');
-
-
-
-
-
+    var whiteLoadingImage = Lottie.asset('assets/images/loading_button.json');
+    var powerOnDark = Lottie.asset('assets/images/on_dark.json');
+    var powerOffDark = Lottie.asset('assets/images/off_dark.json');
+    var darkLoadingImage = Lottie.asset('assets/images/button_Loading_dark (1).json');
+    var powerOnWhite = Lottie.asset('assets/images/on_white.json');
+    var powerOffWhite = Lottie.asset('assets/images/off_white.json');
 
 
     return GestureDetector(
@@ -58,29 +53,17 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
           child:
           appModel.darkTheme
               ?
-          widget.isLoading
-                  ? dark_loading_image
+          widget.isLoading!
+                  ? darkLoadingImage
                   : appModel.connecting_belnet
-                      ? power_on_dark
-                      : power_off_dark
+                      ? powerOnDark
+                      : powerOffDark
               :
-        widget.isLoading
-                  ? white_loading_image
+        widget.isLoading!
+                  ? whiteLoadingImage
                   : appModel.connecting_belnet
-                      ? power_on_white
-                      : power_off_white
-
-          // appModel.darkTheme ?
-          // SvgPicture.asset(
-          //  BelnetLib.isConnected
-          //     ? 'assets/images/power_on (2).svg'
-          //     : 'assets/images/power_off.svg',
-          // ):
-          //     SvgPicture.asset(
-          //     BelnetLib.isConnected
-          //     ? 'assets/images/power_on (3).svg'
-          //     : 'assets/images/power_off_white.svg',
-          //     ),
+                      ? powerOnWhite
+                      : powerOffWhite
           ),
     );
   }

@@ -1,17 +1,15 @@
 import 'dart:async';
 
-import 'package:awesome_notifications/awesome_notifications.dart';
+//import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
-// import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/settings.dart';
-//import 'package:belnet_mobile/src/utils/is_darkmode.dart';
-//import 'package:belnet_mobile/src/widget/belnet_divider.dart';
 import 'package:belnet_mobile/src/widget/belnet_power_button.dart';
 import 'package:belnet_mobile/src/widget/themed_belnet_logo.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -19,6 +17,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
+// import 'package:scaffold_gradient_background/scaffold_gradient_background.dart';
+//Global variables
+final exitInput = TextEditingController(text: Settings.getInstance()!.exitNode);
+final dnsInput =
+    TextEditingController(text: Settings.getInstance()!.upstreamDNS);
+
+bool isClick = false;
+bool loading = false;
 void main() async {
   //Load settings
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,6 +65,7 @@ class _BelnetAppState extends State<BelnetApp> {
   @override
   void initState() {
     super.initState();
+    //SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack, overlays: [SystemUiOverlay.top]);
     _initAppTheme();
   }
 
@@ -73,15 +80,11 @@ class _BelnetAppState extends State<BelnetApp> {
       value: appModel,
       child: Consumer<AppModel>(builder: (context, value, child) {
         return MaterialApp(
-          title: 'Belnet App',
-          debugShowCheckedModeBanner: false,
-          theme: appModel.darkTheme ? buildDarkTheme() : buildLightTheme(),
-          // (
-          //   primarySwatch: Colors.teal,
-          //   visualDensity: VisualDensity.adaptivePlatformDensity,
-          // ),
-          home: BelnetHomePage(),
-        );
+            title: 'Belnet App',
+            debugShowCheckedModeBanner: false,
+            theme: appModel.darkTheme ? buildDarkTheme() : buildLightTheme(),
+            home: SplashScreens() //BelnetHomePage(),
+            );
       }),
     );
   }
@@ -94,98 +97,118 @@ class BelnetHomePage extends StatefulWidget {
   BelnetHomePageState createState() => BelnetHomePageState();
 }
 
-class BelnetHomePageState extends State<BelnetHomePage> {
+class BelnetHomePageState extends State<BelnetHomePage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController lottieController;
+
+  @override
+  void initState() {
+    lottieController = AnimationController(
+      vsync: this,
+    );
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    lottieController.dispose();
+    super.dispose();
+  }
+
   Widget build(BuildContext context) {
-    final key = new GlobalKey<ScaffoldState>();
+    //final key = new GlobalKey<ScaffoldState>();
     double mHeight = MediaQuery.of(context).size.height;
     double mWidth = MediaQuery.of(context).size.width;
     final appModel = Provider.of<AppModel>(context);
-    return Scaffold(
-      key: key,
-      resizeToAvoidBottomInset:
-          false, //Prevents overflow when keyboard is shown
-      body: Container(
-        color: appModel.darkTheme ? Color(0xff242430) : Color(0xffF9F9F9),
-        child: Stack(
-          children: [
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Container(
-                  width: double.infinity,
-                  height: mHeight * 1.45 / 3,
-                  // decoration: BoxDecoration(
-                  //   boxShadow: [
-                  //   BoxShadow(
-                  //     color: Colors.grey,
-                  //     offset: Offset(0.0, 1.0), //(x,y)
-                  //     blurRadius: 8.0,
-                  //   ),
-                  // ],
-                  // ),
-                  child: appModel.darkTheme ?
-                  appModel.connecting_belnet ?
-                  Lottie.asset('assets/images/Mobile_Animation.json',
-                    // fit: BoxFit.cover,
-                    // height: mHeight * 1.5 / 3,
-                    // width: mHeight * 2.5 / 3
-                  ) :
-                  SvgPicture.asset('assets/images/BG_world.svg',
-                      fit: BoxFit.cover,
-                      height: mHeight * 1.5 / 3,
-                      width: mHeight * 2.5 / 3
-                  )
-                      : appModel.connecting_belnet ?
-                  Lottie.asset('assets/images/Mobile_Animation.json',
-                    // fit: BoxFit.cover,
-                    height: mHeight * 1.8 / 3,
-                    // width: mHeight * 2.5 / 3
-                  ) :
-                  SvgPicture.asset('assets/images/bg_world_map_white.svg',
-                      fit: BoxFit.cover,
-                      height: mHeight * 1.5 / 3,
-                      width: mHeight * 2.5 / 3
-                  )
-                  // SvgPicture.asset(
-                  //     appModel.darkTheme
-                  //         ? 'assets/images/BG_world.svg'
-                  //         : 'assets/images/bg_world_map_white.svg',
-                  //     fit: BoxFit.cover,
-                  //     height: mHeight * 1.5 / 3,
-                  //     width: mHeight * 2.5 / 3)
-              ),
-            ),
-            Positioned(
-              top: mHeight * 0.15 / 3,
-              right: mHeight * 0.08 / 3,
-              child: GestureDetector(
-                onTap: () {
-                  appModel.darkTheme = !appModel.darkTheme;
-                },
-                child: appModel.darkTheme
-                    ? SvgPicture.asset('assets/images/dark_theme.svg')
-                    : SvgPicture.asset('assets/images/light_theme.svg'),
-              ),
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+
+    final dark_static_map = SvgPicture.asset('assets/images/Map_dark_1.svg');
+    final blinking_dots = Lottie.asset('assets/images/map_dark.json');
+    final white_static_map = SvgPicture.asset('assets/images/Map_white.svg');
+
+    return SafeArea(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: appModel.darkTheme
+                ? [
+                    Color(0xFF242430),
+                    Color(0xFF1C1C26),
+                  ]
+                : [
+                    Color(0xFFF9F9F9),
+                    Color(0xFFEBEBEB),
+                  ],
+          ),
+        ),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          //key: key,
+          resizeToAvoidBottomInset:
+              false, //Prevents overflow when keyboard is shown
+          body: Container(
+            // color: appModel.darkTheme ? Color(0xff242430) : Color(0xffF9F9F9),
+            child: Stack(
               children: [
-                ThemedBelnetLogo(),
-                MyForm(),
+                Container(
+                    width: double.infinity,
+                    //color:Colors.green,
+                    height: mHeight * 1.20 / 3,
+                    child: appModel.darkTheme
+                        ? Lottie.asset(
+                            appModel.connecting_belnet
+                                ? 'assets/images/dark_animations.json'
+                                : 'assets/images/Map_dark_BG.json',
+                            fit: BoxFit.fitHeight,
+                            // controller: lottieController,
+                            // height: mHeight * 1.5 / 3,
+                            width: double.infinity)
+                        : Lottie.asset(
+                            appModel.connecting_belnet
+                                ? 'assets/images/White_animation.json'
+                                : 'assets/images/white_static.json',
+                            fit: BoxFit.fitHeight,
+                            // controller: lottieController,
+                            // height: mHeight * 1.5 / 3,
+                            width: double.infinity)),
+                Positioned(
+                  top: mHeight * 0.10 / 3,
+                  right: mHeight * 0.08 / 3,
+                  child: GestureDetector(
+                    onTap: () {
+                      appModel.darkTheme = !appModel.darkTheme;
+                    },
+                    child: appModel.darkTheme
+                        ? SvgPicture.asset('assets/images/dark_theme.svg')
+                        : SvgPicture.asset('assets/images/light_theme.svg'),
+                  ),
+                ),
+                Positioned(
+                  top: MediaQuery.of(context).size.height * 0.35 / 3,
+                  left: MediaQuery.of(context).size.height * 0.20 / 3,
+                  child: ThemedBelnetLogo(
+                    model: appModel.darkTheme,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 0),
+                  // top:mHeight * 0.20 / 3,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      MyForm(),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
-
-final exitInput = TextEditingController(text: Settings.getInstance()!.exitNode);
-final dnsInput =
-    TextEditingController(text: Settings.getInstance()!.upstreamDNS);
-
-
 
 // Create a Form widget.
 class MyForm extends StatefulWidget {
@@ -198,11 +221,8 @@ class MyForm extends StatefulWidget {
 class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   static final key = new GlobalKey<FormState>();
   StreamSubscription<bool>? _isConnectedEventSubscription;
-  bool isClick = false;
-  late AppModel appModel;
-  AnimationController? _animationController;
-  Animation? _animation;
 
+  late AppModel appModel;
   final List<String> exitItems = [
     '8zhrwu36op5y6kz51qbwzgde1wrnhzmf8y14u7whmaiao3njn11y.beldex',
     'exit1.beldex',
@@ -212,31 +232,20 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       '8zhrwu36op5y6kz51qbwzgde1wrnhzmf8y14u7whmaiao3njn11y.beldex';
   final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   @override
-  initState(){
+  initState() {
     super.initState();
     _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
         .listen((bool isConnected) => setState(() {}));
 
-    var initializationSettingsAndroid =
-    new AndroidInitializationSettings('@drawable/res_notification_app_icon');
+    var initializationSettingsAndroid = new AndroidInitializationSettings(
+        '@drawable/res_notification_app_icon');
     var initializationSettingsIOS = new IOSInitializationSettings();
     var initializationSettings = new InitializationSettings(
-      android: initializationSettingsAndroid,iOS: initializationSettingsIOS
+        android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
+    //flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+    flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
     );
-    //lutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
-    flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
-
-
-
-
-
-
-
-
-
-
-
 
     //for notification
 
@@ -267,13 +276,20 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   }
 
   Future toggleBelnet() async {
-    //if(BelnetLib.isConnected)
-    isClick = isClick ? false : true;
+    //  isClick = isClick ? false : true;
+    loading = true;
+    setState(() {});
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      setState(() {
+        loading = false;
+      });
+    });
     if (mounted) setState(() {});
 
     if (BelnetLib.isConnected) {
       await BelnetLib.disconnectFromBelnet();
       appModel.connecting_belnet = false;
+      print('belnet status 2 ${appModel.status_belnet}');
     } else {
       //Save the exit node and upstream dns
       final Settings settings = Settings.getInstance()!;
@@ -282,83 +298,64 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       settings.upstreamDNS = dnsInput.value.text.trim();
 
       final result = await BelnetLib.prepareConnection();
-      appModel.connecting_belnet = true;
+      // appModel.connecting_belnet = true;
+
       if (result)
         BelnetLib.connectToBelnet(
             exitNode: settings.exitNode!, upstreamDNS: settings.upstreamDNS!);
-      // appModel.connecting_belnet = true;
+
+      setState(() {});
+      appModel.connecting_belnet = true;
       _showNotificationWithoutSound();
-      //createNotificationForVpnConnect();
     }
-    //  animationFunction();
+
+    //appModel.status_belnet = false;
   }
-
-
-  // Future createNotificationForVpnConnect() async{
-  //  return await AwesomeNotifications().createNotification(
-  //     content: NotificationContent(
-  //       id: 1,
-  //       channelKey: 'basic_channel',
-  //       title:
-  //       'Belnet vpn is running...',
-  //       body: 'click to go to belnet app',
-  //       //bigPicture: 'asset://assets/notification_map.png',
-  //       //notificationLayout: NotificationLayout.BigPicture,
-  //       //autoDismissible: false,
-  //       locked: true,
-  //       wakeUpScreen: true,
-  //       category: NotificationCategory.Workout
-  //       // displayOnForeground: false,
-  //       // displayOnBackground: true,
-  //
-  //     ),
-  //     // actionButtons: [
-  //     //   NotificationActionButton(key: 'disconnect', label:'DISCONNECT' )
-  //     // ]
-  //   );
-  // }
 
   Future _showNotificationWithoutSound() async {
     var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
-        'basic_channel','1',
-        playSound: false, importance: Importance.max, priority: Priority.max,
-    //fullScreenIntent: true,
-    ongoing: true,
-      //autoCancel: false
+      'basic_channel',
+      '1',
+      playSound: false,
+      importance: Importance.max,
+      priority: Priority.max,
+      ongoing: true,
     );
-    var iOSPlatformChannelSpecifics =  IOSNotificationDetails(presentSound: false);
+    var iOSPlatformChannelSpecifics =
+        IOSNotificationDetails(presentSound: false);
     var platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics
-    );
+        android: androidPlatformChannelSpecifics,
+        iOS: iOSPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(
       0,
       'Belnet is Running...',
-      'Click to go to BBelnet app',
+      'Click to go to Belnet app',
       platformChannelSpecifics,
       payload: 'No_Sound',
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
-    String val = 'test ';
+    //String val = 'test ';
     appModel = Provider.of<AppModel>(context);
     Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
     double mHeight = MediaQuery.of(context).size.height;
-    double mWidth = MediaQuery.of(context).size.width;
+    //double mWidth = MediaQuery.of(context).size.width;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       // crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        BelnetPowerButton(
-          onPressed: toggleBelnet,
-          isClick: isClick,
-          animation: _animation,
-          animationController: _animationController,
+        Padding(
+          padding: EdgeInsets.only(top: mHeight * 0.15 / 3),
+          child: BelnetPowerButton(
+              onPressed: toggleBelnet, isClick: isClick, isLoading: loading),
         ),
-        ConnectingStatus(
-          isConnect: BelnetLib.isConnected,
+        Padding(
+          padding: EdgeInsets.only(top: mHeight * 0.10 / 3),
+          child: ConnectingStatus(
+            isConnect: BelnetLib.isConnected,
+          ),
         ),
         Row(
           children: [
@@ -387,37 +384,14 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
             child: Padding(
                 padding: const EdgeInsets.only(
                     left: 0.0, right: 6.0, top: 3.0, bottom: 3.0),
-                child:
-//                 DropdownButton<String>(
-//                   isExpanded: true,
-//                            value: selectedValue,
-//                            style: const TextStyle(
-//                            color: Colors.deepPurple, //<-- SEE HERE
-//                            fontSize: 25,
-//                            fontWeight: FontWeight.bold),
-//                            onChanged: (String newValue) {
-//                             setState(() {
-//                              selectedValue = newValue;
-//     });
-//   },
-//   items: items
-//       .map<DropdownMenuItem<String>>((String value) {
-//     return DropdownMenuItem<String>(
-//       value: value,
-//       child: Text(
-//         value,
-//       ),
-//     );
-//   }).toList(),
-// ),
-                    DropdownButtonHideUnderline(
+                child: DropdownButtonHideUnderline(
                   child: DropdownButton(
-                    enableFeedback: true,
+                      enableFeedback: true,
                       isExpanded: true,
                       //underline: const SizedBox(),
                       value: selectedValue,
-                      icon: Icon(Icons.arrow_drop_down,
-                          color: Color(0xffD4D4D4)),
+                      icon:
+                          Icon(Icons.arrow_drop_down, color: Color(0xffD4D4D4)),
                       style: TextStyle(
                           color: Color(0xff00DC00),
                           fontWeight: FontWeight.bold,
@@ -450,48 +424,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                 )),
           ),
         ),
-        // Padding(
-        //   padding: EdgeInsets.only(left: 45, right: 45 , top: 20),
-        //   child: TextFormField(
-        //     validator: (value) {
-        //       final trimmed = value.trim();
-        //       if (trimmed == "") return null;
-        //       if (trimmed == ".beldex" || !trimmed.endsWith(".beldex"))
-        //         return "Invalid exit node value";
-        //       return null;
-        //     },
-        //     controller: exitInput,
-        //     cursorColor: color,
-        //     style: TextStyle(color: color),
-        //     decoration: InputDecoration(
-        //         filled: true,
-        //         fillColor: appModel.darkTheme
-        //             ? Color.fromARGB(255, 35, 35, 35)
-        //             : Color.fromARGB(255, 226, 226, 226),
-        //         border: InputBorder.none,
-        //         labelStyle: TextStyle(color: color),
-        //         labelText: 'Exit Node'),
-        //   ),
-        // ),
-        // Padding(
-        //   padding: EdgeInsets.all(8.0),
-        //   child: Text(
-        //     BelnetLib.isConnected ? "Connected" : "Not Connected",
-        //     style: TextStyle(
-        //         color: color,
-        //         fontSize: MediaQuery.of(context).size.height * 0.024),
-        //   ),
-        // ),
-        // TextButton(
-        //     onPressed: () async {
-        //       val= (await BelnetLib.status).toString();
-        //       print(
-        //           'Test is the status${(await BelnetLib.status).toString()}');
-        //     },
-        //     child: Text("$val"))
       ],
     );
   }
 }
-
-

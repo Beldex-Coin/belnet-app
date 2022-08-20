@@ -13,6 +13,7 @@ class AppModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // connection to belnet
   bool _connecting_belnet = false;
   bool get connecting_belnet => _connecting_belnet;
 
@@ -21,5 +22,16 @@ class AppModel extends ChangeNotifier {
     appPreference.setConnectingBelnet(value);
     notifyListeners();
 
+  }
+
+
+  // STatus for button loading
+bool _status_bel = false;
+  bool get status_belnet => _status_bel;
+
+  set status_belnet(bool value){
+    _status_bel = value;
+    appPreference.setStatusBelnet(value);
+    notifyListeners();
   }
 }

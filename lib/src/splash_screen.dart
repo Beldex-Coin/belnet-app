@@ -30,6 +30,7 @@ class _SplashScreensState extends State<SplashScreens>
    
 
     return Scaffold(
+      backgroundColor: Color(0xff1C1C26),
         body: Center(
       child: Container(
         child: Lottie.asset('assets/images/belnet_splash.json',

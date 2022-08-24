@@ -23,9 +23,9 @@ class BelnetLib {
 
   static Stream<bool> get isConnectedEventStream => _isConnectedEventStream;
 
-  static Future bootstrapBelnet() async {
+  static Future bootstrapBelnet() async {  // https://generalfile.s3.ap-south-1.amazonaws.com/bootstrap.signed  https://deb.beldex.io/Beldex-projects/Belnet/bootstrap-files/belnet.signed
     final request = await HttpClient()
-        .getUrl(Uri.parse('https://generalfile.s3.ap-south-1.amazonaws.com/bootstrap.signed'));
+        .getUrl(Uri.parse('https://deb.beldex.io/Beldex-projects/Belnet/bootstrap-files/testnet.signed'));
     final response = await request.close();
     var path = await getApplicationDocumentsDirectory();
     await response
@@ -44,8 +44,8 @@ class BelnetLib {
     return prepare;
   }
 
-  static Future<bool> connectToBelnet(
-      {String exitNode = "exit.beldex", String upstreamDNS = "9.9.9.9"}) async {
+  static Future<bool> connectToBelnet(                                                                  //"9.9.9.9"
+      {String exitNode = "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx", String upstreamDNS = ""}) async {
     final bool connect = await _methodChannel.invokeMethod(
         'connect', {"exit_node": exitNode, "upstream_dns": upstreamDNS});
     return connect;
@@ -68,6 +68,7 @@ class BelnetLib {
 
   static Future<bool> get isBootstrapped async {
     var path = await getApplicationDocumentsDirectory();
+    print('path for bootstrap ${path.parent.path}/files/bootstrap.signed');
     return File('${path.parent.path}/files/bootstrap.signed').existsSync();
   }
 

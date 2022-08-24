@@ -23,7 +23,7 @@ public class BelnetDaemon extends VpnService {
   public static final String EXIT_NODE = "EXIT_NODE";
   public static final String UPSTREAM_DNS = "UPSTREAM_DNS";
 
-  private static final String DEFAULT_EXIT_NODE = "exit.beldex";
+  private static final String DEFAULT_EXIT_NODE = "exit.bdx";
   private static final String DEFAULT_UPSTREAM_DNS = "9.9.9.9";
 
   static {

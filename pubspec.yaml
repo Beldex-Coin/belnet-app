@@ -30,7 +30,8 @@ dependencies:
   provider: ^6.0.3
   dropdown_button2: ^1.7.1
   awesome_notifications: ^0.6.21
-  flutter_local_notifications: ^9.7.0
+  flutter_local_notifications: ^9.8.0+1
+  dropdown_textfield: ^1.0.3
   lottie: ^1.4.1
   flutter_svg_provider: ^1.0.3
 

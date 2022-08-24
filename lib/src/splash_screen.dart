@@ -33,7 +33,7 @@ class _SplashScreensState extends State<SplashScreens>
       backgroundColor: Color(0xff1C1C26),
         body: Center(
       child: Container(
-        child: Lottie.asset('assets/images/belnet_splash.json',
+        child: Lottie.asset('assets/images/Splash_belnet.json',    //belnet_splash.json
             controller: _controller, onLoaded: (composition) {
           _controller!
             ..duration = composition.duration

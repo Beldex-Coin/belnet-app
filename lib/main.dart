@@ -1,17 +1,18 @@
 import 'dart:async';
-
 //import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
+import 'package:belnet_mobile/src/widget/backgroundImage.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:belnet_mobile/src/widget/notifications.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/settings.dart';
 import 'package:belnet_mobile/src/widget/belnet_power_button.dart';
 import 'package:belnet_mobile/src/widget/themed_belnet_logo.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
@@ -30,21 +31,18 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Settings.getInstance()!.initialize();
   Provider.debugCheckInvalidValueType = null;
-  // AwesomeNotifications().initialize('resource://drawable/res_notification_app_icon',
-  // [
-  //   NotificationChannel(
-  //     channelKey: 'basic_channel',
-  //     channelDescription: '',
-  //     channelName: 'basic notifications',
-  //     defaultColor: Colors.teal,
-  //     importance: NotificationImportance.High,
-  //     //channelShowBadge: true,
-  //     locked: true,
-  //     defaultPrivacy: NotificationPrivacy.Private
-  //
-  //   )
-  // ]
-  // );
+  AwesomeNotifications()
+      .initialize('resource://drawable/res_notification_app_icon', [
+    NotificationChannel(
+        channelKey: 'basic_channel',
+        channelDescription: '',
+        channelName: 'basic notifications',
+        defaultColor: Colors.teal,
+        importance: NotificationImportance.High,
+        //channelShowBadge: true,
+        locked: true,
+        defaultPrivacy: NotificationPrivacy.Private)
+  ]);
   runApp(BelnetApp());
 }
 
@@ -118,91 +116,83 @@ class BelnetHomePageState extends State<BelnetHomePage>
   Widget build(BuildContext context) {
     //final key = new GlobalKey<ScaffoldState>();
     double mHeight = MediaQuery.of(context).size.height;
-    double mWidth = MediaQuery.of(context).size.width;
+    // double mWidth = MediaQuery.of(context).size.width;
     final appModel = Provider.of<AppModel>(context);
 
-    final dark_static_map = SvgPicture.asset('assets/images/Map_dark_1.svg');
-    final blinking_dots = Lottie.asset('assets/images/map_dark.json');
-    final white_static_map = SvgPicture.asset('assets/images/Map_white.svg');
-
-    return SafeArea(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: appModel.darkTheme
-                ? [
-                    Color(0xFF242430),
-                    Color(0xFF1C1C26),
-                  ]
-                : [
-                    Color(0xFFF9F9F9),
-                    Color(0xFFEBEBEB),
-                  ],
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: appModel.darkTheme
+              ? [
+                  Color(0xFF242430),
+                  Color(0xFF1C1C26),
+                ]
+              : [
+                  Color(0xFFF9F9F9),
+                  Color(0xFFEBEBEB),
+                ],
         ),
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          //key: key,
-          resizeToAvoidBottomInset:
-              false, //Prevents overflow when keyboard is shown
-          body: Container(
-            // color: appModel.darkTheme ? Color(0xff242430) : Color(0xffF9F9F9),
-            child: Stack(
-              children: [
-                Container(
-                    width: double.infinity,
-                    //color:Colors.green,
-                    height: mHeight * 1.20 / 3,
-                    child: appModel.darkTheme
-                        ? Lottie.asset(
-                            appModel.connecting_belnet
-                                ? 'assets/images/dark_animations.json'
-                                : 'assets/images/Map_dark_BG.json',
-                            fit: BoxFit.fitHeight,
-                            // controller: lottieController,
-                            // height: mHeight * 1.5 / 3,
-                            width: double.infinity)
-                        : Lottie.asset(
-                            appModel.connecting_belnet
-                                ? 'assets/images/White_animation.json'
-                                : 'assets/images/white_static.json',
-                            fit: BoxFit.fitHeight,
-                            // controller: lottieController,
-                            // height: mHeight * 1.5 / 3,
-                            width: double.infinity)),
-                Positioned(
-                  top: mHeight * 0.10 / 3,
-                  right: mHeight * 0.08 / 3,
-                  child: GestureDetector(
-                    onTap: () {
-                      appModel.darkTheme = !appModel.darkTheme;
-                    },
-                    child: appModel.darkTheme
-                        ? SvgPicture.asset('assets/images/dark_theme.svg')
-                        : SvgPicture.asset('assets/images/light_theme.svg'),
-                  ),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        //key: key,
+        resizeToAvoidBottomInset:
+            false, //Prevents overflow when keyboard is shown
+        body: Container(
+          // color: appModel.darkTheme ? Color(0xff242430) : Color(0xffF9F9F9),
+          child: Stack(
+            children: [
+              Container(
+                  width: double.infinity,
+                  //color:Colors.green,
+                  height: mHeight * 1.20 / 3,
+                  child:
+                  appModel.darkTheme
+                      ? Lottie.asset(
+                         appModel.connecting_belnet
+                              ? 'assets/images/dark_animations.json'
+                              : 'assets/images/Map_dark_BG.json',
+                          fit: BoxFit.fitHeight,
+                          width: double.infinity)
+                      : Lottie.asset(
+                      appModel.connecting_belnet
+                              ? 'assets/images/White_animation.json'
+                              : 'assets/images/white_static.json',
+                          fit: BoxFit.fitHeight,
+                          width: double.infinity)
+              ),
+              Positioned(
+                top: mHeight * 0.09 / 3,
+                right: mHeight * 0.03 / 3,
+                child: GestureDetector(
+                  onTap: () {
+                    appModel.darkTheme = !appModel.darkTheme;
+                  },
+                  child: appModel.darkTheme
+                      ? SvgPicture.asset('assets/images/dark_theme.svg')
+                      : SvgPicture.asset('assets/images/light_theme.svg'),
                 ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.35 / 3,
-                  left: MediaQuery.of(context).size.height * 0.20 / 3,
-                  child: ThemedBelnetLogo(
-                    model: appModel.darkTheme,
-                  ),
+              ),
+              Positioned(
+                top: MediaQuery.of(context).size.height * 0.40 / 3,
+                left: MediaQuery.of(context).size.height * 0.20 / 3,
+                child: ThemedBelnetLogo(
+                  model: appModel.darkTheme,
                 ),
-                Padding(
-                  padding: EdgeInsets.only(top: 0),
-                  // top:mHeight * 0.20 / 3,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      MyForm(),
-                    ],
-                  ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 0),
+                // top:mHeight * 0.20 / 3,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    MyForm(),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -224,12 +214,15 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
   late AppModel appModel;
   final List<String> exitItems = [
-    '8zhrwu36op5y6kz51qbwzgde1wrnhzmf8y14u7whmaiao3njn11y.beldex',
-    'exit1.beldex',
-    'exit.beldex',
+    'gosihdxzcwwcc4zibikc9fte7i8dxqkaohcgyqcjcwj5cncyy36o.bdx',
+    '7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx',
+    'c17bqguk87hroszro9s69bm5ne6edrronpasfkcyp9mcwogikdmo.bdx',
+    'exit.bdx',
+    'service.bdx',
+    'belnet.bdx'
   ];
   String? selectedValue =
-      '8zhrwu36op5y6kz51qbwzgde1wrnhzmf8y14u7whmaiao3njn11y.beldex';
+      'gosihdxzcwwcc4zibikc9fte7i8dxqkaohcgyqcjcwj5cncyy36o.bdx';
   final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   @override
   initState() {
@@ -237,15 +230,15 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
         .listen((bool isConnected) => setState(() {}));
 
-    var initializationSettingsAndroid = new AndroidInitializationSettings(
-        '@drawable/res_notification_app_icon');
-    var initializationSettingsIOS = new IOSInitializationSettings();
-    var initializationSettings = new InitializationSettings(
-        android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
-    //flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
-    flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-    );
+    // var initializationSettingsAndroid = new AndroidInitializationSettings(
+    //     '@drawable/res_notification_app_icon');
+    // var initializationSettingsIOS = new IOSInitializationSettings();
+    // var initializationSettings = new InitializationSettings(
+    //     android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
+    // //flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+    // flutterLocalNotificationsPlugin.initialize(
+    //   initializationSettings,
+    // );
 
     //for notification
 
@@ -279,7 +272,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     //  isClick = isClick ? false : true;
     loading = true;
     setState(() {});
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       setState(() {
         loading = false;
       });
@@ -299,41 +292,47 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
       final result = await BelnetLib.prepareConnection();
       // appModel.connecting_belnet = true;
-
+      if(await BelnetLib.isPrepared){
+        appModel.connecting_belnet = true;
+      }
       if (result)
         BelnetLib.connectToBelnet(
             exitNode: settings.exitNode!, upstreamDNS: settings.upstreamDNS!);
 
       setState(() {});
-      appModel.connecting_belnet = true;
-      _showNotificationWithoutSound();
+      if(BelnetLib.isConnected){
+        appModel.connecting_belnet = true;
+      }
+
+      createMyNotification();
+      //_showNotificationWithoutSound();
     }
 
     //appModel.status_belnet = false;
   }
 
-  Future _showNotificationWithoutSound() async {
-    var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
-      'basic_channel',
-      '1',
-      playSound: false,
-      importance: Importance.max,
-      priority: Priority.max,
-      ongoing: true,
-    );
-    var iOSPlatformChannelSpecifics =
-        IOSNotificationDetails(presentSound: false);
-    var platformChannelSpecifics = NotificationDetails(
-        android: androidPlatformChannelSpecifics,
-        iOS: iOSPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      'Belnet is Running...',
-      'Click to go to Belnet app',
-      platformChannelSpecifics,
-      payload: 'No_Sound',
-    );
-  }
+  // Future _showNotificationWithoutSound() async {
+  //   var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
+  //     'basic_channel',
+  //     '1',
+  //     playSound: false,
+  //     importance: Importance.max,
+  //     priority: Priority.max,
+  //     ongoing: true,
+  //   );
+  //   var iOSPlatformChannelSpecifics =
+  //       IOSNotificationDetails(presentSound: false);
+  //   var platformChannelSpecifics = NotificationDetails(
+  //       android: androidPlatformChannelSpecifics,
+  //       iOS: iOSPlatformChannelSpecifics);
+  //   await flutterLocalNotificationsPlugin.show(
+  //     0,
+  //     'Belnet is Running...',
+  //     'Click to go to Belnet app',
+  //     platformChannelSpecifics,
+  //     payload: 'No_Sound',
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -349,7 +348,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
         Padding(
           padding: EdgeInsets.only(top: mHeight * 0.15 / 3),
           child: BelnetPowerButton(
-              onPressed: toggleBelnet, isClick: isClick, isLoading: loading),
+              onPressed: toggleBelnet, isClick: BelnetLib.isConnected, isLoading: loading),
         ),
         Padding(
           padding: EdgeInsets.only(top: mHeight * 0.10 / 3),
@@ -364,10 +363,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                   left: mHeight * 0.10 / 3, top: mHeight * 0.15 / 3),
               child: Text(
                 'Exit Node',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontFamily: 'Poppins',
-                ),
+                style: TextStyle(color: appModel.darkTheme ? Colors.white : Colors.black,fontFamily: 'Poppins', fontWeight: FontWeight.w900, fontSize: mHeight*0.06/3)
               ),
             ),
           ],
@@ -424,7 +420,34 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                 )),
           ),
         ),
+
+        TextButton(onPressed: (){
+          Navigator.push(context, MaterialPageRoute(builder: (context)=> ButtonTest()));
+    }, child: Text('click me to go')),
       ],
+    );
+  }
+}
+
+
+
+class ButtonTest extends StatefulWidget {
+  const ButtonTest({Key? key}) : super(key: key);
+
+  @override
+  State<ButtonTest> createState() => _ButtonTestState();
+}
+
+class _ButtonTestState extends State<ButtonTest> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+
+      body:Container(
+       // color:Colors.transparent,
+       // color: Colors.white,
+        child: Lottie.asset('assets/images/off_dark.json')
+      )
     );
   }
 }

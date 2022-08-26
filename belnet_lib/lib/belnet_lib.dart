@@ -25,7 +25,7 @@ class BelnetLib {
 
   static Future bootstrapBelnet() async {  // https://generalfile.s3.ap-south-1.amazonaws.com/bootstrap.signed  https://deb.beldex.io/Beldex-projects/Belnet/bootstrap-files/belnet.signed
     final request = await HttpClient()
-        .getUrl(Uri.parse('https://deb.beldex.io/Beldex-projects/Belnet/bootstrap-files/testnet.signed'));
+        .getUrl(Uri.parse('https://deb.beldex.io/Beldex-projects/Belnet/bootstrap-files/bootstrap.signed'));
     final response = await request.close();
     var path = await getApplicationDocumentsDirectory();
     await response
@@ -45,7 +45,7 @@ class BelnetLib {
   }
 
   static Future<bool> connectToBelnet(                                                                  //"9.9.9.9"
-      {String exitNode = "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx", String upstreamDNS = ""}) async {
+      {String exitNode = "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx", String upstreamDNS = "1.1.1.1"}) async {
     final bool connect = await _methodChannel.invokeMethod(
         'connect', {"exit_node": exitNode, "upstream_dns": upstreamDNS});
     return connect;

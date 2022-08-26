@@ -32,7 +32,7 @@ dependencies:
   awesome_notifications: ^0.6.21
   flutter_local_notifications: ^9.8.0+1
   dropdown_textfield: ^1.0.3
-  lottie: ^1.4.1
+  lottie: ^1.4.2
   flutter_svg_provider: ^1.0.3
 
   # The following adds the Cupertino Icons font to your application.

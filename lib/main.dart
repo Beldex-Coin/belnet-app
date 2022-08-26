@@ -4,7 +4,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
-import 'package:belnet_mobile/src/widget/backgroundImage.dart';
+// import 'package:belnet_mobile/src/widget/backgroundImage.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
 import 'package:belnet_mobile/src/widget/notifications.dart';
 import 'package:flutter/material.dart';
@@ -119,80 +119,80 @@ class BelnetHomePageState extends State<BelnetHomePage>
     // double mWidth = MediaQuery.of(context).size.width;
     final appModel = Provider.of<AppModel>(context);
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: appModel.darkTheme
-              ? [
-                  Color(0xFF242430),
-                  Color(0xFF1C1C26),
-                ]
-              : [
-                  Color(0xFFF9F9F9),
-                  Color(0xFFEBEBEB),
-                ],
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        //key: key,
-        resizeToAvoidBottomInset:
-            false, //Prevents overflow when keyboard is shown
-        body: Container(
-          // color: appModel.darkTheme ? Color(0xff242430) : Color(0xffF9F9F9),
-          child: Stack(
-            children: [
-              Container(
-                  width: double.infinity,
-                  //color:Colors.green,
-                  height: mHeight * 1.20 / 3,
-                  child:
-                  appModel.darkTheme
-                      ? Lottie.asset(
-                         appModel.connecting_belnet
-                              ? 'assets/images/dark_animations.json'
-                              : 'assets/images/Map_dark_BG.json',
-                          fit: BoxFit.fitHeight,
-                          width: double.infinity)
-                      : Lottie.asset(
-                      appModel.connecting_belnet
-                              ? 'assets/images/White_animation.json'
-                              : 'assets/images/white_static.json',
-                          fit: BoxFit.fitHeight,
-                          width: double.infinity)
-              ),
-              Positioned(
-                top: mHeight * 0.09 / 3,
-                right: mHeight * 0.03 / 3,
-                child: GestureDetector(
-                  onTap: () {
-                    appModel.darkTheme = !appModel.darkTheme;
-                  },
-                  child: appModel.darkTheme
-                      ? SvgPicture.asset('assets/images/dark_theme.svg')
-                      : SvgPicture.asset('assets/images/light_theme.svg'),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.40 / 3,
-                left: MediaQuery.of(context).size.height * 0.20 / 3,
-                child: ThemedBelnetLogo(
-                  model: appModel.darkTheme,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 0),
-                // top:mHeight * 0.20 / 3,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    MyForm(),
+    return SafeArea(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: appModel.darkTheme
+                ? [
+                    Color(0xFF242430),
+                    Color(0xFF1C1C26),
+                  ]
+                : [
+                    Color(0xFFF9F9F9),
+                    Color(0xFFEBEBEB),
                   ],
+          ),
+        ),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          //key: key,
+          resizeToAvoidBottomInset:
+              false, //Prevents overflow when keyboard is shown
+          body: Container(
+            // color: appModel.darkTheme ? Color(0xff242430) : Color(0xffF9F9F9),
+            child: Stack(
+              children: [
+                Container(
+                    width: double.infinity,
+                    //color:Colors.green,
+                    height: mHeight * 1.20 / 3,
+                    child: appModel.darkTheme
+                        ? Lottie.asset(
+                            appModel.connecting_belnet
+                                ? 'assets/images/dark_animations.json'
+                                : 'assets/images/Map_dark_BG.json',
+                            fit: BoxFit.fitHeight,
+                            width: double.infinity)
+                        : Lottie.asset(
+                            appModel.connecting_belnet
+                                ? 'assets/images/White_animation.json'
+                                : 'assets/images/white_static.json',
+                            fit: BoxFit.fitHeight,
+                            width: double.infinity)),
+                Positioned(
+                  top: mHeight * 0.09 / 3,
+                  right: mHeight * 0.03 / 3,
+                  child: GestureDetector(
+                    onTap: () {
+                      appModel.darkTheme = !appModel.darkTheme;
+                    },
+                    child: appModel.darkTheme
+                        ? SvgPicture.asset('assets/images/dark_theme.svg')
+                        : SvgPicture.asset('assets/images/light_theme.svg'),
+                  ),
                 ),
-              ),
-            ],
+                Positioned(
+                  top: MediaQuery.of(context).size.height * 0.40 / 3,
+                  left: MediaQuery.of(context).size.height * 0.20 / 3,
+                  child: ThemedBelnetLogo(
+                    model: appModel.darkTheme,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 0),
+                  // top:mHeight * 0.20 / 3,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      MyForm(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -214,15 +214,15 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
   late AppModel appModel;
   final List<String> exitItems = [
-    'gosihdxzcwwcc4zibikc9fte7i8dxqkaohcgyqcjcwj5cncyy36o.bdx',
     '7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx',
+    'gosihdxzcwwcc4zibikc9fte7i8dxqkaohcgyqcjcwj5cncyy36o.bdx',
     'c17bqguk87hroszro9s69bm5ne6edrronpasfkcyp9mcwogikdmo.bdx',
     'exit.bdx',
     'service.bdx',
     'belnet.bdx'
   ];
   String? selectedValue =
-      'gosihdxzcwwcc4zibikc9fte7i8dxqkaohcgyqcjcwj5cncyy36o.bdx';
+      '7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx';
   final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   @override
   initState() {
@@ -230,15 +230,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
         .listen((bool isConnected) => setState(() {}));
 
-    // var initializationSettingsAndroid = new AndroidInitializationSettings(
-    //     '@drawable/res_notification_app_icon');
-    // var initializationSettingsIOS = new IOSInitializationSettings();
-    // var initializationSettings = new InitializationSettings(
-    //     android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
-    // //flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
-    // flutterLocalNotificationsPlugin.initialize(
-    //   initializationSettings,
-    // );
+
 
     //for notification
 
@@ -292,19 +284,21 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
       final result = await BelnetLib.prepareConnection();
       // appModel.connecting_belnet = true;
-      if(await BelnetLib.isPrepared){
+      if (await BelnetLib.isPrepared) {
         appModel.connecting_belnet = true;
       }
       if (result)
         BelnetLib.connectToBelnet(
-            exitNode: settings.exitNode!, upstreamDNS: settings.upstreamDNS!);
+            exitNode: settings.exitNode!,
+            upstreamDNS: "" //settings.upstreamDNS!
+            );
 
       setState(() {});
-      if(BelnetLib.isConnected){
+      if (BelnetLib.isConnected) {
         appModel.connecting_belnet = true;
       }
 
-      createMyNotification();
+      MyNotificationWorkLoad().createMyNotification();
       //_showNotificationWithoutSound();
     }
 
@@ -341,6 +335,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
     double mHeight = MediaQuery.of(context).size.height;
     //double mWidth = MediaQuery.of(context).size.width;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       // crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -348,7 +343,9 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
         Padding(
           padding: EdgeInsets.only(top: mHeight * 0.15 / 3),
           child: BelnetPowerButton(
-              onPressed: toggleBelnet, isClick: BelnetLib.isConnected, isLoading: loading),
+              onPressed: toggleBelnet,
+              isClick: BelnetLib.isConnected,
+              isLoading: loading),
         ),
         Padding(
           padding: EdgeInsets.only(top: mHeight * 0.10 / 3),
@@ -361,10 +358,12 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
             Padding(
               padding: EdgeInsets.only(
                   left: mHeight * 0.10 / 3, top: mHeight * 0.15 / 3),
-              child: Text(
-                'Exit Node',
-                style: TextStyle(color: appModel.darkTheme ? Colors.white : Colors.black,fontFamily: 'Poppins', fontWeight: FontWeight.w900, fontSize: mHeight*0.06/3)
-              ),
+              child: Text('Exit Node',
+                  style: TextStyle(
+                      color: appModel.darkTheme ? Colors.white : Colors.black,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w900,
+                      fontSize: mHeight * 0.06 / 3)),
             ),
           ],
         ),
@@ -380,56 +379,94 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
             child: Padding(
                 padding: const EdgeInsets.only(
                     left: 0.0, right: 6.0, top: 3.0, bottom: 3.0),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton(
-                      enableFeedback: true,
-                      isExpanded: true,
-                      //underline: const SizedBox(),
-                      value: selectedValue,
-                      icon:
-                          Icon(Icons.arrow_drop_down, color: Color(0xffD4D4D4)),
-                      style: TextStyle(
-                          color: Color(0xff00DC00),
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Poppins',
-                          fontSize: mHeight * 0.06 / 3,
-                          overflow: TextOverflow.ellipsis),
-                      items: exitItems
-                          .map((item) => DropdownMenuItem<String>(
-                                value: item,
-                                enabled: BelnetLib.isConnected ? false : true,
-                                child: Center(
-                                  child: Text(
-                                    item,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        color: Color(0xff00DC00),
-                                        fontFamily: 'Poppins'),
-                                    overflow: TextOverflow.ellipsis,
+                child: BelnetLib.isConnected
+                    ? Container(
+                     // color:Colors.amber,
+                        height: mHeight * 0.20 / 3,
+                        width: MediaQuery.of(context).size.height * 2 / 3,
+                        child: Padding(
+                          padding: EdgeInsets.only(left:0,right:5.0),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    width:mHeight*1/3,
+                                    child: Center(
+                                      child: Text(
+                                        '$selectedValue',
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: mHeight * 0.06 / 3,
+                                          color: Color(0xff00DC00),
+                                          overflow: TextOverflow.ellipsis
+                                        ),
+                                        //maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ))
-                          .toList(),
-                      onChanged: (dynamic value) {
-                        setState(() {
-                          selectedValue = value;
-                          print('$selectedValue');
-                        });
-                      }),
-                )),
+                                Container(
+                                   // color: Colors.green,
+                                    width: mHeight * 0.10 / 3,
+                                    child: Icon(
+                                      Icons.arrow_drop_down,
+                                      color: Color(0xffD4D4D4),
+                                    ))
+                              ]),
+                        ))
+                    : DropdownButtonHideUnderline(
+                        child: DropdownButton(
+                            enableFeedback: true,
+                            isExpanded: true,
+                            //underline: const SizedBox(),
+                            value: selectedValue,
+                            icon: Icon(Icons.arrow_drop_down,
+                                color: Color(0xffD4D4D4)),
+                            style: TextStyle(
+                                color: Color(0xff00DC00),
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Poppins',
+                                fontSize: mHeight * 0.06 / 3,
+                                overflow: TextOverflow.ellipsis),
+                            items: exitItems
+                                .map((item) => DropdownMenuItem<String>(
+                                      value: item,
+                                      enabled:
+                                          BelnetLib.isConnected ? false : true,
+                                      child: Center(
+                                        child: Text(
+                                          item,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              color: Color(0xff00DC00),
+                                              fontFamily: 'Poppins'),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ))
+                                .toList(),
+                            onChanged: (dynamic value) {
+                              setState(() {
+                                selectedValue = value;
+                                print('$selectedValue');
+                              });
+                            }),
+                      )),
           ),
         ),
-
-        TextButton(onPressed: (){
-          Navigator.push(context, MaterialPageRoute(builder: (context)=> ButtonTest()));
-    }, child: Text('click me to go')),
+        TextButton(
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => ButtonTest()));
+            },
+            child: Text('click me to go')),
       ],
     );
   }
 }
-
-
 
 class ButtonTest extends StatefulWidget {
   const ButtonTest({Key? key}) : super(key: key);
@@ -442,12 +479,9 @@ class _ButtonTestState extends State<ButtonTest> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
-      body:Container(
-       // color:Colors.transparent,
-       // color: Colors.white,
-        child: Lottie.asset('assets/images/off_dark.json')
-      )
-    );
+        body: Container(
+            // color:Colors.transparent,
+            // color: Colors.white,               //off_whitess.json
+            child: Lottie.asset('assets/images/Map_static_dark (2).json'),),);
   }
 }

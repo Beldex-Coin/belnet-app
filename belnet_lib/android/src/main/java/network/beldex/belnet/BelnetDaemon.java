@@ -23,8 +23,8 @@ public class BelnetDaemon extends VpnService {
   public static final String EXIT_NODE = "EXIT_NODE";
   public static final String UPSTREAM_DNS = "UPSTREAM_DNS";
 
-  private static final String DEFAULT_EXIT_NODE = "exit.beldex";
-  private static final String DEFAULT_UPSTREAM_DNS = "9.9.9.9";
+  private static final String DEFAULT_EXIT_NODE = "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx";
+  private static final String DEFAULT_UPSTREAM_DNS = "1.1.1.1";
 
   static {
     System.loadLibrary("belnet-android");
@@ -89,7 +89,7 @@ public class BelnetDaemon extends VpnService {
     } else {
       ArrayList<ConfigValue> configVals = new ArrayList<ConfigValue>();
 
-      String exitNode = null;
+      String exitNode = "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx";
       String upstreamDNS = null;
 
       SharedPreferences sharedPreferences = getSharedPreferences("belnet_lib", MODE_PRIVATE);
@@ -196,6 +196,7 @@ public class BelnetDaemon extends VpnService {
       if (configVals != null) {
         configVals.add(new ConfigValue("network", "ifaddr", ourRange));
         for (ConfigValue conf : configVals) {
+
           if (conf.Valid()) {
             config.AddDefaultValue(conf.Section, conf.Key, conf.Value);
             if (conf.Section.equals("dns") && conf.Key.equals("upstream"))

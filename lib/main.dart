@@ -1,17 +1,18 @@
 import 'dart:async';
-
 //import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
+// import 'package:belnet_mobile/src/widget/backgroundImage.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:belnet_mobile/src/widget/notifications.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/settings.dart';
 import 'package:belnet_mobile/src/widget/belnet_power_button.dart';
 import 'package:belnet_mobile/src/widget/themed_belnet_logo.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
@@ -30,21 +31,18 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Settings.getInstance()!.initialize();
   Provider.debugCheckInvalidValueType = null;
-  // AwesomeNotifications().initialize('resource://drawable/res_notification_app_icon',
-  // [
-  //   NotificationChannel(
-  //     channelKey: 'basic_channel',
-  //     channelDescription: '',
-  //     channelName: 'basic notifications',
-  //     defaultColor: Colors.teal,
-  //     importance: NotificationImportance.High,
-  //     //channelShowBadge: true,
-  //     locked: true,
-  //     defaultPrivacy: NotificationPrivacy.Private
-  //
-  //   )
-  // ]
-  // );
+  AwesomeNotifications()
+      .initialize('resource://drawable/res_notification_app_icon', [
+    NotificationChannel(
+        channelKey: 'basic_channel',
+        channelDescription: '',
+        channelName: 'basic notifications',
+        defaultColor: Colors.teal,
+        importance: NotificationImportance.High,
+        //channelShowBadge: true,
+        locked: true,
+        defaultPrivacy: NotificationPrivacy.Private)
+  ]);
   runApp(BelnetApp());
 }
 
@@ -118,12 +116,8 @@ class BelnetHomePageState extends State<BelnetHomePage>
   Widget build(BuildContext context) {
     //final key = new GlobalKey<ScaffoldState>();
     double mHeight = MediaQuery.of(context).size.height;
-    double mWidth = MediaQuery.of(context).size.width;
+    // double mWidth = MediaQuery.of(context).size.width;
     final appModel = Provider.of<AppModel>(context);
-
-    final dark_static_map = SvgPicture.asset('assets/images/Map_dark_1.svg');
-    final blinking_dots = Lottie.asset('assets/images/map_dark.json');
-    final white_static_map = SvgPicture.asset('assets/images/Map_white.svg');
 
     return SafeArea(
       child: Container(
@@ -161,20 +155,16 @@ class BelnetHomePageState extends State<BelnetHomePage>
                                 ? 'assets/images/dark_animations.json'
                                 : 'assets/images/Map_dark_BG.json',
                             fit: BoxFit.fitHeight,
-                            // controller: lottieController,
-                            // height: mHeight * 1.5 / 3,
                             width: double.infinity)
                         : Lottie.asset(
                             appModel.connecting_belnet
                                 ? 'assets/images/White_animation.json'
                                 : 'assets/images/white_static.json',
                             fit: BoxFit.fitHeight,
-                            // controller: lottieController,
-                            // height: mHeight * 1.5 / 3,
                             width: double.infinity)),
                 Positioned(
-                  top: mHeight * 0.10 / 3,
-                  right: mHeight * 0.08 / 3,
+                  top: mHeight * 0.09 / 3,
+                  right: mHeight * 0.03 / 3,
                   child: GestureDetector(
                     onTap: () {
                       appModel.darkTheme = !appModel.darkTheme;
@@ -185,7 +175,7 @@ class BelnetHomePageState extends State<BelnetHomePage>
                   ),
                 ),
                 Positioned(
-                  top: MediaQuery.of(context).size.height * 0.35 / 3,
+                  top: MediaQuery.of(context).size.height * 0.40 / 3,
                   left: MediaQuery.of(context).size.height * 0.20 / 3,
                   child: ThemedBelnetLogo(
                     model: appModel.darkTheme,
@@ -224,12 +214,15 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
   late AppModel appModel;
   final List<String> exitItems = [
-    '8zhrwu36op5y6kz51qbwzgde1wrnhzmf8y14u7whmaiao3njn11y.beldex',
-    'exit1.beldex',
-    'exit.beldex',
+    '7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx',
+    'gosihdxzcwwcc4zibikc9fte7i8dxqkaohcgyqcjcwj5cncyy36o.bdx',
+    'c17bqguk87hroszro9s69bm5ne6edrronpasfkcyp9mcwogikdmo.bdx',
+    'exit.bdx',
+    'service.bdx',
+    'belnet.bdx'
   ];
   String? selectedValue =
-      '8zhrwu36op5y6kz51qbwzgde1wrnhzmf8y14u7whmaiao3njn11y.beldex';
+      '7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx';
   final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   @override
   initState() {
@@ -237,15 +230,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
         .listen((bool isConnected) => setState(() {}));
 
-    var initializationSettingsAndroid = new AndroidInitializationSettings(
-        '@drawable/res_notification_app_icon');
-    var initializationSettingsIOS = new IOSInitializationSettings();
-    var initializationSettings = new InitializationSettings(
-        android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
-    //flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
-    flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-    );
+
 
     //for notification
 
@@ -279,7 +264,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     //  isClick = isClick ? false : true;
     loading = true;
     setState(() {});
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       setState(() {
         loading = false;
       });
@@ -299,41 +284,49 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
       final result = await BelnetLib.prepareConnection();
       // appModel.connecting_belnet = true;
-
+      if (await BelnetLib.isPrepared) {
+        appModel.connecting_belnet = true;
+      }
       if (result)
         BelnetLib.connectToBelnet(
-            exitNode: settings.exitNode!, upstreamDNS: settings.upstreamDNS!);
+            exitNode: settings.exitNode!,
+            upstreamDNS: "" //settings.upstreamDNS!
+            );
 
       setState(() {});
-      appModel.connecting_belnet = true;
-      _showNotificationWithoutSound();
+      if (BelnetLib.isConnected) {
+        appModel.connecting_belnet = true;
+      }
+
+      MyNotificationWorkLoad().createMyNotification();
+      //_showNotificationWithoutSound();
     }
 
     //appModel.status_belnet = false;
   }
 
-  Future _showNotificationWithoutSound() async {
-    var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
-      'basic_channel',
-      '1',
-      playSound: false,
-      importance: Importance.max,
-      priority: Priority.max,
-      ongoing: true,
-    );
-    var iOSPlatformChannelSpecifics =
-        IOSNotificationDetails(presentSound: false);
-    var platformChannelSpecifics = NotificationDetails(
-        android: androidPlatformChannelSpecifics,
-        iOS: iOSPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      'Belnet is Running...',
-      'Click to go to Belnet app',
-      platformChannelSpecifics,
-      payload: 'No_Sound',
-    );
-  }
+  // Future _showNotificationWithoutSound() async {
+  //   var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
+  //     'basic_channel',
+  //     '1',
+  //     playSound: false,
+  //     importance: Importance.max,
+  //     priority: Priority.max,
+  //     ongoing: true,
+  //   );
+  //   var iOSPlatformChannelSpecifics =
+  //       IOSNotificationDetails(presentSound: false);
+  //   var platformChannelSpecifics = NotificationDetails(
+  //       android: androidPlatformChannelSpecifics,
+  //       iOS: iOSPlatformChannelSpecifics);
+  //   await flutterLocalNotificationsPlugin.show(
+  //     0,
+  //     'Belnet is Running...',
+  //     'Click to go to Belnet app',
+  //     platformChannelSpecifics,
+  //     payload: 'No_Sound',
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -342,6 +335,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
     double mHeight = MediaQuery.of(context).size.height;
     //double mWidth = MediaQuery.of(context).size.width;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       // crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -349,7 +343,9 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
         Padding(
           padding: EdgeInsets.only(top: mHeight * 0.15 / 3),
           child: BelnetPowerButton(
-              onPressed: toggleBelnet, isClick: isClick, isLoading: loading),
+              onPressed: toggleBelnet,
+              isClick: BelnetLib.isConnected,
+              isLoading: loading),
         ),
         Padding(
           padding: EdgeInsets.only(top: mHeight * 0.10 / 3),
@@ -362,13 +358,12 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
             Padding(
               padding: EdgeInsets.only(
                   left: mHeight * 0.10 / 3, top: mHeight * 0.15 / 3),
-              child: Text(
-                'Exit Node',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontFamily: 'Poppins',
-                ),
-              ),
+              child: Text('Exit Node',
+                  style: TextStyle(
+                      color: appModel.darkTheme ? Colors.white : Colors.black,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w900,
+                      fontSize: mHeight * 0.06 / 3)),
             ),
           ],
         ),
@@ -384,47 +379,109 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
             child: Padding(
                 padding: const EdgeInsets.only(
                     left: 0.0, right: 6.0, top: 3.0, bottom: 3.0),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton(
-                      enableFeedback: true,
-                      isExpanded: true,
-                      //underline: const SizedBox(),
-                      value: selectedValue,
-                      icon:
-                          Icon(Icons.arrow_drop_down, color: Color(0xffD4D4D4)),
-                      style: TextStyle(
-                          color: Color(0xff00DC00),
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Poppins',
-                          fontSize: mHeight * 0.06 / 3,
-                          overflow: TextOverflow.ellipsis),
-                      items: exitItems
-                          .map((item) => DropdownMenuItem<String>(
-                                value: item,
-                                enabled: BelnetLib.isConnected ? false : true,
-                                child: Center(
-                                  child: Text(
-                                    item,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        color: Color(0xff00DC00),
-                                        fontFamily: 'Poppins'),
-                                    overflow: TextOverflow.ellipsis,
+                child: BelnetLib.isConnected
+                    ? Container(
+                     // color:Colors.amber,
+                        height: mHeight * 0.20 / 3,
+                        width: MediaQuery.of(context).size.height * 2 / 3,
+                        child: Padding(
+                          padding: EdgeInsets.only(left:0,right:5.0),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    width:mHeight*1/3,
+                                    child: Center(
+                                      child: Text(
+                                        '$selectedValue',
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: mHeight * 0.06 / 3,
+                                          color: Color(0xff00DC00),
+                                          overflow: TextOverflow.ellipsis
+                                        ),
+                                        //maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ))
-                          .toList(),
-                      onChanged: (dynamic value) {
-                        setState(() {
-                          selectedValue = value;
-                          print('$selectedValue');
-                        });
-                      }),
-                )),
+                                Container(
+                                   // color: Colors.green,
+                                    width: mHeight * 0.10 / 3,
+                                    child: Icon(
+                                      Icons.arrow_drop_down,
+                                      color: Color(0xffD4D4D4),
+                                    ))
+                              ]),
+                        ))
+                    : DropdownButtonHideUnderline(
+                        child: DropdownButton(
+                            enableFeedback: true,
+                            isExpanded: true,
+                            //underline: const SizedBox(),
+                            value: selectedValue,
+                            icon: Icon(Icons.arrow_drop_down,
+                                color: Color(0xffD4D4D4)),
+                            style: TextStyle(
+                                color: Color(0xff00DC00),
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Poppins',
+                                fontSize: mHeight * 0.06 / 3,
+                                overflow: TextOverflow.ellipsis),
+                            items: exitItems
+                                .map((item) => DropdownMenuItem<String>(
+                                      value: item,
+                                      enabled:
+                                          BelnetLib.isConnected ? false : true,
+                                      child: Center(
+                                        child: Text(
+                                          item,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              color: Color(0xff00DC00),
+                                              fontFamily: 'Poppins'),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ))
+                                .toList(),
+                            onChanged: (dynamic value) {
+                              setState(() {
+                                selectedValue = value;
+                                print('$selectedValue');
+                              });
+                            }),
+                      )),
           ),
         ),
+        TextButton(
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => ButtonTest()));
+            },
+            child: Text('click me to go')),
       ],
     );
+  }
+}
+
+class ButtonTest extends StatefulWidget {
+  const ButtonTest({Key? key}) : super(key: key);
+
+  @override
+  State<ButtonTest> createState() => _ButtonTestState();
+}
+
+class _ButtonTestState extends State<ButtonTest> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Container(
+            // color:Colors.transparent,
+            // color: Colors.white,               //off_whitess.json
+            child: Lottie.asset('assets/images/Map_static_dark (2).json'),),);
   }
 }

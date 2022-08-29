@@ -10,7 +10,7 @@ class BelnetPowerButton extends StatefulWidget {
   final VoidCallback? onPressed;
   bool? isClick;
  bool? isLoading;
-  BelnetPowerButton({this.onPressed, this.isClick, required this.isLoading});
+  BelnetPowerButton({this.onPressed,required this.isClick, required this.isLoading});
 
   @override
   State<BelnetPowerButton> createState() => _BelnetPowerButtonState();
@@ -35,7 +35,7 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
 
     var whiteLoadingImage = Lottie.asset('assets/images/loading_button.json');
     var powerOnDark = Lottie.asset('assets/images/on_dark.json');
-    var powerOffDark = Lottie.asset('assets/images/off_dark.json');
+    var powerOffDark = Lottie.asset('assets/images/off_7.json');
     var darkLoadingImage = Lottie.asset('assets/images/button_Loading_dark (1).json');
     var powerOnWhite = Lottie.asset('assets/images/on_white.json');
     var powerOffWhite = Lottie.asset('assets/images/off_white.json');
@@ -55,13 +55,13 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
               ?
           widget.isLoading!
                   ? darkLoadingImage
-                  : appModel.connecting_belnet
+                  : BelnetLib.isConnected
                       ? powerOnDark
                       : powerOffDark
               :
         widget.isLoading!
                   ? whiteLoadingImage
-                  : appModel.connecting_belnet
+                  : BelnetLib.isConnected
                       ? powerOnWhite
                       : powerOffWhite
           ),

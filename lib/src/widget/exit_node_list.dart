@@ -1,312 +1,288 @@
-
-
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:roundcheckbox/roundcheckbox.dart';
 
-import '../model/theme_set_provider.dart';
+class CustDropDown<T> extends StatefulWidget {
+  final List<CustDropdownMenuItem> items;
+  final Function onChanged;
+  final String hintText;
+  final double borderRadius;
+  final double maxListHeight;
+  final double borderWidth;
+  final int defaultSelectedIndex;
+  final bool enabled;
 
-class ExitNodeList extends StatefulWidget {
-  const ExitNodeList({Key? key}) : super(key: key);
-
-  @override
-  State<ExitNodeList> createState() => _ExitNodeListState();
-}
-
-class _ExitNodeListState extends State<ExitNodeList> {
-
-List exitNodes = [
-  // '7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx',
-  // 'gosihdxzcwwcc4zibikc9fte7i8dxqkaohcgyqcjcwj5cncyy36o.bdx',
-  // 'c17bqguk87hroszro9s69bm5ne6edrronpasfkcyp9mcwogikdmo.bdx',
-  'exit.bdx',
-  'service.bdx',
-  'belnet.bdx',
-  'beldex.bdx',
-  'exit1.bdx'
-];
-
-  @override
-  Widget build(BuildContext context) {
-    final appModel = Provider.of<AppModel>(context);
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: appModel.darkTheme
-              ? [
-            Color(0xFF242430),
-            Color(0xFF1C1C26),
-          ]
-              : [
-            Color(0xFFF9F9F9),
-            Color(0xFFEBEBEB),
-          ],
-        ),
-      ),
-      child: Scaffold(
-       backgroundColor: Colors.transparent,
-        appBar: AppBar(
-
-          title: Text(
-            'Exit Node',
-            style: Theme.of(context)
-                .textTheme
-                .headline6!
-                .copyWith(fontWeight: FontWeight.w600),
-          ),
-        ),
-        body:ListView(
-          shrinkWrap: true,
-          padding: EdgeInsets.all(20),
-          children: [
-            // RichText(
-            //     text: TextSpan(
-            //         text: 'Premuim',
-            //         style: Theme.of(context)
-            //             .textTheme
-            //             .subtitle2!
-            //             .copyWith(fontWeight: FontWeight.w700),
-            //         children: [
-            //           TextSpan(
-            //               text: 'Servers',
-            //               style: Theme.of(context)
-            //                   .textTheme
-            //                   .subtitle2!
-            //                   .copyWith(fontWeight: FontWeight.normal))
-            //         ])),
-            // SizedBox(
-            //   height: 20,
-            // ),
-            // Container(
-            //   child: ListView.separated(
-            //     shrinkWrap: true,
-            //     itemCount: exitNodes.length,
-            //     itemBuilder: (_, index) {
-            //       return ServerItemWidget(
-            //           isFaded: true,
-            //           label: exitNodes[index],
-            //           icon: Icons.lock,
-            //           flagAsset: exitNodes[index],
-            //           onTap: () {});
-            //     },
-            //     separatorBuilder: (_, index) => SizedBox(height: 10),
-            //   ),
-            // ),
-            SizedBox(height: 30),
-            RichText(
-                text: TextSpan(
-                    text: 'Custom exit node ',
-                    style: Theme.of(context)
-                        .textTheme
-                        .subtitle2!
-                        .copyWith(fontWeight: FontWeight.w700),
-                    children: [
-                      // TextSpan(
-                      //     text: 'Servers',
-                      //     style: Theme.of(context)
-                      //         .textTheme
-                      //         .subtitle2!
-                      //         .copyWith(fontWeight: FontWeight.normal))
-                    ])),
-
-            SizedBox(height: 20),
-            Container(
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: 2,
-                itemBuilder: (_, index) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color:Color(0xff00DC00)),
-                      color: appModel.darkTheme ? Color(0xff242430) : Color(0xff00000033),
-                    ),
-
-
-
-                    child: Padding(
-                      padding: const EdgeInsets.all(7.0),
-                      child: TextField()
-
-                    ),
-                  );
-                },
-                separatorBuilder: (_, index) => SizedBox(height: 10),
-              ),
-            ),
-            RichText(
-                text: TextSpan(
-                    text: 'Custom exit node ',
-                    style: Theme.of(context)
-                        .textTheme
-                        .subtitle2!
-                        .copyWith(fontWeight: FontWeight.w700),
-                    children: [
-                      // TextSpan(
-                      //     text: 'Servers',
-                      //     style: Theme.of(context)
-                      //         .textTheme
-                      //         .subtitle2!
-                      //         .copyWith(fontWeight: FontWeight.normal))
-                    ])),
-            SizedBox(
-              height: 20,
-            ),
-            Container(
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: exitNodes.length,
-                itemBuilder: (_, index) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color:Color(0xff00DC00)),
-                      color: appModel.darkTheme ? Color(0xff242430) : Color(0xff00000033),
-                    ),
-
-
-
-                    child: Padding(
-                      padding: const EdgeInsets.all(7.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              CircleAvatar(
-                                radius: 15,
-                                backgroundColor: Colors.black,
-                                backgroundImage: ExactAssetImage(
-                                  'assets/images/belnet_ic.png',
-                                ),
-                              ),
-                              SizedBox(
-                                width: 15,
-                              ),
-                              Expanded(
-                                child: Text(
-                                  exitNodes[index],
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color:appModel.darkTheme ? Color(0xff00DC00) : Color(0xff0094FF),
-                                      fontSize: MediaQuery.of(context).size.height*0.06/3, fontWeight:FontWeight.w900,
-
-                                  )
-                                ),
-                              ),
-                            ],
-                          ),
-                          RoundCheckBox(
-                            borderColor: Color(0xff00DC00),
-                            onTap: (bool? value) {  },
-
-                              )
-                        ],
-                      ),
-                    ),
-                  );
-                },
-                separatorBuilder: (_, index) => SizedBox(height: 10),
-              ),
-            )
-          ],
-        ),
-        // ListView.builder(
-        //     itemCount: exitNodes.length,
-        //     itemBuilder: (BuildContext context, int index) {
-        //       return Container(
-        //         color: appModel.darkTheme ? Color(0xff292937) : Colors.white,
-        //
-        //         child: Padding(
-        //           padding: EdgeInsets.all(10),
-        //           child: ListTile(
-        //             title: Text(
-        //               exitNodes[index],
-        //               style: TextStyle(
-        //                 fontSize: 20,
-        //                 color: Colors.white,
-        //               ),
-        //             ),
-        //             // leading: CircleAvatar(
-        //             //   child: Text(
-        //             //     exitNodes[index],
-        //             //     style:
-        //             //     TextStyle(fontSize: 15, fontWeight: FontWeight.bold,color:Colors.white),
-        //             //   ),
-        //             // ),
-        //             //trailing: Text("\$ ${stocksList[index].price}"),
-        //           ),
-        //         ),
-        //       );
-        //     }),
-      ),
-    );
-  }
-}
-
-
-
-class ServerItemWidget extends StatelessWidget {
-  const ServerItemWidget(
-      {Key? key,
-        required this.label,
-        required this.icon,
-        required this.flagAsset,
-        required this.onTap, this.isFaded = false})
+  const CustDropDown(
+      {required this.items,
+        required this.onChanged,
+        this.hintText = "",
+        this.borderRadius = 0,
+        this.borderWidth = 1,
+        this.maxListHeight = 100,
+        this.defaultSelectedIndex = -1,
+        Key? key,
+        this.enabled = true})
       : super(key: key);
 
-  final String label;
-  final IconData icon;
-  final String flagAsset;
-  final Function onTap;
-  final isFaded;
+  @override
+  _CustDropDownState createState() => _CustDropDownState();
+}
+
+class _CustDropDownState extends State<CustDropDown>
+    with WidgetsBindingObserver {
+  bool _isOpen = false, _isAnyItemSelected = false, _isReverse = false;
+  late OverlayEntry _overlayEntry;
+  late RenderBox? _renderBox;
+  Widget? _itemSelected;
+  late Offset dropDownOffset;
+  final LayerLink _layerLink = LayerLink();
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          dropDownOffset = getOffset();
+        });
+      }
+      if (widget.defaultSelectedIndex > -1) {
+        if (widget.defaultSelectedIndex < widget.items.length) {
+          if (mounted) {
+            setState(() {
+              _isAnyItemSelected = true;
+              _itemSelected = widget.items[widget.defaultSelectedIndex];
+              widget.onChanged(widget.items[widget.defaultSelectedIndex].value);
+            });
+          }
+        }
+      }
+    });
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  void _addOverlay() {
+    if (mounted) {
+      setState(() {
+        _isOpen = true;
+      });
+    }
+
+    _overlayEntry = _createOverlayEntry();
+    Overlay.of(context)!.insert(_overlayEntry);
+  }
+
+  void _removeOverlay() {
+    if (mounted) {
+      setState(() {
+        _isOpen = false;
+      });
+      _overlayEntry.remove();
+    }
+  }
+
+  @override
+  dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    _renderBox = context.findRenderObject() as RenderBox?;
+
+    var size = _renderBox!.size;
+
+    dropDownOffset = getOffset();
+
+    return OverlayEntry(
+        maintainState: false,
+        builder: (context) => Align(
+          alignment: Alignment.center,
+          child: CompositedTransformFollower(
+            link: _layerLink,
+            showWhenUnlinked: false,
+            offset: dropDownOffset,
+            child: SizedBox(
+              height: widget.maxListHeight,
+              width: size.width,
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: _isReverse
+                    ? MainAxisAlignment.end
+                    : MainAxisAlignment.start,
+                children: <Widget>[
+                  // Padding(
+                  //   padding: const EdgeInsets.only(top: 10,),
+                  //   child:
+                    Container(
+                      padding: EdgeInsets.only(top:MediaQuery.of(context).size.height*0.06/3),
+                      constraints: BoxConstraints(
+                          maxHeight: widget.maxListHeight,
+                          maxWidth: size.width),
+                      decoration: BoxDecoration(
+                          //color: Colors.white,
+                          borderRadius: BorderRadius.circular(12)),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(widget.borderRadius),
+                        ),
+                        child: Material(
+                          //color:
+                          elevation: 0,
+                          shadowColor: Colors.grey,
+                          child: ListView(
+                            padding: EdgeInsets.zero,
+                            shrinkWrap: true,
+                            children: widget.items
+                                .map((item) => GestureDetector(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: item.child,
+                              ),
+                              onTap: () {
+                                if (mounted) {
+                                  setState(() {
+                                    _isAnyItemSelected = true;
+                                    _itemSelected = item.child;
+                                    _removeOverlay();
+                                    if (widget.onChanged != null)
+                                      widget.onChanged(item.value);
+                                  });
+                                }
+                              },
+                            ))
+                                .toList(),
+                          ),
+                        ),
+                      ),
+                    ),
+                 // ),
+                ],
+              ),
+            ),
+          ),
+        ));
+  }
+
+  Offset getOffset() {
+    RenderBox? renderBox = context.findRenderObject() as RenderBox?;
+    double y = renderBox!.localToGlobal(Offset.zero).dy;
+    double spaceAvailable = _getAvailableSpace(y + renderBox.size.height);
+    if (spaceAvailable > widget.maxListHeight) {
+      _isReverse = false;
+      return Offset(0, renderBox.size.height);
+    } else {
+      _isReverse = true;
+      return Offset(
+          0,
+          renderBox.size.height -
+              (widget.maxListHeight + renderBox.size.height));
+    }
+  }
+
+  double _getAvailableSpace(double offsetY) {
+    double safePaddingTop = MediaQuery.of(context).padding.top;
+    double safePaddingBottom = MediaQuery.of(context).padding.bottom;
+
+    double screenHeight =
+        MediaQuery.of(context).size.height - safePaddingBottom - safePaddingTop;
+
+    return screenHeight - offsetY;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final appModel =  Provider.of<AppModel>(context);
-    return Material(
-      borderRadius: BorderRadius.circular(10),
-      color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                CircleAvatar(
-                  radius: 15,
-                  backgroundColor: Colors.white,
-                  backgroundImage: ExactAssetImage(
-                    flagAsset,
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: GestureDetector(
+        onTap: widget.enabled
+            ? () {
+          _isOpen ? _removeOverlay() : _addOverlay();
+        }
+            : null,
+        child: Container(
+          decoration: _getDecoration(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Flexible(
+                flex: 3,
+                child: _isAnyItemSelected
+                    ? Padding(
+                  padding: const EdgeInsets.only(left: 4.0),
+                  child: _itemSelected!,
+                )
+                    : Padding(
+                  padding:
+                  const EdgeInsets.only(left: 4.0), // change it here
+                  child: Center(
+                    child: Text(
+                      widget.hintText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color:Color(0xff00DC00)),
+                    ),
                   ),
                 ),
-                SizedBox(
-                  width: 15,
+              ),
+              const Flexible(
+                flex: 1,
+                child: Icon(
+                  Icons.arrow_drop_down,
                 ),
-                Text(
-                  label,
-                  style:TextStyle(color:appModel.darkTheme ? Color(0xff00DC00) : Color(0xff0094FF),
-                  fontSize: MediaQuery.of(context).size.height*0.06/3, fontWeight:FontWeight.w900
-                  ) //Theme.of(context).textTheme.bodyText1,
-                ),
-              ],
-            ),
-            IconButton(
-              icon: Icon(icon),
-              onPressed: onTap(),
-              iconSize: 18,
-              color: isFaded ? Colors.grey : Theme.of(context).iconTheme.color,
-            )
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  Decoration? _getDecoration() {
+    if (_isOpen && !_isReverse) {
+      return BoxDecoration(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(widget.borderRadius),
+              topRight: Radius.circular(
+                widget.borderRadius,
+              )));
+    } else if (_isOpen && _isReverse) {
+      return BoxDecoration(
+          borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(widget.borderRadius),
+              bottomRight: Radius.circular(
+                widget.borderRadius,
+              )));
+    } else if (!_isOpen) {
+      return BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(widget.borderRadius)));
+    }
+  }
 }
+
+class CustDropdownMenuItem<T> extends StatelessWidget {
+  final String value;
+  final Widget child;
+
+  const CustDropdownMenuItem({required this.value, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return child;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -259,10 +259,11 @@ public class BelnetDaemon extends VpnService {
     if (IsRunning()) {
       Stop();
     }
-    // if (impl != null) {
-    // Free(impl);
-    // impl = null;
-    // }
+//     if (impl != null) {
+//     Free(impl);
+//     impl = null;
+//     }
+
     updateIsConnected();
   }
 

@@ -131,6 +131,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 result.success(true)
             }
             "disconnect" -> {
+
                 val belnetIntent =
                         Intent(
                                 activityBinding.activity.applicationContext,

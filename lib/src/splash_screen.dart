@@ -1,6 +1,8 @@
 import 'package:belnet_mobile/main.dart';
+import 'package:belnet_mobile/src/widget/network_connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 
 class SplashScreens extends StatefulWidget {
   const SplashScreens({Key? key}) : super(key: key);
@@ -27,9 +29,10 @@ class _SplashScreensState extends State<SplashScreens>
 
   @override
   Widget build(BuildContext context) {
-   
+    final networkStatus = Provider.of<NetworkStatus>(context);
 
-    return Scaffold(
+    return
+      Scaffold(
       backgroundColor: Color(0xff1C1C26),
         body: Center(
       child: Container(
@@ -38,7 +41,8 @@ class _SplashScreensState extends State<SplashScreens>
           _controller!
             ..duration = composition.duration
             ..forward().whenComplete(() => Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (context) => BelnetHomePage())));
+                MaterialPageRoute(builder: (context) =>networkStatus == NetworkStatus.disconnected ?
+                NoInternetConnection() : BelnetHomePage())));
         }),
       ),
     ));

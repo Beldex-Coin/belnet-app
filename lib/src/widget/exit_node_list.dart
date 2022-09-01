@@ -1,4 +1,6 @@
+import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class CustDropDown<T> extends StatefulWidget {
   final List<CustDropdownMenuItem> items;
@@ -9,6 +11,7 @@ class CustDropDown<T> extends StatefulWidget {
   final double borderWidth;
   final int defaultSelectedIndex;
   final bool enabled;
+  final AppModel appModel;
 
   const CustDropDown(
       {required this.items,
@@ -19,7 +22,7 @@ class CustDropDown<T> extends StatefulWidget {
         this.maxListHeight = 100,
         this.defaultSelectedIndex = -1,
         Key? key,
-        this.enabled = true})
+        this.enabled = true, required this.appModel})
       : super(key: key);
 
   @override
@@ -125,7 +128,7 @@ class _CustDropDownState extends State<CustDropDown>
                           Radius.circular(widget.borderRadius),
                         ),
                         child: Material(
-                          //color:
+                          color:widget.appModel.darkTheme ? Color(0xFF242430): Color(0xFFF9F9F9),
                           elevation: 0,
                           shadowColor: Colors.grey,
                           child: ListView(
@@ -201,30 +204,33 @@ class _CustDropDownState extends State<CustDropDown>
         child: Container(
           decoration: _getDecoration(),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              Flexible(
-                flex: 3,
-                child: _isAnyItemSelected
-                    ? Padding(
-                  padding: const EdgeInsets.only(left: 4.0),
-                  child: _itemSelected!,
-                )
-                    : Padding(
-                  padding:
-                  const EdgeInsets.only(left: 4.0), // change it here
-                  child: Center(
-                    child: Text(
-                      widget.hintText,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color:Color(0xff00DC00)),
+              Expanded(
+                child: Container(
+                 // flex: 3,
+                  child: _isAnyItemSelected
+                      ? Padding(
+                    padding: const EdgeInsets.only(left: 4.0),
+                    child: _itemSelected!,
+                  )
+                      : Padding(
+                    padding:
+                    const EdgeInsets.only(left: 4.0), // change it here
+                    child: Center(
+                      child: Text(
+                        widget.hintText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color:Color(0xff00DC00)),
+                      ),
                     ),
                   ),
                 ),
               ),
-              const Flexible(
-                flex: 1,
+              Container(
+                //flex: 1,
                 child: Icon(
                   Icons.arrow_drop_down,
                 ),
@@ -266,6 +272,7 @@ class CustDropdownMenuItem<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return child;
   }
 }

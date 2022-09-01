@@ -41,37 +41,71 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
     //var powerOffWhite = Lottie.asset('assets/images/off_whites.json'); //Lottie.asset('assets/images/off_white.json');
 
 
-    var whiteLoadingImage = Image.asset('assets/images/load_white.gif');
-    var powerOnDark =  Image.asset('assets/images/on_dark.png');
-    var powerOffDark = Image.asset('assets/images/off_dark.png');
-    var darkLoadingImage = Image.asset('assets/images/load_dark.gif');
-    var powerOnWhite = Image.asset('assets/images/on_white.png');
-    var powerOffWhite = Image.asset('assets/images/off_white.png');
+    var whiteLoadingImage = Image.asset('assets/images/load_white.gif',
+      height: MediaQuery.of(context).size.height * 0.90 / 3,  //0.98 / 3,
+       width: MediaQuery.of(context).size.width * 1.78 / 3,  //1.78 / 3,
+    );
+    var powerOnDark =  Image.asset('assets/images/on_dark.png',
+      height: MediaQuery.of(context).size.height * 0.90 / 3,  //0.98 / 3,
+       width: MediaQuery.of(context).size.width * 1.78 / 3,  //1.78 / 3,
+    );
+    var powerOffDark = Image.asset('assets/images/off_dark.png',
+      height: MediaQuery.of(context).size.height * 0.90 / 3,  //0.98 / 3,
+      width: MediaQuery.of(context).size.width * 1.78 / 3,  //1.78 / 3,
+    );
+    var darkLoadingImage = Image.asset('assets/images/load_dark.gif',
+      height: MediaQuery.of(context).size.height * 0.90 / 3,  //0.98 / 3,
+      width: MediaQuery.of(context).size.width * 1.78 / 3,  //1.78 / 3,
+    );
+    var powerOnWhite = Image.asset('assets/images/on_white.png',
+      height: MediaQuery.of(context).size.height * 0.90 / 3,  //0.98 / 3,
+      width: MediaQuery.of(context).size.width * 1.78 / 3,
+    );
+    var powerOffWhite = Image.asset('assets/images/off_white.png',
+      height: MediaQuery.of(context).size.height * 0.90 / 3,  //0.98 / 3,
+      width: MediaQuery.of(context).size.width * 1.78 / 3,
+    );
 
     return GestureDetector(
       onTap: widget.onPressed,
-      child: Container(
-          decoration: BoxDecoration(
-            // color: Colors.yellow,
-            shape: BoxShape.circle,
-          ),
-          height: MediaQuery.of(context).size.height * 0.98 / 3,
-          width: MediaQuery.of(context).size.width * 1.78 / 3,
-          child:
+      child:
           appModel.darkTheme
               ?
           widget.isLoading!
-                  ? darkLoadingImage
-                  : BelnetLib.isConnected
-                      ? powerOnDark
-                      : powerOffDark
+              ? darkLoadingImage
+              : BelnetLib.isConnected
+              ? powerOnDark
+              : powerOffDark
               :
-        widget.isLoading!
-                  ? whiteLoadingImage
-                  : BelnetLib.isConnected
-                      ? powerOnWhite
-                      : powerOffWhite
-          ),
+          widget.isLoading!
+              ? whiteLoadingImage
+              : BelnetLib.isConnected
+              ? powerOnWhite
+              : powerOffWhite
+
+      // Container(
+      //
+      //     decoration: BoxDecoration(
+      //       color: Colors.yellow,
+      //       shape: BoxShape.circle,
+      //     ),
+      //     height: MediaQuery.of(context).size.height * 0.80 / 3,  //0.98 / 3,
+      //     width: MediaQuery.of(context).size.width * 1.78 / 3,  //1.78 / 3,
+      //     child:
+      //     appModel.darkTheme
+      //         ?
+      //     widget.isLoading!
+      //             ? darkLoadingImage
+      //             : BelnetLib.isConnected
+      //                 ? powerOnDark
+      //                 : powerOffDark
+      //         :
+      //   widget.isLoading!
+      //             ? whiteLoadingImage
+      //             : BelnetLib.isConnected
+      //                 ? powerOnWhite
+      //                 : powerOffWhite
+      //     ),
     );
   }
 }

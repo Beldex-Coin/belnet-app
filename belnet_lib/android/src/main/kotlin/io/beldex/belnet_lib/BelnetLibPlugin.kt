@@ -1,6 +1,7 @@
 package io.beldex.belnet_lib
 
 import android.app.Activity.RESULT_OK
+//import android.app.Service
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -131,16 +132,17 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 result.success(true)
             }
             "disconnect" -> {
-
                 val belnetIntent =
                         Intent(
                                 activityBinding.activity.applicationContext,
                                 BelnetDaemon::class.java
                         )
+               //activityBinding.activity.applicationContext.stopService(belnetIntent)
                 belnetIntent.action = BelnetDaemon.ACTION_DISCONNECT
-
                 activityBinding.activity.applicationContext.startService(belnetIntent)
                 doBindService()
+
+               //doUnbindService()
 
                 result.success(true)
             }
@@ -214,4 +216,6 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             mShouldUnbind = false
         }
     }
+
+
 }

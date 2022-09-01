@@ -14,7 +14,8 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class BelnetDaemon extends VpnService {
+
+public class BelnetDaemon extends VpnService{
 
   public static final String ACTION_CONNECT = "network.beldex.belnet.START";
   public static final String ACTION_DISCONNECT = "network.beldex.belnet.STOP";
@@ -25,6 +26,7 @@ public class BelnetDaemon extends VpnService {
 
   private static final String DEFAULT_EXIT_NODE = "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx";
   private static final String DEFAULT_UPSTREAM_DNS = "1.1.1.1";
+
 
   static {
     System.loadLibrary("belnet-android");
@@ -49,6 +51,8 @@ public class BelnetDaemon extends VpnService {
   public native int GetUDPSocket();
 
   private static native String DetectFreeRange();
+
+  //public final void stopSelf();
 
   ByteBuffer impl = null;
   ParcelFileDescriptor iface;
@@ -264,7 +268,7 @@ public class BelnetDaemon extends VpnService {
 //     impl = null;
 //     }
 
-    updateIsConnected();
+    //updateIsConnected();
   }
 
   public MutableLiveData<Boolean> isConnected() {
@@ -303,4 +307,7 @@ public class BelnetDaemon extends VpnService {
       updateIsConnected();
     }
   }
+
+
+
 }

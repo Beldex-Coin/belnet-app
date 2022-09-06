@@ -15,14 +15,16 @@ class MyNotificationWorkLoad extends StatelessWidget {
           body: 'Belnet is connected',
           //notificationLayout: NotificationLayout.BigPicture,
           displayOnBackground: true,
+          showWhen: false,  //need to test
           locked: true,
           autoDismissible: dismiss,
           color: BelnetLib.isConnected ? Color(0xff00DC00) : Colors.blue,
-          category: NotificationCategory.Service,
+          category: NotificationCategory.Status    //Service,    // need to test
           //displayOnForeground: false
         ),
         actionButtons: [
           NotificationActionButton(
+            showInCompactView: true,
               key: 'DISCONNECT',
               label: 'DISCONNECT',
               buttonType: ActionButtonType.KeepOnTop,

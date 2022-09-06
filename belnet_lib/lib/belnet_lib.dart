@@ -77,4 +77,11 @@ class BelnetLib {
     if (status.isNotEmpty) return jsonDecode(status);
     return null;
   }
+
+
+  static Future<dynamic> get downloadUploadStream async{
+    var status = await _methodChannel.invokeListMethod('getUpload') as String;
+    if (status.isNotEmpty) return jsonDecode(status);
+    return null;
+  }
 }

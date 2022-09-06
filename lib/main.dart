@@ -14,11 +14,9 @@ import 'package:belnet_mobile/src/widget/belnet_power_button.dart';
 import 'package:belnet_mobile/src/widget/themed_belnet_logo.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:new_version/new_version.dart';
+//import 'package:new_version/new_version.dart';
 import 'package:provider/provider.dart';
-import 'dart:math' as math;
 
-import 'package:shared_preferences/shared_preferences.dart';
 //Global variables
 // final exitInput = TextEditingController(text: Settings.getInstance()!.exitNode);
 // final dnsInput =
@@ -40,7 +38,8 @@ void main() async {
         defaultColor: Colors.teal,
         importance: NotificationImportance.High,
         locked: true,
-        defaultPrivacy: NotificationPrivacy.Private)
+        defaultPrivacy: NotificationPrivacy.Public
+    )
   ]);
   runApp(BelnetApp());
 }
@@ -116,42 +115,42 @@ class BelnetHomePageState extends State<BelnetHomePage>
 
   @override
   void initState() {
-    final newVersion = NewVersion(
-      androidId:'com.google.android.apps.cloudconsole', //'io.beldex.belnet',
-    );
-
-    // You can let the plugin handle fetching the status and showing a dialog,
-    // or you can fetch the status and display your own dialog, or no dialog.
-    const simpleBehavior = true;
-
-    if (simpleBehavior) {
-      basicStatusCheck(newVersion);
-    } else {
-      advancedStatusCheck(newVersion);
-    }
+    // final newVersion = NewVersion(
+    //   androidId:'io.beldex.belnet',
+    // );
+    //
+    // // You can let the plugin handle fetching the status and showing a dialog,
+    // // or you can fetch the status and display your own dialog, or no dialog.
+    // const simpleBehavior = true;
+    //
+    // if (simpleBehavior) {
+    //   basicStatusCheck(newVersion);
+    // } else {
+    //   advancedStatusCheck(newVersion);
+    // }
     super.initState();
   }
 
-  basicStatusCheck(NewVersion newVersion) {
-    newVersion.showAlertIfNecessary(context: context);
-  }
-  advancedStatusCheck(NewVersion newVersion) async {
-    final status = await newVersion.getVersionStatus();
-
-    if (status != null) {
-      debugPrint(status.releaseNotes);
-      debugPrint(status.appStoreLink);
-      debugPrint(status.localVersion);
-      debugPrint(status.storeVersion);
-      debugPrint(status.canUpdate.toString());
-      newVersion.showUpdateDialog(
-        context: context,
-        versionStatus: status,
-        dialogTitle: 'App update available',
-        dialogText: 'Update your app from ${status.localVersion} to ${status.storeVersion}',
-      );
-    }
-  }
+  // basicStatusCheck(NewVersion newVersion) {
+  //   newVersion.showAlertIfNecessary(context: context);
+  // }
+  // advancedStatusCheck(NewVersion newVersion) async {
+  //   final status = await newVersion.getVersionStatus();
+  //
+  //   if (status != null) {
+  //     debugPrint(status.releaseNotes);
+  //     debugPrint(status.appStoreLink);
+  //     debugPrint(status.localVersion);
+  //     debugPrint(status.storeVersion);
+  //     debugPrint(status.canUpdate.toString());
+  //     newVersion.showUpdateDialog(
+  //       context: context,
+  //       versionStatus: status,
+  //       dialogTitle: 'App update available',
+  //       dialogText: 'Update your app from ${status.localVersion} to ${status.storeVersion}',
+  //     );
+  //   }
+  // }
 
 
 
@@ -187,7 +186,7 @@ class BelnetHomePageState extends State<BelnetHomePage>
               backgroundColor: Colors.transparent,
               //key: key,
               resizeToAvoidBottomInset:
-                  false, //Prevents overflow when keyboard is shown
+                  true, //Prevents overflow when keyboard is shown
               body: Container(
                 // color: appModel.darkTheme ? Color(0xff242430) : Color(0xffF9F9F9),
                 child: Stack(
@@ -215,8 +214,8 @@ class BelnetHomePageState extends State<BelnetHomePage>
                           appModel.darkTheme = !appModel.darkTheme;
                         },
                         child: appModel.darkTheme
-                            ? SvgPicture.asset('assets/images/dark_theme.svg')
-                            : SvgPicture.asset('assets/images/light_theme.svg'),
+                            ?  SvgPicture.asset('assets/images/dark_theme.svg')  // Image.asset('assets/images/dark_theme_4x (1).png',)//dark_themess.png
+                            :  SvgPicture.asset('assets/images/light_theme.svg'), //Image.asset('assets/images/white_theme_4x (1).png') //white_themess.png
                       ),
                     ),
                     Positioned(
@@ -261,8 +260,9 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     'br5i6rsr9yg97kbnsxrqe47cbgknbfdxbmnt7ubjejt485zw4ggy.bdx',
     '7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx',
     'n8a8y1i5jo74i5trc81tagagah4cy5xy3m1iowyr68kn3pfa5jgo.bdx',
-
+     'Custom'
   ];
+  var _textCustomController = TextEditingController();
   String? selectedValue =
       'br5i6rsr9yg97kbnsxrqe47cbgknbfdxbmnt7ubjejt485zw4ggy.bdx';
   @override
@@ -280,6 +280,11 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   }
 
   Future toggleBelnet() async {
+    if(selectedValue == 'Custom'){
+      setState(() {
+        selectedValue = _textCustomController.value.text;
+      });
+    }
     bool dismiss = false;
     //  isClick = isClick ? false : true;
     loading = true;
@@ -292,7 +297,8 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     if (mounted) setState(() {});
 
     if (BelnetLib.isConnected) {
-      await BelnetLib.disconnectFromBelnet();
+     var disConnectValue = await BelnetLib.disconnectFromBelnet();
+     print('is disconnect ? $disConnectValue' );
       appModel.connecting_belnet = false;
       dismiss = true;
       AwesomeNotifications()
@@ -330,101 +336,200 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     appModel = Provider.of<AppModel>(context);
     Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
     double mHeight = MediaQuery.of(context).size.height;
-    final networkStatus = Provider.of<NetworkStatus>(context);
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      // crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.only(top: mHeight * 0.01 / 3),
-          child: BelnetPowerButton(
-              onPressed: toggleBelnet,
-              isClick: BelnetLib.isConnected,
-              isLoading: loading),
-        ),
-        Padding(
-          padding: EdgeInsets.only(top: mHeight * 0.10 / 3),
-          child: ConnectingStatus(
-            isConnect: BelnetLib.isConnected,
-          ),
-        ),
-        Row(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(
-                  left: mHeight * 0.10 / 3, top: mHeight * 0.15 / 3),
-              child: Text('Exit Node',
-                  style: TextStyle(
-                      color: appModel.darkTheme ? Colors.white : Colors.black,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w900,
-                      fontSize: mHeight * 0.06 / 3)),
+    return
+       Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        // crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(top: mHeight * 0.01 / 3),
+            child: Container(
+              //color:Colors.yellow,
+              child: BelnetPowerButton(
+                  onPressed: toggleBelnet,
+                  isClick: BelnetLib.isConnected,
+                  isLoading: loading),
             ),
-          ],
-        ),
-        Padding(
-          padding: EdgeInsets.only(
-              left: MediaQuery.of(context).size.height * 0.08 / 3,
-              right: MediaQuery.of(context).size.height * 0.10 / 3,
-              top: MediaQuery.of(context).size.height * 0.06 / 3),
-          child: BelnetLib.isConnected
-              ? Container(
-                  height: mHeight * 0.20 / 3,
-                  decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.all(Radius.circular(5))),
-                  child: Padding(
+          ),
+         selectedValue == 'Custom' ? SizedBox.shrink() : Padding(
+            padding: EdgeInsets.only(top: mHeight * 0.10 / 3),
+            child: ConnectingStatus(
+              isConnect: BelnetLib.isConnected,
+            ),
+          ),
+          Row(
+            children: [
+              Padding(
+                padding: EdgeInsets.only(
+                    left: mHeight * 0.10 / 3, top: mHeight * 0.15 / 3),
+                child: Text('Exit Node',
+                    style: TextStyle(
+                        color: appModel.darkTheme ? Colors.white : Colors.black,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w900,
+                        fontSize: mHeight * 0.06 / 3)),
+              ),
+            ],
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+                left: MediaQuery.of(context).size.height * 0.08 / 3,
+                right: MediaQuery.of(context).size.height * 0.10 / 3,
+                top: MediaQuery.of(context).size.height * 0.06 / 3),
+            child:
+            BelnetLib.isConnected
+                ? Container(
+                    height: mHeight * 0.20 / 3,
+                    decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.all(Radius.circular(5))),
+                    child: Padding(
+                        padding: const EdgeInsets.only(
+                            left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                                child: Text('$selectedValue',
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                    style: TextStyle(color: Color(0xff00DC00)))),
+                            Container(child: Icon(Icons.arrow_drop_down))
+                          ],
+                        )))
+                : selectedValue == "Custom" ?
+            Container(
+                height: mHeight * 0.20 / 3,
+                decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.all(Radius.circular(5))),
+                child: Padding(
+                    padding: const EdgeInsets.only(
+                        left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                            child: TextField(
+                              controller: _textCustomController,
+                              //maxLength: 200,
+                              //autofocus: true ,
+                              style: TextStyle(color:Color(0xff00DC00)),
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+
+                              ),
+                              // onChanged: (value){
+                              //   setState(() {
+                              //     selectedValue = value;
+                              //   });
+                              // },
+                            )
+                        ),
+                        Container(child: IconButton(icon:Icon(Icons.close),
+                          onPressed: (){
+                          setState(() {
+
+                          });
+                            selectedValue = "br5i6rsr9yg97kbnsxrqe47cbgknbfdxbmnt7ubjejt485zw4ggy.bdx";
+                        }, ))
+                      ],
+                    )))
+            :Container(
+                    height: mHeight * 0.20 / 3,
+                    decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.all(Radius.circular(5))),
+                    child: Padding(
                       padding: const EdgeInsets.only(
-                          left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                              child: Text('$selectedValue',
+                          left: 0.0, right: 6.0, top: 3.0, bottom: 5.0),
+                      child: CustDropDown(
+                        maxListHeight: 120,
+                        items: exitItems
+                            .map((e) => CustDropdownMenuItem(
+                                value: e,
+                                child: Center(
+                                    child: Text(
+                                  '$e',
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
-                                  style: TextStyle(color: Color(0xff00DC00)))),
-                          Container(child: Icon(Icons.arrow_drop_down))
-                        ],
-                      )))
-              : Container(
-                  height: mHeight * 0.20 / 3,
-                  decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.all(Radius.circular(5))),
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                        left: 0.0, right: 6.0, top: 3.0, bottom: 5.0),
-                    child: CustDropDown(
-                      maxListHeight: 120,
-                      items: exitItems
-                          .map((e) => CustDropdownMenuItem(
-                              value: e,
-                              child: Center(
-                                  child: Text(
-                                '$e',
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                style: TextStyle(color: Color(0xff00DC00)),
-                              ))))
-                          .toList(),
-                      hintText: "$selectedValue",
-                      borderRadius: 5,
-                      onChanged: (val) {
-                        print(val);
-                        setState(() {
-                          selectedValue = val;
-                        });
-                      },
-                      appModel: appModel,
+                                  style: TextStyle(color: Color(0xff00DC00)),
+                                ))))
+                            .toList(),
+                        hintText: "$selectedValue",
+                        borderRadius: 5,
+                        onChanged: (val) {
+                          print(val);
+                          setState(() {
+                            selectedValue = val;
+                          });
+                        },
+                        appModel: appModel,
+                      ),
                     ),
                   ),
-                ),
-        ),
-        // TextButton(onPressed: (){
-        //  // Navigator.push(context, MaterialPageRoute(builder: (context)=>SplashScreens()));
-        // }, child: Text('click me'))
-      ],
+            // BelnetLib.isConnected
+            //     ? Container(
+            //         height: mHeight * 0.20 / 3,
+            //         decoration: BoxDecoration(
+            //             color: color,
+            //             borderRadius: BorderRadius.all(Radius.circular(5))),
+            //         child: Padding(
+            //             padding: const EdgeInsets.only(
+            //                 left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
+            //             child: Row(
+            //               crossAxisAlignment: CrossAxisAlignment.center,
+            //               children: [
+            //                 Expanded(
+            //                     child: Text('$selectedValue',
+            //                         overflow: TextOverflow.ellipsis,
+            //                         maxLines: 1,
+            //                         style: TextStyle(color: Color(0xff00DC00)))),
+            //                 Container(child: Icon(Icons.arrow_drop_down))
+            //               ],
+            //             )))
+            //     : Container(
+            //         height: mHeight * 0.20 / 3,
+            //         decoration: BoxDecoration(
+            //             color: color,
+            //             borderRadius: BorderRadius.all(Radius.circular(5))),
+            //         child: Padding(
+            //           padding: const EdgeInsets.only(
+            //               left: 0.0, right: 6.0, top: 3.0, bottom: 5.0),
+            //           child: CustDropDown(
+            //             maxListHeight: 120,
+            //             items: exitItems
+            //                 .map((e) => CustDropdownMenuItem(
+            //                     value: e,
+            //                     child: Center(
+            //                         child: Text(
+            //                       '$e',
+            //                       overflow: TextOverflow.ellipsis,
+            //                       maxLines: 1,
+            //                       style: TextStyle(color: Color(0xff00DC00)),
+            //                     ))))
+            //                 .toList(),
+            //             hintText: "$selectedValue",
+            //             borderRadius: 5,
+            //             onChanged: (val) {
+            //               print(val);
+            //               setState(() {
+            //                 selectedValue = val;
+            //               });
+            //             },
+            //             appModel: appModel,
+            //           ),
+            //         ),
+            //       ),
+          ),
+          // TextButton(onPressed: ()async{
+          //   print('check status for belnet ${await BelnetLib.status}');
+          //
+          //   print('check for the mboundStatus ${BelnetLib.downloadUploadStream}');
+          //  // Navigator.push(context, MaterialPageRoute(builder: (context)=>SplashScreens()));
+          // }, child: Text('click me'))
+        ],
+
     );
   }
 }
@@ -522,7 +627,8 @@ class NoInternetConnection extends StatelessWidget {
                               fontFamily: 'Poppins',
                               fontSize:
                                   MediaQuery.of(context).size.height * 0.07 / 3,
-                              fontWeight: FontWeight.w900),
+                             // fontWeight: FontWeight.w900
+                          ),
                         ),
                         onPressed: () {},
                       )),

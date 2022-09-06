@@ -13,7 +13,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-
+import android.app.Service;
+import java.io.IOException;
 
 public class BelnetDaemon extends VpnService{
 
@@ -76,9 +77,9 @@ public class BelnetDaemon extends VpnService{
       mUpdateIsConnectedTimer.cancel();
       mUpdateIsConnectedTimer = null;
     }
-
-    super.onDestroy();
     disconnect();
+    super.onDestroy();
+
   }
 
   @Override
@@ -89,6 +90,8 @@ public class BelnetDaemon extends VpnService{
 
     if (ACTION_DISCONNECT.equals(action)) {
       disconnect();
+      stopSelf();
+
       return START_NOT_STICKY;
     } else {
       ArrayList<ConfigValue> configVals = new ArrayList<ConfigValue>();
@@ -261,14 +264,16 @@ public class BelnetDaemon extends VpnService{
 
   private void disconnect() {
     if (IsRunning()) {
-      Stop();
+    Stop();
+     // stopSelf();
+      stopForeground(true);
     }
-//     if (impl != null) {
-//     Free(impl);
-//     impl = null;
-//     }
+  if (impl != null) {
+     //Free(impl);
+     impl = null;
+ }
 
-    //updateIsConnected();
+ updateIsConnected();
   }
 
   public MutableLiveData<Boolean> isConnected() {

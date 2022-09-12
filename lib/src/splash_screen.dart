@@ -21,11 +21,11 @@ class _SplashScreensState extends State<SplashScreens>
     super.initState();
   }
 
-// @override
-//   void dispose() {
-//     _controller.dispose();
-//     super.dispose();
-//   }
+@override
+  void dispose() {
+    _controller!.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

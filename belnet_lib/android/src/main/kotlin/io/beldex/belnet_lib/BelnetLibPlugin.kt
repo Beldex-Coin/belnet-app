@@ -5,7 +5,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.net.VpnService
 import android.os.IBinder
 import android.util.Log
 import androidx.annotation.NonNull
@@ -23,6 +22,51 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.PluginRegistry
 import network.beldex.belnet.BelnetDaemon
 import android.app.Service
+
+
+//import android.R.attr.name
+import android.net.*
+
+//import android.R.attr.name
+import android.os.Build
+import androidx.annotation.RequiresApi
+import android.net.NetworkCapabilities
+
+
+
+//import android.content.Context
+
+import android.net.ConnectivityManager
+import androidx.core.content.ContextCompat.getSystemService
+import android.net.wifi.WifiInfo
+
+
+import android.net.wifi.WifiManager
+
+import android.R.attr.name
+
+
+
+
+//import android.R.attr.name
+
+
+
+
+//import android.R.attr.name
+//import android.R.attr.name
+
+
+
+
+
+
+
+
+
+
+
+
 /** BelnetLibPlugin */
 class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private var mShouldUnbind: Boolean = false
@@ -78,6 +122,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         doUnbindService()
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
         when (call.method) {
             "prepare" -> {
@@ -166,7 +211,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     result.success(false)
                 }
             }
-
+            
             else -> result.notImplemented()
         }
     }

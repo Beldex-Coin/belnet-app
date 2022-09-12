@@ -30,16 +30,15 @@ void main() async {
   await Settings.getInstance()!.initialize();
   Provider.debugCheckInvalidValueType = null;
   AwesomeNotifications()
-      .initialize('resource://drawable/res_notification_app_icon', [
+      .initialize('resource://drawable/res_notification_app_icons', [
     NotificationChannel(
         channelKey: 'basic_channel',
         channelDescription: '',
         channelName: 'basic notifications',
         defaultColor: Colors.teal,
-        importance: NotificationImportance.High,
+        importance: NotificationImportance.Low,
         locked: true,
-        defaultPrivacy: NotificationPrivacy.Public
-    )
+        defaultPrivacy: NotificationPrivacy.Public)
   ]);
   runApp(BelnetApp());
 }
@@ -152,8 +151,6 @@ class BelnetHomePageState extends State<BelnetHomePage>
   //   }
   // }
 
-
-
   @override
   void dispose() {
     lottieController.dispose();
@@ -187,57 +184,7 @@ class BelnetHomePageState extends State<BelnetHomePage>
               //key: key,
               resizeToAvoidBottomInset:
                   true, //Prevents overflow when keyboard is shown
-              body: Container(
-                // color: appModel.darkTheme ? Color(0xff242430) : Color(0xffF9F9F9),
-                child: Stack(
-                  children: [
-                    Container(
-                        width: double.infinity,
-                        //color:Colors.green,
-                        height: mHeight * 1.35 / 3,
-                        child: Stack(children: [
-                          appModel.darkTheme
-                              ? Image.asset(
-                                  'assets/images/Map_dark (1).png',
-                                )
-                              : Image.asset('assets/images/map_white (3).png'),
-                          appModel.connecting_belnet
-                              ? Image.asset(
-                                  'assets/images/Map_white_gif (1).gif') //Image.asset('assets/images/Mobile_1.gif')
-                              : Container()
-                        ])),
-                    Positioned(
-                      top: mHeight * 0.09 / 3,
-                      right: mHeight * 0.03 / 3,
-                      child: GestureDetector(
-                        onTap: () {
-                          appModel.darkTheme = !appModel.darkTheme;
-                        },
-                        child: appModel.darkTheme
-                            ?  SvgPicture.asset('assets/images/dark_theme.svg')  // Image.asset('assets/images/dark_theme_4x (1).png',)//dark_themess.png
-                            :  SvgPicture.asset('assets/images/light_theme.svg'), //Image.asset('assets/images/white_theme_4x (1).png') //white_themess.png
-                      ),
-                    ),
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.40 / 3,
-                      left: MediaQuery.of(context).size.height * 0.20 / 3,
-                      child: ThemedBelnetLogo(
-                        model: appModel.darkTheme,
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(top: 0),
-                      // top:mHeight * 0.20 / 3,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          MyForm(),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              body: MyForm(),
             ),
           );
   }
@@ -260,9 +207,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     'br5i6rsr9yg97kbnsxrqe47cbgknbfdxbmnt7ubjejt485zw4ggy.bdx',
     '7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx',
     'n8a8y1i5jo74i5trc81tagagah4cy5xy3m1iowyr68kn3pfa5jgo.bdx',
-     'Custom'
   ];
-  var _textCustomController = TextEditingController();
   String? selectedValue =
       'br5i6rsr9yg97kbnsxrqe47cbgknbfdxbmnt7ubjejt485zw4ggy.bdx';
   @override
@@ -274,17 +219,11 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
-    // _animationController.dispose();
     super.dispose();
     _isConnectedEventSubscription?.cancel();
   }
 
   Future toggleBelnet() async {
-    if(selectedValue == 'Custom'){
-      setState(() {
-        selectedValue = _textCustomController.value.text;
-      });
-    }
     bool dismiss = false;
     //  isClick = isClick ? false : true;
     loading = true;
@@ -297,8 +236,8 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     if (mounted) setState(() {});
 
     if (BelnetLib.isConnected) {
-     var disConnectValue = await BelnetLib.disconnectFromBelnet();
-     print('is disconnect ? $disConnectValue' );
+      var disConnectValue = await BelnetLib.disconnectFromBelnet();
+      print('is disconnect ? $disConnectValue');
       appModel.connecting_belnet = false;
       dismiss = true;
       AwesomeNotifications()
@@ -306,12 +245,10 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     } else {
       //Save the exit node and upstream dns
       final Settings settings = Settings.getInstance()!;
-      settings.exitNode =
-          selectedValue!.trim().toString(); //exitInput.value.text.trim();
-      settings.upstreamDNS = ''; //dnsInput.value.text.trim();
+      settings.exitNode = selectedValue!.trim().toString();
+      settings.upstreamDNS = '';
 
       final result = await BelnetLib.prepareConnection();
-      // appModel.connecting_belnet = true;
       if (await BelnetLib.isPrepared) {
         appModel.connecting_belnet = true;
       }
@@ -332,26 +269,76 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    //String val = 'test ';
     appModel = Provider.of<AppModel>(context);
     Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
     double mHeight = MediaQuery.of(context).size.height;
-    return
-       Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        // crossAxisAlignment: CrossAxisAlignment.stretch,
+
+
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(top: mHeight * 0.01 / 3),
-            child: Container(
-              //color:Colors.yellow,
-              child: BelnetPowerButton(
-                  onPressed: toggleBelnet,
-                  isClick: BelnetLib.isConnected,
-                  isLoading: loading),
+          Stack(children: [
+            Positioned(
+              //top:0,
+              child: Container(
+                  width: double.infinity,
+                  //color:Colors.green,
+                  height: mHeight * 1.35 / 3,
+                  child: Stack(children: [
+                    appModel.darkTheme
+                        ? Image.asset(
+                            'assets/images/Map_dark (1).png',
+                          )
+                        : Image.asset('assets/images/map_white (3).png'),
+                    appModel.connecting_belnet && BelnetLib.isConnected == true
+                        ? Image.asset(
+                            'assets/images/Map_white_gif (1).gif') //Image.asset('assets/images/Mobile_1.gif')
+                        : Container()
+                  ])),
             ),
-          ),
-         selectedValue == 'Custom' ? SizedBox.shrink() : Padding(
+            Positioned(
+              top: mHeight * 0.09 / 3,
+              right: mHeight * 0.04 / 3,
+              child: GestureDetector(
+                  onTap: () {
+                    appModel.darkTheme = !appModel.darkTheme;
+                  },
+                  child: appModel.darkTheme
+                      ? Image.asset('assets/images/dark_theme_4x.png',
+                          width: mHeight * 0.25 / 3,
+                          height: mHeight *
+                              0.25 /
+                              3)
+                      : Image.asset('assets/images/white_theme_4x.png',
+                          width: mHeight * 0.24 / 3,
+                          height: mHeight *
+                              0.24 /
+                              3)
+              ),
+            ),
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.40 / 3,
+              left: MediaQuery.of(context).size.height * 0.20 / 3,
+              child: ThemedBelnetLogo(
+                model: appModel.darkTheme,
+              ),
+            ),
+            Center(
+              child: Padding(
+                padding: EdgeInsets.only(top: mHeight * 0.70 / 3),
+                child: Container(
+                  //color:Colors.yellow,
+                  child: BelnetPowerButton(
+                      onPressed: toggleBelnet,
+                      isClick: BelnetLib.isConnected,
+                      isLoading: loading),
+                ),
+              ),
+            ),
+          ]),
+          Padding(
             padding: EdgeInsets.only(top: mHeight * 0.10 / 3),
             child: ConnectingStatus(
               isConnect: BelnetLib.isConnected,
@@ -376,8 +363,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                 left: MediaQuery.of(context).size.height * 0.08 / 3,
                 right: MediaQuery.of(context).size.height * 0.10 / 3,
                 top: MediaQuery.of(context).size.height * 0.06 / 3),
-            child:
-            BelnetLib.isConnected
+            child: BelnetLib.isConnected
                 ? Container(
                     height: mHeight * 0.20 / 3,
                     decoration: BoxDecoration(
@@ -393,49 +379,12 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                                 child: Text('$selectedValue',
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
-                                    style: TextStyle(color: Color(0xff00DC00)))),
+                                    style:
+                                        TextStyle(color: Color(0xff00DC00)))),
                             Container(child: Icon(Icons.arrow_drop_down))
                           ],
                         )))
-                : selectedValue == "Custom" ?
-            Container(
-                height: mHeight * 0.20 / 3,
-                decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.all(Radius.circular(5))),
-                child: Padding(
-                    padding: const EdgeInsets.only(
-                        left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                            child: TextField(
-                              controller: _textCustomController,
-                              //maxLength: 200,
-                              //autofocus: true ,
-                              style: TextStyle(color:Color(0xff00DC00)),
-                              decoration: InputDecoration(
-                                border: InputBorder.none,
-
-                              ),
-                              // onChanged: (value){
-                              //   setState(() {
-                              //     selectedValue = value;
-                              //   });
-                              // },
-                            )
-                        ),
-                        Container(child: IconButton(icon:Icon(Icons.close),
-                          onPressed: (){
-                          setState(() {
-
-                          });
-                            selectedValue = "br5i6rsr9yg97kbnsxrqe47cbgknbfdxbmnt7ubjejt485zw4ggy.bdx";
-                        }, ))
-                      ],
-                    )))
-            :Container(
+                : Container(
                     height: mHeight * 0.20 / 3,
                     decoration: BoxDecoration(
                         color: color,
@@ -468,68 +417,12 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                       ),
                     ),
                   ),
-            // BelnetLib.isConnected
-            //     ? Container(
-            //         height: mHeight * 0.20 / 3,
-            //         decoration: BoxDecoration(
-            //             color: color,
-            //             borderRadius: BorderRadius.all(Radius.circular(5))),
-            //         child: Padding(
-            //             padding: const EdgeInsets.only(
-            //                 left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
-            //             child: Row(
-            //               crossAxisAlignment: CrossAxisAlignment.center,
-            //               children: [
-            //                 Expanded(
-            //                     child: Text('$selectedValue',
-            //                         overflow: TextOverflow.ellipsis,
-            //                         maxLines: 1,
-            //                         style: TextStyle(color: Color(0xff00DC00)))),
-            //                 Container(child: Icon(Icons.arrow_drop_down))
-            //               ],
-            //             )))
-            //     : Container(
-            //         height: mHeight * 0.20 / 3,
-            //         decoration: BoxDecoration(
-            //             color: color,
-            //             borderRadius: BorderRadius.all(Radius.circular(5))),
-            //         child: Padding(
-            //           padding: const EdgeInsets.only(
-            //               left: 0.0, right: 6.0, top: 3.0, bottom: 5.0),
-            //           child: CustDropDown(
-            //             maxListHeight: 120,
-            //             items: exitItems
-            //                 .map((e) => CustDropdownMenuItem(
-            //                     value: e,
-            //                     child: Center(
-            //                         child: Text(
-            //                       '$e',
-            //                       overflow: TextOverflow.ellipsis,
-            //                       maxLines: 1,
-            //                       style: TextStyle(color: Color(0xff00DC00)),
-            //                     ))))
-            //                 .toList(),
-            //             hintText: "$selectedValue",
-            //             borderRadius: 5,
-            //             onChanged: (val) {
-            //               print(val);
-            //               setState(() {
-            //                 selectedValue = val;
-            //               });
-            //             },
-            //             appModel: appModel,
-            //           ),
-            //         ),
-            //       ),
           ),
-          // TextButton(onPressed: ()async{
-          //   print('check status for belnet ${await BelnetLib.status}');
-          //
-          //   print('check for the mboundStatus ${BelnetLib.downloadUploadStream}');
-          //  // Navigator.push(context, MaterialPageRoute(builder: (context)=>SplashScreens()));
-          // }, child: Text('click me'))
+          SizedBox(
+            height: 10,
+          ),
         ],
-
+      ),
     );
   }
 }
@@ -576,12 +469,12 @@ class NoInternetConnection extends StatelessWidget {
                             : Color(0xffC7C7C7),
                         height: MediaQuery.of(context).size.height * 0.20 / 3)),
                 Container(
-                    padding: EdgeInsets.only(
-                      left: 15.0,
-                      right: 15.0,
-                    ),
-                    child: Center(
-                        child: Text(
+                  padding: EdgeInsets.only(
+                    left: 15.0,
+                    right: 15.0,
+                  ),
+                  child: Center(
+                    child: Text(
                       'No internet connection.',
                       style: TextStyle(
                           color: appModel.darkTheme
@@ -591,7 +484,9 @@ class NoInternetConnection extends StatelessWidget {
                           fontSize:
                               MediaQuery.of(context).size.height * 0.08 / 3,
                           fontFamily: 'Poppins'),
-                    ))),
+                    ),
+                  ),
+                ),
                 Container(
                     //color: Colors.green,
                     padding: EdgeInsets.only(
@@ -623,11 +518,11 @@ class NoInternetConnection extends StatelessWidget {
                         child: Text(
                           'Retry',
                           style: TextStyle(
-                              color: Colors.white,
-                              fontFamily: 'Poppins',
-                              fontSize:
-                                  MediaQuery.of(context).size.height * 0.07 / 3,
-                             // fontWeight: FontWeight.w900
+                            color: Colors.white,
+                            fontFamily: 'Poppins',
+                            fontSize:
+                                MediaQuery.of(context).size.height * 0.07 / 3,
+                            // fontWeight: FontWeight.w900
                           ),
                         ),
                         onPressed: () {},
@@ -639,3 +534,4 @@ class NoInternetConnection extends StatelessWidget {
     );
   }
 }
+

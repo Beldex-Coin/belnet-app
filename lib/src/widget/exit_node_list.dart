@@ -128,7 +128,7 @@ class _CustDropDownState extends State<CustDropDown>
                           Radius.circular(widget.borderRadius),
                         ),
                         child: Material(
-                          color:widget.appModel.darkTheme ? Color(0xFF242430): Color(0xFFF9F9F9),
+                          color:widget.appModel.darkTheme ? Color(0xFF242430):Color(0xFFF9F9F9),
                           elevation: 0,
                           shadowColor: Colors.grey,
                           child: ListView(
@@ -233,6 +233,7 @@ class _CustDropDownState extends State<CustDropDown>
                 //flex: 1,
                 child: Icon(
                   Icons.arrow_drop_down,
+                  color: Colors.grey,
                 ),
               ),
             ],

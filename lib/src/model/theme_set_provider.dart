@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 class AppModel extends ChangeNotifier {
 
   AppPreference appPreference = AppPreference();
-  bool _darkTheme = false;
+  bool _darkTheme = true;      //false
   bool get darkTheme => _darkTheme;
 
   set darkTheme(bool value) {

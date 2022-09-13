@@ -23,7 +23,7 @@ class BelnetLib {
 
   static Stream<bool> get isConnectedEventStream => _isConnectedEventStream;
 
-  static Future bootstrapBelnet() async {  // https://generalfile.s3.ap-south-1.amazonaws.com/bootstrap.signed  https://deb.beldex.io/Beldex-projects/Belnet/bootstrap-files/belnet.signed
+  static Future bootstrapBelnet() async {
     final request = await HttpClient()
         .getUrl(Uri.parse('https://deb.beldex.io/Beldex-projects/Belnet/bootstrap-files/bootstrap.signed'));
     final response = await request.close();
@@ -77,4 +77,6 @@ class BelnetLib {
     if (status.isNotEmpty) return jsonDecode(status);
     return null;
   }
+
+
 }

@@ -5,7 +5,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.net.VpnService
 import android.os.IBinder
 import android.util.Log
 import androidx.annotation.NonNull
@@ -22,6 +21,51 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.PluginRegistry
 import network.beldex.belnet.BelnetDaemon
+import android.app.Service
+
+
+//import android.R.attr.name
+import android.net.*
+
+//import android.R.attr.name
+import android.os.Build
+import androidx.annotation.RequiresApi
+import android.net.NetworkCapabilities
+
+
+
+//import android.content.Context
+
+import android.net.ConnectivityManager
+import androidx.core.content.ContextCompat.getSystemService
+import android.net.wifi.WifiInfo
+
+
+import android.net.wifi.WifiManager
+
+import android.R.attr.name
+
+
+
+
+//import android.R.attr.name
+
+
+
+
+//import android.R.attr.name
+//import android.R.attr.name
+
+
+
+
+
+
+
+
+
+
+
 
 /** BelnetLibPlugin */
 class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
@@ -78,6 +122,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         doUnbindService()
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
         when (call.method) {
             "prepare" -> {
@@ -131,15 +176,23 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 result.success(true)
             }
             "disconnect" -> {
+                var intent = VpnService.prepare(activityBinding.activity.applicationContext)
+                if (intent != null) {
+                    // Not prepared yet
+                    result.success(false)
+                    return
+                }
                 val belnetIntent =
                         Intent(
                                 activityBinding.activity.applicationContext,
                                 BelnetDaemon::class.java
                         )
-                belnetIntent.action = BelnetDaemon.ACTION_DISCONNECT
-
+               belnetIntent.action = BelnetDaemon.ACTION_DISCONNECT
+//                activityBinding.activity.applicationContext.startService(belnetIntent)
                 activityBinding.activity.applicationContext.startService(belnetIntent)
-                doBindService()
+               // activityBinding.activity.applicationContext.stopService(intent)
+//                doBindService()
+                Log.d("Test","inside disconnect function")
 
                 result.success(true)
             }
@@ -153,10 +206,12 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             "getStatus" -> {
                 if (mBoundService != null) {
                     result.success(mBoundService!!.DumpStatus())
+                    Log.d("Test","mBoundService is " + mBoundService)
                 } else {
                     result.success(false)
                 }
             }
+            
             else -> result.notImplemented()
         }
     }
@@ -166,7 +221,8 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         doBindService()
     }
 
-    override fun onDetachedFromActivity() {}
+    override fun onDetachedFromActivity() {
+    }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
         activityBinding = binding
@@ -185,6 +241,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
                 override fun onServiceDisconnected(className: ComponentName) {
                     mBoundService = null
+
                 }
             }
 
@@ -213,4 +270,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             mShouldUnbind = false
         }
     }
+
+
+
 }

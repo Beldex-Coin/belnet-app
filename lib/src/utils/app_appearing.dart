@@ -14,7 +14,7 @@ class AppPreference {
 
   Future<bool> getTheme() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(THEME_SETTING) ?? false;
+    return prefs.getBool(THEME_SETTING) ?? true;  //false
   }
 // for background image changes into animated file
   setConnectingBelnet(bool value)async{

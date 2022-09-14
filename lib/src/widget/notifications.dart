@@ -38,6 +38,9 @@ class MyNotificationWorkLoad extends StatelessWidget {
         }
       }
     });
+
+   //await AwesomeNotifications().dismiss(3);
+
   }
 
   @override

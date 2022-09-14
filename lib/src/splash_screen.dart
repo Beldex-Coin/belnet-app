@@ -29,7 +29,7 @@ class _SplashScreensState extends State<SplashScreens>
 
   @override
   Widget build(BuildContext context) {
-    final networkStatus = Provider.of<NetworkStatus>(context);
+    // final networkStatus = Provider.of<NetworkStatus>(context);
 
     return
       Scaffold(
@@ -41,8 +41,7 @@ class _SplashScreensState extends State<SplashScreens>
           _controller!
             ..duration = composition.duration
             ..forward().whenComplete(() => Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (context) =>networkStatus == NetworkStatus.disconnected ?
-                NoInternetConnection() : BelnetHomePage())));
+                MaterialPageRoute(builder: (context) => BelnetHomePage())));
         }),
       ),
     ));

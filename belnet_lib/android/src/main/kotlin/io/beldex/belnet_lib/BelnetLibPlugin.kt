@@ -80,8 +80,8 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     /// when the Flutter Engine is detached from the Activity
     private lateinit var mMethodChannel: MethodChannel
     private lateinit var mIsConnectedEventChannel: EventChannel
-    private var mEventSink: EventChannel.EventSink? = null
 
+    private var mEventSink: EventChannel.EventSink? = null
     private var mIsConnectedObserver =
             Observer<Boolean> { newIsConnected ->
                 // Propagate to the dart package.
@@ -101,6 +101,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         mMethodChannel = MethodChannel(binding.binaryMessenger, "belnet_lib_method_channel")
         mMethodChannel.setMethodCallHandler(this)
 
+
         mIsConnectedEventChannel =
                 EventChannel(binding.binaryMessenger, "belnet_lib_is_connected_event_channel")
         mIsConnectedEventChannel.setStreamHandler(
@@ -119,10 +120,11 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         mMethodChannel.setMethodCallHandler(null)
+
         doUnbindService()
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
+
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
         when (call.method) {
             "prepare" -> {
@@ -211,7 +213,8 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     result.success(false)
                 }
             }
-            
+
+
             else -> result.notImplemented()
         }
     }
@@ -270,6 +273,9 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             mShouldUnbind = false
         }
     }
+
+
+
 
 
 

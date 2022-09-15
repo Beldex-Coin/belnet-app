@@ -5,9 +5,10 @@ import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
 import 'package:belnet_mobile/src/widget/exit_node_list.dart';
-import 'package:belnet_mobile/src/widget/network_connectivity.dart';
-import 'package:belnet_mobile/src/widget/networkbinding.dart';
+// import 'package:belnet_mobile/src/widget/network_connectivity.dart';
+// import 'package:belnet_mobile/src/widget/networkbinding.dart';
 import 'package:belnet_mobile/src/widget/notifications.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/settings.dart';
@@ -26,8 +27,6 @@ import 'package:provider/provider.dart';
 bool netValue = true;
 bool isClick = false;
 bool loading = false;
-
-
 
 void main() async {
   //Load settings
@@ -81,17 +80,17 @@ class _BelnetAppState extends State<BelnetApp> {
     return ChangeNotifierProvider<AppModel>.value(
       value: appModel,
       child: Consumer<AppModel>(builder: (context, value, child) {
-        return GetMaterialApp(
-          initialBinding: NetworkBinding(),
+        return MaterialApp(
             title: 'Belnet App',
             debugShowCheckedModeBanner: false,
             theme: appModel.darkTheme ? buildDarkTheme() : buildLightTheme(),
             home: SplashScreens() //BelnetHomePage(),
-        );
+            );
       }),
     );
   }
 }
+
 //final ConnectivityController connectivityController = Get.put(ConnectivityController());
 class BelnetHomePage extends StatefulWidget {
   BelnetHomePage({Key? key}) : super(key: key);
@@ -103,8 +102,7 @@ class BelnetHomePage extends StatefulWidget {
 class BelnetHomePageState extends State<BelnetHomePage>
     with SingleTickerProviderStateMixin {
   late AnimationController lottieController;
-
-  final GetNetworkManager getNetworkManager = Get.find<GetNetworkManager>();
+  late ConnectivityResult connectivityResult;
 
   @override
   void initState() {
@@ -121,8 +119,10 @@ class BelnetHomePageState extends State<BelnetHomePage>
     // } else {
     //   advancedStatusCheck(newVersion);
     // }
-
-
+    Timer.periodic(Duration(seconds: 5), (timer) {
+      myNetwork();
+    });
+    setState(() {});
     super.initState();
   }
 
@@ -147,6 +147,39 @@ class BelnetHomePageState extends State<BelnetHomePage>
   //   }
   // }
 
+  myNetwork() async {
+    connectivityResult = await Connectivity().checkConnectivity();
+    switch (connectivityResult) {
+      case ConnectivityResult.wifi:
+        {
+          setState(() {});
+          netValue = true;
+        }
+        break;
+      case ConnectivityResult.ethernet:
+        {
+          setState(() {});
+          netValue = true;
+        }
+        break;
+      case ConnectivityResult.mobile:
+        {
+          setState(() {});
+          netValue = true;
+        }
+        break;
+      case ConnectivityResult.none:
+        {
+          setState(() {});
+          netValue = false;
+        }
+        break;
+      default:
+        print('Error occured while checking network');
+        break;
+    }
+  }
+
   @override
   void dispose() {
     lottieController.dispose();
@@ -158,34 +191,35 @@ class BelnetHomePageState extends State<BelnetHomePage>
     double mHeight = MediaQuery.of(context).size.height;
     final appModel = Provider.of<AppModel>(context);
     return
-    GetBuilder<GetNetworkManager>(
-        builder: (builder) => getNetworkManager.connectionType == 0 ?
-            NoInternetConnection() :
-      Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: appModel.darkTheme
-                ? [
-              Color(0xFF242430),
-              Color(0xFF1C1C26),
-            ]
-                : [
-              Color(0xFFF9F9F9),
-              Color(0xFFEBEBEB),
-            ],
-          ),
-        ),
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          //key: key,
-          resizeToAvoidBottomInset:
-          true, //Prevents overflow when keyboard is shown
-          body: MyForm(),
-        ),
-      )
-    ); //: NoInternetConnection();
+        // GetBuilder<GetNetworkManager>(
+        //     builder: (builder) => getNetworkManager.connectionType == 0 ?
+        netValue == false
+            ? NoInternetConnection()
+            : Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: appModel.darkTheme
+                        ? [
+                            Color(0xFF242430),
+                            Color(0xFF1C1C26),
+                          ]
+                        : [
+                            Color(0xFFF9F9F9),
+                            Color(0xFFEBEBEB),
+                          ],
+                  ),
+                ),
+                child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  //key: key,
+                  resizeToAvoidBottomInset:
+                      true, //Prevents overflow when keyboard is shown
+                  body: MyForm(),
+                ),
+              );
+    // ); //: NoInternetConnection();
   }
 }
 
@@ -221,9 +255,11 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   }
 
   Future toggleBelnet() async {
-    print('netvalue from getNetworkCheck $netValue');
+    if (BelnetLib.isConnected == false) {
+      AwesomeNotifications().dismiss(3);
+    }
     bool dismiss = false;
-    //  isClick = isClick ? false : true;
+
     loading = true;
     setState(() {});
     Future.delayed(const Duration(milliseconds: 1000), () {
@@ -232,9 +268,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       });
     });
     if (mounted) setState(() {});
-    if(BelnetLib.isConnected == false){
-      AwesomeNotifications().dismiss(3);
-    }
+
     if (BelnetLib.isConnected) {
       var disConnectValue = await BelnetLib.disconnectFromBelnet();
       print('is disconnect ? $disConnectValue');
@@ -275,7 +309,6 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
     double mHeight = MediaQuery.of(context).size.height;
 
-
     return SingleChildScrollView(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -291,12 +324,12 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                   child: Stack(children: [
                     appModel.darkTheme
                         ? Image.asset(
-                      'assets/images/Map_dark (1).png',
-                    )
+                            'assets/images/Map_dark (1).png',
+                          )
                         : Image.asset('assets/images/map_white (3).png'),
                     appModel.connecting_belnet && BelnetLib.isConnected == true
                         ? Image.asset(
-                        'assets/images/Map_white_gif (1).gif') //Image.asset('assets/images/Mobile_1.gif')
+                            'assets/images/Map_white_gif (1).gif') //Image.asset('assets/images/Mobile_1.gif')
                         : Container()
                   ])),
             ),
@@ -308,17 +341,11 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                     appModel.darkTheme = !appModel.darkTheme;
                   },
                   child: appModel.darkTheme
-                      ? Image.asset('assets/images/dark_theme_4x.png',
-                      width: mHeight * 0.25 / 3,
-                      height: mHeight *
-                          0.25 /
-                          3)
-                      : Image.asset('assets/images/white_theme_4x.png',
-                      width: mHeight * 0.24 / 3,
-                      height: mHeight *
-                          0.24 /
-                          3)
-              ),
+                      ? Image.asset('assets/images/dark_theme_4x (2).png',
+                          width: mHeight * 0.25 / 3, height: mHeight * 0.25 / 3)
+                      : Image.asset('assets/images/white_theme_4x (3).png',
+                          width: mHeight * 0.24 / 3,
+                          height: mHeight * 0.24 / 3)),
             ),
             Positioned(
               top: MediaQuery.of(context).size.height * 0.40 / 3,
@@ -367,62 +394,65 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                 top: MediaQuery.of(context).size.height * 0.06 / 3),
             child: BelnetLib.isConnected
                 ? Container(
-                height: mHeight * 0.20 / 3,
-                decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.all(Radius.circular(5))),
-                child: Padding(
-                    padding: const EdgeInsets.only(
-                        left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                            child: Text('$selectedValue',
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                style:
-                                TextStyle(color: Color(0xff00DC00)))),
-                        Container(child: Icon(Icons.arrow_drop_down,color:Colors.grey,))
-                      ],
-                    )))
+                    height: mHeight * 0.20 / 3,
+                    decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.all(Radius.circular(5))),
+                    child: Padding(
+                        padding: const EdgeInsets.only(
+                            left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                                child: Text('$selectedValue',
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                    style:
+                                        TextStyle(color: Color(0xff00DC00)))),
+                            Container(
+                                child: Icon(
+                              Icons.arrow_drop_down,
+                              color: Colors.grey,
+                            ))
+                          ],
+                        )))
                 : Container(
-              height: mHeight * 0.20 / 3,
-              decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.all(Radius.circular(5))),
-              child: Padding(
-                padding: const EdgeInsets.only(
-                    left: 0.0, right: 6.0, top: 3.0, bottom: 5.0),
-                child: CustDropDown(
-                  maxListHeight: 120,
-                  items: exitItems
-                      .map((e) => CustDropdownMenuItem(
-                      value: e,
-                      child: Center(
-                          child: Text(
-                            '$e',
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                            style: TextStyle(color: Color(0xff00DC00)),
-                          ))))
-                      .toList(),
-                  hintText: "$selectedValue",
-                  borderRadius: 5,
-                  onChanged: (val) {
-                    print(val);
-                    setState(() {
-                      selectedValue = val;
-                    });
-                  },
-                  appModel: appModel,
-                ),
-              ),
-            ),
+                    height: mHeight * 0.20 / 3,
+                    decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.all(Radius.circular(5))),
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          left: 0.0, right: 6.0, top: 3.0, bottom: 5.0),
+                      child: CustDropDown(
+                        maxListHeight: 120,
+                        items: exitItems
+                            .map((e) => CustDropdownMenuItem(
+                                value: e,
+                                child: Center(
+                                    child: Text(
+                                  '$e',
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: TextStyle(color: Color(0xff00DC00)),
+                                ))))
+                            .toList(),
+                        hintText: "$selectedValue",
+                        borderRadius: 5,
+                        onChanged: (val) {
+                          print(val);
+                          setState(() {
+                            selectedValue = val;
+                          });
+                        },
+                        appModel: appModel,
+                      ),
+                    ),
+                  ),
           ),
+
           //Spacer(),
-
-
         ],
       ),
     );
@@ -443,13 +473,13 @@ class NoInternetConnection extends StatelessWidget {
           end: Alignment.bottomCenter,
           colors: appModel.darkTheme
               ? [
-            Color(0xFF242430),
-            Color(0xFF1C1C26),
-          ]
+                  Color(0xFF242430),
+                  Color(0xFF1C1C26),
+                ]
               : [
-            Color(0xFFF9F9F9),
-            Color(0xFFEBEBEB),
-          ],
+                  Color(0xFFF9F9F9),
+                  Color(0xFFEBEBEB),
+                ],
         ),
       ),
       child: Scaffold(
@@ -484,13 +514,13 @@ class NoInternetConnection extends StatelessWidget {
                               : Color(0xff56566F),
                           fontWeight: FontWeight.w900,
                           fontSize:
-                          MediaQuery.of(context).size.height * 0.08 / 3,
+                              MediaQuery.of(context).size.height * 0.08 / 3,
                           fontFamily: 'Poppins'),
                     ),
                   ),
                 ),
                 Container(
-                  //color: Colors.green,
+                    //color: Colors.green,
                     padding: EdgeInsets.only(
                         left: MediaQuery.of(context).size.height * 0.14 / 3,
                         right: MediaQuery.of(context).size.height * 0.14 / 3,
@@ -515,7 +545,7 @@ class NoInternetConnection extends StatelessWidget {
                           color: Color(0xff00DC00),
                           borderRadius: BorderRadius.all(Radius.circular(18.0)),
                           border:
-                          Border.all(color: Color(0xff00DC00), width: 2)),
+                              Border.all(color: Color(0xff00DC00), width: 2)),
                       child: TextButton(
                         child: Text(
                           'Retry',
@@ -523,7 +553,7 @@ class NoInternetConnection extends StatelessWidget {
                             color: Colors.white,
                             fontFamily: 'Poppins',
                             fontSize:
-                            MediaQuery.of(context).size.height * 0.07 / 3,
+                                MediaQuery.of(context).size.height * 0.07 / 3,
                             // fontWeight: FontWeight.w900
                           ),
                         ),
@@ -536,4 +566,3 @@ class NoInternetConnection extends StatelessWidget {
     );
   }
 }
-

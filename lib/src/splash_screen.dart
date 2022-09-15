@@ -1,5 +1,4 @@
 import 'package:belnet_mobile/main.dart';
-import 'package:belnet_mobile/src/widget/network_connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';

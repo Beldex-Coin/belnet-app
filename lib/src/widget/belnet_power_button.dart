@@ -45,7 +45,7 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
       height: MediaQuery.of(context).size.height * 0.90 / 3,  //0.98 / 3,
        width: MediaQuery.of(context).size.width * 1.78 / 3,  //1.78 / 3,
     );
-    var powerOnDark =  Image.asset('assets/images/power_on.png',
+    var powerOnDark =  Image.asset('assets/images/power_on-01.png',
       height: MediaQuery.of(context).size.height * 0.90 / 3,  //0.98 / 3,
        width: MediaQuery.of(context).size.width * 1.78 / 3,  //1.78 / 3,
     );
@@ -57,7 +57,7 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
       height: MediaQuery.of(context).size.height * 0.90 / 3,  //0.98 / 3,
       width: MediaQuery.of(context).size.width * 1.78 / 3,  //1.78 / 3,
     );
-    var powerOnWhite = Image.asset('assets/images/on_white.png',
+    var powerOnWhite = Image.asset('assets/images/image (1).png',
       height: MediaQuery.of(context).size.height * 0.90 / 3,  //0.98 / 3,
       width: MediaQuery.of(context).size.width * 1.78 / 3,
     );

@@ -1,10 +1,21 @@
 package io.beldex.belnet_lib
 
+
+//import android.R.attr.name
+
+//import android.R.attr.name
+
+
+//import android.content.Context
+
+
+
 import android.app.Activity.RESULT_OK
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.net.*
 import android.os.IBinder
 import android.util.Log
 import androidx.annotation.NonNull
@@ -21,30 +32,6 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.PluginRegistry
 import network.beldex.belnet.BelnetDaemon
-import android.app.Service
-
-
-//import android.R.attr.name
-import android.net.*
-
-//import android.R.attr.name
-import android.os.Build
-import androidx.annotation.RequiresApi
-import android.net.NetworkCapabilities
-
-
-
-//import android.content.Context
-
-import android.net.ConnectivityManager
-import androidx.core.content.ContextCompat.getSystemService
-import android.net.wifi.WifiInfo
-
-
-import android.net.wifi.WifiManager
-
-import android.R.attr.name
-
 
 
 
@@ -55,10 +42,6 @@ import android.R.attr.name
 
 //import android.R.attr.name
 //import android.R.attr.name
-
-
-
-
 
 
 
@@ -100,7 +83,6 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
         mMethodChannel = MethodChannel(binding.binaryMessenger, "belnet_lib_method_channel")
         mMethodChannel.setMethodCallHandler(this)
-
 
         mIsConnectedEventChannel =
                 EventChannel(binding.binaryMessenger, "belnet_lib_is_connected_event_channel")
@@ -190,10 +172,10 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                                 BelnetDaemon::class.java
                         )
                belnetIntent.action = BelnetDaemon.ACTION_DISCONNECT
-//                activityBinding.activity.applicationContext.startService(belnetIntent)
+
                 activityBinding.activity.applicationContext.startService(belnetIntent)
-               // activityBinding.activity.applicationContext.stopService(intent)
-//                doBindService()
+
+           // doBindService()
                 Log.d("Test","inside disconnect function")
 
                 result.success(true)

@@ -35,7 +35,7 @@ void main() async {
   Paint.enableDithering = true;
   Provider.debugCheckInvalidValueType = null;
   AwesomeNotifications()
-      .initialize('resource://drawable/res_notification_app_icons', [
+      .initialize('resource://drawable/res_notification_app_icon', [
     NotificationChannel(
         channelKey: 'basic_channel',
         channelDescription: '',
@@ -100,25 +100,24 @@ class BelnetHomePage extends StatefulWidget {
 }
 
 class BelnetHomePageState extends State<BelnetHomePage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController lottieController;
+   // with SingleTickerProviderStateMixin
+{
   late ConnectivityResult connectivityResult;
 
   @override
   void initState() {
-    // final newVersion = NewVersion(
-    //   androidId:'io.beldex.belnet',
-    // );
-    //
-    // // You can let the plugin handle fetching the status and showing a dialog,
-    // // or you can fetch the status and display your own dialog, or no dialog.
-    // const simpleBehavior = true;
-    //
-    // if (simpleBehavior) {
-    //   basicStatusCheck(newVersion);
-    // } else {
-    //   advancedStatusCheck(newVersion);
-    // }
+    final newVersion = NewVersion(
+      androidId: 'io.beldex.belnet',
+    );
+    // You can let the plugin handle fetching the status and showing a dialog,
+    // or you can fetch the status and display your own dialog, or no dialog.
+    const simpleBehavior = true;
+
+    if (simpleBehavior) {
+      basicStatusCheck(newVersion);
+    } else {
+      advancedStatusCheck(newVersion);
+    }
     Timer.periodic(Duration(seconds: 5), (timer) {
       myNetwork();
     });
@@ -126,26 +125,28 @@ class BelnetHomePageState extends State<BelnetHomePage>
     super.initState();
   }
 
-  // basicStatusCheck(NewVersion newVersion) {
-  //   newVersion.showAlertIfNecessary(context: context);
-  // }
-  // advancedStatusCheck(NewVersion newVersion) async {
-  //   final status = await newVersion.getVersionStatus();
-  //
-  //   if (status != null) {
-  //     debugPrint(status.releaseNotes);
-  //     debugPrint(status.appStoreLink);
-  //     debugPrint(status.localVersion);
-  //     debugPrint(status.storeVersion);
-  //     debugPrint(status.canUpdate.toString());
-  //     newVersion.showUpdateDialog(
-  //       context: context,
-  //       versionStatus: status,
-  //       dialogTitle: 'App update available',
-  //       dialogText: 'Update your app from ${status.localVersion} to ${status.storeVersion}',
-  //     );
-  //   }
-  // }
+  basicStatusCheck(NewVersion newVersion) {
+    newVersion.showAlertIfNecessary(context: context);
+  }
+
+  advancedStatusCheck(NewVersion newVersion) async {
+    final status = await newVersion.getVersionStatus();
+
+    if (status != null) {
+      debugPrint(status.releaseNotes);
+      debugPrint(status.appStoreLink);
+      debugPrint(status.localVersion);
+      debugPrint(status.storeVersion);
+      debugPrint(status.canUpdate.toString());
+      newVersion.showUpdateDialog(
+        context: context,
+        versionStatus: status,
+        dialogTitle: 'App update available',
+        dialogText:
+            'New version for belnet is now available with new features.Update your app from ${status.localVersion} to ${status.storeVersion}!',
+      );
+    }
+  }
 
   myNetwork() async {
     connectivityResult = await Connectivity().checkConnectivity();
@@ -182,13 +183,10 @@ class BelnetHomePageState extends State<BelnetHomePage>
 
   @override
   void dispose() {
-    lottieController.dispose();
-
     super.dispose();
   }
 
   Widget build(BuildContext context) {
-    double mHeight = MediaQuery.of(context).size.height;
     final appModel = Provider.of<AppModel>(context);
     return
         // GetBuilder<GetNetworkManager>(
@@ -256,6 +254,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
   Future toggleBelnet() async {
     if (BelnetLib.isConnected == false) {
+      print('netvalue from disconnected --');
       AwesomeNotifications().dismiss(3);
     }
     bool dismiss = false;
@@ -272,13 +271,13 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     if (BelnetLib.isConnected) {
       var disConnectValue = await BelnetLib.disconnectFromBelnet();
       print('is disconnect ? $disConnectValue');
-      print('netvalue from disconnected $netValue');
+      print('netvalue from disconnected - $netValue');
       appModel.connecting_belnet = false;
       dismiss = true;
       AwesomeNotifications()
           .dismiss(3); // dismiss the notification when belnet disconnected
     } else {
-      print('netvalue from disconnected $netValue');
+      print('netvalue from disconnected --- $netValue');
       //Save the exit node and upstream dns
       final Settings settings = Settings.getInstance()!;
       settings.exitNode = selectedValue!.trim().toString();
@@ -292,7 +291,6 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
         BelnetLib.connectToBelnet(
             exitNode: settings.exitNode!, upstreamDNS: "");
 
-      setState(() {});
       if (BelnetLib.isConnected) {
         appModel.connecting_belnet = true;
       }
@@ -300,6 +298,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       MyNotificationWorkLoad(
         appModel: appModel,
       ).createMyNotification(dismiss);
+      setState(() {});
     }
   }
 
@@ -309,153 +308,171 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
     double mHeight = MediaQuery.of(context).size.height;
 
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Stack(children: [
-            Positioned(
-              //top:0,
-              child: Container(
-                  width: double.infinity,
-                  //color:Colors.green,
-                  height: mHeight * 1.35 / 3,
-                  child: Stack(children: [
-                    appModel.darkTheme
-                        ? Image.asset(
-                            'assets/images/Map_dark (1).png',
-                          )
-                        : Image.asset('assets/images/map_white (3).png'),
-                    appModel.connecting_belnet && BelnetLib.isConnected == true
-                        ? Image.asset(
-                            'assets/images/Map_white_gif (1).gif') //Image.asset('assets/images/Mobile_1.gif')
-                        : Container()
-                  ])),
-            ),
-            Positioned(
-              top: mHeight * 0.10 / 3,
-              right: mHeight * 0.04 / 3,
-              child: GestureDetector(
-                  onTap: () {
-                    appModel.darkTheme = !appModel.darkTheme;
-                  },
-                  child: appModel.darkTheme
-                      ? Image.asset('assets/images/dark_theme_4x (2).png',
-                          width: mHeight * 0.25 / 3, height: mHeight * 0.25 / 3)
-                      : Image.asset('assets/images/white_theme_4x (3).png',
-                          width: mHeight * 0.24 / 3,
-                          height: mHeight * 0.24 / 3)),
-            ),
-            Positioned(
-              top: MediaQuery.of(context).size.height * 0.40 / 3,
-              left: MediaQuery.of(context).size.height * 0.20 / 3,
-              child: ThemedBelnetLogo(
-                model: appModel.darkTheme,
-              ),
-            ),
-            Center(
-              child: Padding(
-                padding: EdgeInsets.only(top: mHeight * 0.63 / 3),
+    return
+        // SingleChildScrollView(
+        // child:
+        Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Stack(children: [
+              Positioned(
+                //top:0,
                 child: Container(
-                  //color:Colors.yellow,
-                  child: BelnetPowerButton(
-                      onPressed: toggleBelnet,
-                      isClick: BelnetLib.isConnected,
-                      isLoading: loading),
+                    width: double.infinity,
+                    //color:Colors.green,
+                    height: mHeight * 1.35 / 3,
+                    child: Stack(children: [
+                      appModel.darkTheme
+                          ? Image.asset(
+                              'assets/images/Map_dark (1).png',
+                            )
+                          : Image.asset('assets/images/map_white (3).png'),
+                      //appModel.connecting_belnet &&
+                              BelnetLib.isConnected
+                          ? Image.asset(
+                              'assets/images/Map_white_gif (1).gif') //Image.asset('assets/images/Mobile_1.gif')
+                          : Container()
+                    ])),
+              ),
+              Positioned(
+                top: mHeight * 0.10 / 3,
+                right: mHeight * 0.04 / 3,
+                child: GestureDetector(
+                    onTap: () {
+                      appModel.darkTheme = !appModel.darkTheme;
+                    },
+                    child: appModel.darkTheme
+                        ? Image.asset('assets/images/dark_theme_4x (2).png',
+                            width: mHeight * 0.25 / 3,
+                            height: mHeight * 0.25 / 3)
+                        : Image.asset('assets/images/white_theme_4x (3).png',
+                            width: mHeight * 0.24 / 3,
+                            height: mHeight * 0.24 / 3)),
+              ),
+              Positioned(
+                top: mHeight * 0.40 / 3,
+                left: mHeight * 0.20 / 3,
+                child: ThemedBelnetLogo(
+                  model: appModel.darkTheme,
                 ),
               ),
-            ),
-          ]),
-          Padding(
-            padding: EdgeInsets.only(top: mHeight * 0.10 / 3),
-            child: ConnectingStatus(
-              isConnect: BelnetLib.isConnected,
-            ),
-          ),
-          Row(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(
-                    left: mHeight * 0.10 / 3, top: mHeight * 0.15 / 3),
-                child: Text('Exit Node',
-                    style: TextStyle(
-                        color: appModel.darkTheme ? Colors.white : Colors.black,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w900,
-                        fontSize: mHeight * 0.06 / 3)),
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.only(top: mHeight * 0.63 / 3),
+                  child: Container(
+                    //color:Colors.yellow,
+                    child: BelnetPowerButton(
+                        onPressed: toggleBelnet,
+                        isClick: BelnetLib.isConnected,
+                        isLoading: loading),
+                  ),
+                ),
               ),
-            ],
-          ),
-          Padding(
-            padding: EdgeInsets.only(
-                left: MediaQuery.of(context).size.height * 0.08 / 3,
-                right: MediaQuery.of(context).size.height * 0.10 / 3,
-                top: MediaQuery.of(context).size.height * 0.06 / 3),
-            child: BelnetLib.isConnected
-                ? Container(
-                    height: mHeight * 0.20 / 3,
-                    decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.all(Radius.circular(5))),
-                    child: Padding(
+            ]),
+            Padding(
+              padding: EdgeInsets.only(top: mHeight * 0.10 / 3),
+              child: ConnectingStatus(
+                isConnect: BelnetLib.isConnected,
+              ),
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(
+                      left: mHeight * 0.10 / 3, top: mHeight * 0.15 / 3),
+                  child: Text('Exit Node',
+                      style: TextStyle(
+                          color:
+                              appModel.darkTheme ? Colors.white : Colors.black,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w900,
+                          fontSize: mHeight * 0.06 / 3)),
+                ),
+              ],
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                  left:mHeight * 0.08 / 3,
+                  right: mHeight * 0.10 / 3,
+                  top:mHeight * 0.06 / 3),
+              child: BelnetLib.isConnected
+                  ? Container(
+                      height: mHeight * 0.20 / 3,
+                      decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.all(Radius.circular(5))),
+                      child: Padding(
+                          padding: const EdgeInsets.only(
+                              left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                  child: Text('$selectedValue',
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      style:
+                                          TextStyle(color: Color(0xff00DC00)))),
+                              Container(
+                                  child: Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.grey,
+                              ))
+                            ],
+                          )))
+                  : Container(
+                      height: mHeight * 0.20 / 3,
+                      decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.all(Radius.circular(5))),
+                      child: Padding(
                         padding: const EdgeInsets.only(
-                            left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                                child: Text('$selectedValue',
+                            left: 0.0, right: 6.0, top: 3.0, bottom: 5.0),
+                        child: CustDropDown(
+                          maxListHeight: 120,
+                          items: exitItems
+                              .map((e) => CustDropdownMenuItem(
+                                  value: e,
+                                  child: Center(
+                                      child: Text(
+                                    '$e',
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
-                                    style:
-                                        TextStyle(color: Color(0xff00DC00)))),
-                            Container(
-                                child: Icon(
-                              Icons.arrow_drop_down,
-                              color: Colors.grey,
-                            ))
-                          ],
-                        )))
-                : Container(
-                    height: mHeight * 0.20 / 3,
-                    decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.all(Radius.circular(5))),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          left: 0.0, right: 6.0, top: 3.0, bottom: 5.0),
-                      child: CustDropDown(
-                        maxListHeight: 120,
-                        items: exitItems
-                            .map((e) => CustDropdownMenuItem(
-                                value: e,
-                                child: Center(
-                                    child: Text(
-                                  '$e',
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  style: TextStyle(color: Color(0xff00DC00)),
-                                ))))
-                            .toList(),
-                        hintText: "$selectedValue",
-                        borderRadius: 5,
-                        onChanged: (val) {
-                          print(val);
-                          setState(() {
-                            selectedValue = val;
-                          });
-                        },
-                        appModel: appModel,
+                                    style: TextStyle(color: Color(0xff00DC00)),
+                                  ))))
+                              .toList(),
+                          hintText: "$selectedValue",
+                          borderRadius: 5,
+                          onChanged: (val) {
+                            print(val);
+                            setState(() {
+                              selectedValue = val;
+                            });
+                          },
+                          appModel: appModel,
+                        ),
                       ),
                     ),
-                  ),
-          ),
+            ),
 
-          //Spacer(),
-        ],
-      ),
+            //Spacer(),
+          ],
+        ),
+        Container(
+            height: mHeight * 0.20 / 3,
+            child: Center(
+                child: Text(
+              'v1.0.0',
+              style: TextStyle(color: Color(0xffA8A8B7)),
+            ))),
+      ],
     );
+    //);
   }
 }
 

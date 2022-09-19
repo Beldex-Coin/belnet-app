@@ -17,6 +17,8 @@ class MyNotificationWorkLoad extends StatelessWidget {
           displayOnBackground: true,
           showWhen: false,  //need to test
           locked: true,
+
+
           autoDismissible: dismiss,
           color: BelnetLib.isConnected ? Color(0xff00DC00) : Colors.blue,
           category: NotificationCategory.Status    //Service,    // need to test
@@ -31,6 +33,7 @@ class MyNotificationWorkLoad extends StatelessWidget {
               autoDismissible: true)
         ]);
     AwesomeNotifications().actionStream.listen((event) async {
+     print("calling from Awesome Nofication Disconnect button");
       if (event.buttonKeyPressed == "DISCONNECT") {
         if (BelnetLib.isConnected) {
           await BelnetLib.disconnectFromBelnet();

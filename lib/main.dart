@@ -1,12 +1,11 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
 import 'package:belnet_mobile/src/widget/exit_node_list.dart';
-// import 'package:belnet_mobile/src/widget/network_connectivity.dart';
-// import 'package:belnet_mobile/src/widget/networkbinding.dart';
 import 'package:belnet_mobile/src/widget/notifications.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -16,11 +15,9 @@ import 'package:belnet_mobile/src/widget/belnet_power_button.dart';
 import 'package:belnet_mobile/src/widget/themed_belnet_logo.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:get/get.dart';
-
 import 'package:new_version/new_version.dart';
-//import 'package:new_version/new_version.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 //Global variables
 
@@ -34,6 +31,8 @@ void main() async {
   await Settings.getInstance()!.initialize();
   Paint.enableDithering = true;
   Provider.debugCheckInvalidValueType = null;
+  SharedPreferences preferences = await SharedPreferences.getInstance();
+
   AwesomeNotifications()
       .initialize('resource://drawable/res_notification_app_icon', [
     NotificationChannel(
@@ -91,7 +90,6 @@ class _BelnetAppState extends State<BelnetApp> {
   }
 }
 
-//final ConnectivityController connectivityController = Get.put(ConnectivityController());
 class BelnetHomePage extends StatefulWidget {
   BelnetHomePage({Key? key}) : super(key: key);
 
@@ -100,7 +98,7 @@ class BelnetHomePage extends StatefulWidget {
 }
 
 class BelnetHomePageState extends State<BelnetHomePage>
-   // with SingleTickerProviderStateMixin
+// with SingleTickerProviderStateMixin
 {
   late ConnectivityResult connectivityResult;
 
@@ -188,36 +186,32 @@ class BelnetHomePageState extends State<BelnetHomePage>
 
   Widget build(BuildContext context) {
     final appModel = Provider.of<AppModel>(context);
-    return
-        // GetBuilder<GetNetworkManager>(
-        //     builder: (builder) => getNetworkManager.connectionType == 0 ?
-        netValue == false
-            ? NoInternetConnection()
-            : Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: appModel.darkTheme
-                        ? [
-                            Color(0xFF242430),
-                            Color(0xFF1C1C26),
-                          ]
-                        : [
-                            Color(0xFFF9F9F9),
-                            Color(0xFFEBEBEB),
-                          ],
-                  ),
-                ),
-                child: Scaffold(
-                  backgroundColor: Colors.transparent,
-                  //key: key,
-                  resizeToAvoidBottomInset:
-                      true, //Prevents overflow when keyboard is shown
-                  body: MyForm(),
-                ),
-              );
-    // ); //: NoInternetConnection();
+    return netValue == false
+        ? NoInternetConnection()
+        : Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: appModel.darkTheme
+                    ? [
+                        Color(0xFF242430),
+                        Color(0xFF1C1C26),
+                      ]
+                    : [
+                        Color(0xFFF9F9F9),
+                        Color(0xFFEBEBEB),
+                      ],
+              ),
+            ),
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              //key: key,
+              resizeToAvoidBottomInset:
+                  true, //Prevents overflow when keyboard is shown
+              body: MyForm(),
+            ),
+          );
   }
 }
 
@@ -233,10 +227,15 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   static final key = new GlobalKey<FormState>();
   StreamSubscription<bool>? _isConnectedEventSubscription;
 
+  // SharedPreferences? preference;
+  String? hintValue = '';
   late AppModel appModel;
-  final List<String> exitItems = [
+  List exitItems = [
     'br5i6rsr9yg97kbnsxrqe47cbgknbfdxbmnt7ubjejt485zw4ggy.bdx',
+    'a6iiyy3c4qsp8kdt49ao79dqxskd81eejidhq9j36d8oodznibqy.bdx',
+    'snoq7arak4d5mkpfsg69saj7bp1ikxyzqjkhzb96keywn6iyhc5y.bdx'
   ];
+
   String? selectedValue =
       'br5i6rsr9yg97kbnsxrqe47cbgknbfdxbmnt7ubjejt485zw4ggy.bdx';
   @override
@@ -244,6 +243,20 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     super.initState();
     _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
         .listen((bool isConnected) => setState(() {}));
+
+   getRandomExitNodes();
+  }
+
+  getRandomExitNodes() async {
+    SharedPreferences preference = await SharedPreferences.getInstance();
+    hintValue = preference.getString('hintValue');
+    if (BelnetLib.isConnected == false) {
+      print(
+          "is connected value from getRandomExitNodes ${BelnetLib.isConnected}");
+      final random = Random();
+      selectedValue = exitItems[random.nextInt(exitItems.length)];
+      setState(() {});
+    }
   }
 
   @override
@@ -253,12 +266,12 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   }
 
   Future toggleBelnet() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
     if (BelnetLib.isConnected == false) {
-      print('netvalue from disconnected --');
+      // print('netvalue from disconnected --');
       AwesomeNotifications().dismiss(3);
     }
     bool dismiss = false;
-
     loading = true;
     setState(() {});
     Future.delayed(const Duration(milliseconds: 1000), () {
@@ -270,17 +283,19 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
     if (BelnetLib.isConnected) {
       var disConnectValue = await BelnetLib.disconnectFromBelnet();
-      print('is disconnect ? $disConnectValue');
-      print('netvalue from disconnected - $netValue');
       appModel.connecting_belnet = false;
       dismiss = true;
       AwesomeNotifications()
           .dismiss(3); // dismiss the notification when belnet disconnected
     } else {
-      print('netvalue from disconnected --- $netValue');
       //Save the exit node and upstream dns
       final Settings settings = Settings.getInstance()!;
       settings.exitNode = selectedValue!.trim().toString();
+      var myVal = selectedValue!.trim().toString();
+      preferences.setString('hintValue', myVal);
+      hintValue = preferences.getString('hintValue');
+      print('hint value is stored from getString $hintValue');
+      setState(() {});
       settings.upstreamDNS = '';
 
       final result = await BelnetLib.prepareConnection();
@@ -333,7 +348,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                             )
                           : Image.asset('assets/images/map_white (3).png'),
                       //appModel.connecting_belnet &&
-                              BelnetLib.isConnected
+                      BelnetLib.isConnected
                           ? Image.asset(
                               'assets/images/Map_white_gif (1).gif') //Image.asset('assets/images/Mobile_1.gif')
                           : Container()
@@ -397,9 +412,9 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
             ),
             Padding(
               padding: EdgeInsets.only(
-                  left:mHeight * 0.08 / 3,
+                  left: mHeight * 0.08 / 3,
                   right: mHeight * 0.10 / 3,
-                  top:mHeight * 0.06 / 3),
+                  top: mHeight * 0.06 / 3),
               child: BelnetLib.isConnected
                   ? Container(
                       height: mHeight * 0.20 / 3,
@@ -413,11 +428,12 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Expanded(
-                                  child: Text('$selectedValue',
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                      style:
-                                          TextStyle(color: Color(0xff00DC00)))),
+                                  child: Center(
+                                child: Text('$hintValue',
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                    style: TextStyle(color: Color(0xff00DC00))),
+                              )),
                               Container(
                                   child: Icon(
                                 Icons.arrow_drop_down,

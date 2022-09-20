@@ -33,7 +33,7 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
   getIsConnect(appModel)async{
     if (BelnetLib.isConnected==false) {
       if(!widget.isLoading!){
-        print('Checking isConnected value ${BelnetLib.isConnected}');
+       // print('Checking isConnected value ${BelnetLib.isConnected}');
         AwesomeNotifications().dismiss(3);
       }
     }
@@ -42,16 +42,9 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
 
   @override
   Widget build(BuildContext context) {
-    print('netvalue from disconnected ----');
+   // print('netvalue from disconnected ----');
     final appModel = Provider.of<AppModel>(context);
    getIsConnect(appModel);
-   // var whiteLoadingImage =Lottie.asset('assets/images/load_white.json'); //Lottie.asset('assets/images/loading_button.json');
-   // var powerOnDark =  Lottie.asset('assets/images/on_darks.json'); // Lottie.asset('assets/images/on_dark.json');
-    //var powerOffDark = Lottie.asset('assets/images/off_darks.json'); //Lottie.asset('assets/images/off_7.json');
-    //var darkLoadingImage = Lottie.asset('assets/images/load_dark.json'); //Lottie.asset('assets/images/button_Loading_dark (1).json');
-    //var powerOnWhite =  Lottie.asset('assets/images/on_whites.json');//Lottie.asset('assets/images/on_white.json');
-    //var powerOffWhite = Lottie.asset('assets/images/off_whites.json'); //Lottie.asset('assets/images/off_white.json');
-
 
     var whiteLoadingImage = Image.asset('assets/images/load_white.gif',
       height: MediaQuery.of(context).size.height * 0.90 / 3,  //0.98 / 3,

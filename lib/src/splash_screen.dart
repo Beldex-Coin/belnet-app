@@ -1,7 +1,7 @@
 import 'package:belnet_mobile/main.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:provider/provider.dart';
+
 
 class SplashScreens extends StatefulWidget {
   const SplashScreens({Key? key}) : super(key: key);
@@ -28,7 +28,6 @@ class _SplashScreensState extends State<SplashScreens>
 
   @override
   Widget build(BuildContext context) {
-    // final networkStatus = Provider.of<NetworkStatus>(context);
 
     return
       Scaffold(

@@ -175,7 +175,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
                 activityBinding.activity.applicationContext.startService(belnetIntent)
 
-           // doBindService()
+            doBindService()
                 Log.d("Test","inside disconnect function")
 
                 result.success(true)

@@ -37,7 +37,7 @@ class MyNotificationWorkLoad extends StatelessWidget {
       if (event.buttonKeyPressed == "DISCONNECT") {
         if (BelnetLib.isConnected) {
           await BelnetLib.disconnectFromBelnet();
-          appModel.connecting_belnet = false;
+         // appModel.connecting_belnet = false;
         }
       }
     });

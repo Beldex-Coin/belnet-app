@@ -30,13 +30,17 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
     super.dispose();
   }
 
-  getIsConnect(appModel)async{
+  getIsConnect()async{
+   // Future.delayed(Duration(seconds:1),(){
+
+
     if (BelnetLib.isConnected==false) {
-      if(!widget.isLoading!){
+     if(!widget.isLoading!){
+       print('getConnected function call');
        // print('Checking isConnected value ${BelnetLib.isConnected}');
         AwesomeNotifications().dismiss(3);
       }
-    }
+    } // });
   }
 
 
@@ -44,7 +48,7 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
   Widget build(BuildContext context) {
    // print('netvalue from disconnected ----');
     final appModel = Provider.of<AppModel>(context);
-   getIsConnect(appModel);
+   getIsConnect();
 
     var whiteLoadingImage = Image.asset('assets/images/load_white.gif',
       height: MediaQuery.of(context).size.height * 0.90 / 3,  //0.98 / 3,

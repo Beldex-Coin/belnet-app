@@ -93,7 +93,7 @@ public class BelnetDaemon extends VpnService{
     String action = intent != null ? intent.getAction() : "";
 
     if (ACTION_DISCONNECT.equals(action)) {
-      Log.d("calling from belnetDeamon","true");
+      Log.d("callingbelnetDeamon","true");
       disconnect();
       stopSelf();
 

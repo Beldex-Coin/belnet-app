@@ -317,12 +317,26 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     }
   }
 
+  // getIsConnect()async{
+  //   // Future.delayed(Duration(seconds:1),(){
+  //
+  //
+  //   if (BelnetLib.isConnected==false) {
+  //     if(!loading){
+  //       print('getConnected function call');
+  //       // print('Checking isConnected value ${BelnetLib.isConnected}');
+  //       AwesomeNotifications().dismiss(3);
+  //     }
+  //   } // });
+  // }
+
+
   @override
   Widget build(BuildContext context) {
     appModel = Provider.of<AppModel>(context);
     Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
     double mHeight = MediaQuery.of(context).size.height;
-
+  // getIsConnect();
     return
         // SingleChildScrollView(
         // child:
@@ -483,7 +497,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
             height: mHeight * 0.20 / 3,
             child: Center(
                 child: Text(
-              'v1.0.0',
+              'v0.0.1',
               style: TextStyle(color: Color(0xffA8A8B7)),
             ))),
       ],

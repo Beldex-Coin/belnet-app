@@ -1,5 +1,8 @@
 package network.beldex.belnet;
 
+import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -24,7 +27,7 @@ public class BelnetDaemon extends VpnService{
   public static final String MESSAGE_CHANNEL = "BELNET_DAEMON";
   public static final String EXIT_NODE = "EXIT_NODE";
   public static final String UPSTREAM_DNS = "UPSTREAM_DNS";
-
+  public static final String NOTIFICATION_ID = "NOTIFICATION_ID";
   private static final String DEFAULT_EXIT_NODE = "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx";
   private static final String DEFAULT_UPSTREAM_DNS = "1.1.1.1";
 
@@ -68,6 +71,7 @@ public class BelnetDaemon extends VpnService{
     isConnected.postValue(false);
     mUpdateIsConnectedTimer = new Timer();
     mUpdateIsConnectedTimer.schedule(new UpdateIsConnectedTask(), 0, 500);
+    Log.d(LOG_TAG, "Connected timer is "+ mUpdateIsConnectedTimer.toString());
     super.onCreate();
   }
 
@@ -89,9 +93,12 @@ public class BelnetDaemon extends VpnService{
     String action = intent != null ? intent.getAction() : "";
 
     if (ACTION_DISCONNECT.equals(action)) {
+      Log.d("callingbelnetDeamon","true");
       disconnect();
       stopSelf();
 
+//      nm.cancel(getIntent.getIntExtra(NOTIFICATION_ID, -1));
+//
       return START_NOT_STICKY;
     } else {
       ArrayList<ConfigValue> configVals = new ArrayList<ConfigValue>();

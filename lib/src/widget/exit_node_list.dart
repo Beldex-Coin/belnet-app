@@ -233,7 +233,7 @@ class _CustDropDownState extends State<CustDropDown>
                 //flex: 1,
                 child: Icon(
                   Icons.arrow_drop_down,
-                  color: Colors.grey,
+                  color: widget.appModel.darkTheme ? Colors.white : Colors.black,
                 ),
               ),
             ],

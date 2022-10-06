@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:flutter/material.dart';
@@ -19,28 +21,31 @@ class BelnetPowerButton extends StatefulWidget {
 
 class _BelnetPowerButtonState extends State<BelnetPowerButton>
     with SingleTickerProviderStateMixin {
+  Timer? timer;
   @override
   void initState() {
+    timer = Timer.periodic(Duration(seconds: 2), (Timer t) => getIsConnect());
     super.initState();
   }
 
   @override
   void dispose() {
-
+    timer?.cancel();
+   AwesomeNotifications().dispose();
     super.dispose();
   }
 
-  getIsConnect()async{
-   // Future.delayed(Duration(seconds:1),(){
 
+  getIsConnect()async{
 
     if (BelnetLib.isConnected==false) {
      if(!widget.isLoading!){
        print('getConnected function call');
        // print('Checking isConnected value ${BelnetLib.isConnected}');
-        AwesomeNotifications().dismiss(3);
-      }
-    } // });
+       AwesomeNotifications().dismiss(3);
+       //AwesomeNotifications().cancelAll();
+    }}
+      // );
   }
 
 
@@ -48,7 +53,7 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
   Widget build(BuildContext context) {
    // print('netvalue from disconnected ----');
     final appModel = Provider.of<AppModel>(context);
-   getIsConnect();
+  //getIsConnect();
 
     var whiteLoadingImage = Image.asset('assets/images/load_white.gif',
       height: MediaQuery.of(context).size.height * 0.90 / 3,  //0.98 / 3,

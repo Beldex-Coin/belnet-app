@@ -119,7 +119,7 @@ packages:
       name: connectivity_plus_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.3"
+    version: "1.2.4"
   connectivity_plus_windows:
     dependency: transitive
     description:
@@ -233,6 +233,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.2.0"
+  in_app_update:
+    dependency: "direct main"
+    description:
+      name: in_app_update
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
+  internet_speed:
+    dependency: "direct main"
+    description:
+      name: internet_speed
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.5"
   intl:
     dependency: transitive
     description:
@@ -282,6 +296,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.7.0"
+  native_updater:
+    dependency: "direct main"
+    description:
+      name: native_updater
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.0"
   nested:
     dependency: transitive
     description:
@@ -303,6 +324,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.5.0"
+  package_info:
+    dependency: transitive
+    description:
+      name: package_info
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.2"
   package_info_plus:
     dependency: transitive
     description:
@@ -450,6 +478,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "6.0.3"
+  quiver:
+    dependency: transitive
+    description:
+      name: quiver
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.1.0"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -539,6 +574,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0"
+  syncfusion_flutter_charts:
+    dependency: "direct main"
+    description:
+      name: syncfusion_flutter_charts
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "20.2.50"
+  syncfusion_flutter_core:
+    dependency: transitive
+    description:
+      name: syncfusion_flutter_core
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "20.2.50"
   term_glyph:
     dependency: transitive
     description:
@@ -553,6 +602,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.4.9"
+  tuple:
+    dependency: transitive
+    description:
+      name: tuple
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
   typed_data:
     dependency: transitive
     description:
@@ -652,5 +708,5 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.17.0 <3.0.0"
+  dart: ">=2.17.6 <3.0.0"
   flutter: ">=3.0.0"

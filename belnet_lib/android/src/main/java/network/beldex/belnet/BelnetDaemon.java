@@ -1,23 +1,39 @@
 package network.beldex.belnet;
+//
+//import static io.beldex.belnet_lib.BelnetLibPluginKt.buildStatusForNotification;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
+import android.net.TrafficStats;
 import android.net.VpnService;
 import android.os.Binder;
+import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
+import android.os.SystemClock;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import java.nio.ByteBuffer;
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
-import android.app.Service;
-import java.io.IOException;
+
+import io.beldex.belnet_lib.R;
+
 
 public class BelnetDaemon extends VpnService{
 
@@ -30,6 +46,15 @@ public class BelnetDaemon extends VpnService{
   public static final String NOTIFICATION_ID = "NOTIFICATION_ID";
   private static final String DEFAULT_EXIT_NODE = "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx";
   private static final String DEFAULT_UPSTREAM_DNS = "1.1.1.1";
+  public static Boolean isCalling =false;
+  public static final int NOTIFY_ID = 1;
+  private static final int ERROR_NOTIFY_ID = 3;
+  private final static String NOTIFICATION_CHANNEL_ID = "belnet_channel_1";
+  private NotificationManager mNotificationManager = null;
+  private NotificationCompat.Builder mNotifyBuilder;
+
+  public  MutableLiveData<String> mutableDataForNotify = new MutableLiveData<String>();
+   private LiveData liveData;
 
 
   static {
@@ -72,6 +97,9 @@ public class BelnetDaemon extends VpnService{
     mUpdateIsConnectedTimer = new Timer();
     mUpdateIsConnectedTimer.schedule(new UpdateIsConnectedTask(), 0, 500);
     Log.d(LOG_TAG, "Connected timer is "+ mUpdateIsConnectedTimer.toString());
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+      createNotificationChannel();
+    showToolbarNotification("Connect to belnet",NOTIFY_ID,R.drawable.ic_stat);
     super.onCreate();
   }
 
@@ -86,16 +114,208 @@ public class BelnetDaemon extends VpnService{
 
   }
 
+
+  private void clearNotifications() {
+    if (mNotificationManager != null)
+      mNotificationManager.cancelAll();
+
+  }
+
+
+
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  private void createNotificationChannel() {
+    NotificationManager mNotificationManager = null;
+    //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+    mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+    //}
+    String name = "Belnet";
+    NotificationChannel mChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, name, NotificationManager.IMPORTANCE_LOW);
+    mChannel.setDescription("Belnet is Connected");
+    mChannel.enableLights(false);
+    mChannel.enableVibration(false);
+    mChannel.setShowBadge(false);
+    mChannel.setLockscreenVisibility(Notification.VISIBILITY_SECRET);
+    mNotificationManager.createNotificationChannel(mChannel);
+  }
+
+
+  @SuppressLint({"RestrictedApi", "SuspiciousIndentation"})
+  public void showToolbarNotification(String notifyMsg, int notifyType,int icon) {
+//    Log.d("NotifyNet",networkSpeeds);
+    Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+    PendingIntent pendIntent = PendingIntent.getActivity(BelnetDaemon.this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+
+
+
+    if (mNotifyBuilder == null) {
+      mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+      mNotifyBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+              .setSmallIcon(R.drawable.ic_stat)
+              .setContentIntent(pendIntent)
+              .setCategory(Notification.CATEGORY_SERVICE);
+    }
+    mNotifyBuilder.setOngoing(true);
+
+    String title = "Belnet started";
+
+  title = notifyMsg;
+
+    mNotifyBuilder.setContentTitle(title);
+    mNotifyBuilder.mActions.clear();
+   mNotifyBuilder.setOnlyAlertOnce(true);
+  mNotificationManager.notify(notifyType,mNotifyBuilder.build());
+    startForeground(NOTIFY_ID, mNotifyBuilder.build());
+  }
+
+
+
+//
+//public Notification buildStatusForNotification(String trafficUpdate,Context context){
+//  String notificationContentString = trafficUpdate;
+//
+//  Log.e("Build","buildStatus"+ trafficUpdate);
+//   NotificationCompat.Builder builder =
+//          new NotificationCompat.Builder(context, BelnetDaemon.NOTIFICATION_ID)
+//                  .setSmallIcon(R.drawable.ic_stat)
+//                  .setContentTitle("Belnet")
+//                  .setContentText(notificationContentString)
+//                  .setOngoing(true)
+//                  .setOnlyAlertOnce(true)
+//                  .setCategory(NotificationCompat.CATEGORY_SERVICE);
+//
+//   Log.d("NotificationObject", String.valueOf(builder.build()));
+//  return builder.build();
+//
+//}
+
+
+public void sendNotification(String notificationString,Context context){
+
+
+//    Log.d("sendNotificationCall","sendNotify");
+//    if(mNotifyBuilder == null){
+//      Log.d("sendNotificationCall","if notify builder is empty");
+//      mNotifyBuilder = new NotificationCompat.Builder(context,NOTIFICATION_CHANNEL_ID)
+//              .setContentTitle("belnet")
+//              .setContentText(notificationString)
+//              .setSmallIcon(R.drawable.ic_stat);
+//    }
+//    mNotifyBuilder.setOnlyAlertOnce(true);
+////  NotificationCompat.Builder notificationBuilder =
+////          new NotificationCompat.Builder(getApplicationContext())
+////                  .setContentTitle("Belnet")
+////                  .setContentText(notificationString)
+////                  .setSmallIcon(R.drawable.ic_stat);
+////  NotificationManagerCompat notificationManager =
+////          NotificationManagerCompat.from(this);
+//  // Build the notification and issues it with notification manager.
+//  mNotificationManager.notify(NOTIFY_ID, mNotifyBuilder.build());
+
+}
+
+
+
+public void callForEverySeconds(Boolean flag){
+  final Handler ha=new Handler();
+    if(flag == true){
+
+
+      ha.postDelayed(new Runnable() {
+
+        @Override
+        public void run() {
+          //call function
+          notificationFunctionCall();
+          Log.d("calling","notification call every 130 milliseconds");
+          ha.postDelayed(this, 1);
+        }
+      }, 1);
+    }else {
+      Log.d("FalseCalling","calling from false");
+      ha.removeMessages(NOTIFY_ID);
+      showToolbarNotification("Connect to bellnet",NOTIFY_ID,R.drawable.ic_stat);
+    }
+
+}
+
+
+  public void notificationFunctionCall(){
+     long sessionDownloaded = 0L;
+    long sessionUploaded = 0L;
+    long lastTotalDownload = 0L;
+    long lastTotalUpload = 0L;
+    long sessionStart = 0L;
+    long lastTimestamp = 0L;
+    long timestamp = SystemClock.elapsedRealtime();
+    long elapsedMillis = timestamp - lastTimestamp;
+    float elapsedSeconds = elapsedMillis / 1000f;
+
+    // Speeds need to be divided by two due to TrafficStats calculating both phone and VPN
+    // interfaces which leads to doubled data. NetworkStatsManager may have solved this
+    // problem but is only available from marshmallow.
+    long totalDownload = TrafficStats.getTotalRxBytes();
+    Log.d("rxbyte","byes"+totalDownload);
+
+    long totalUpload = TrafficStats.getTotalTxBytes();
+    Log.d("txbyte","byes"+totalUpload);
+    long downloaded = (totalDownload - lastTotalDownload) / 2;
+    long uploaded = (totalUpload - lastTotalUpload) / 2;
+   long downloadSpeed = Math.round(downloaded / elapsedSeconds);
+   long uploadSpeed = Math.round(uploaded / elapsedSeconds);
+    String sessionUploadString = ConnectionTools.bytesToSize(sessionUploaded);
+    String downloadSpeedString =ConnectionTools.bytesToSize(downloadSpeed) +"ps";
+    String  sessionDownloadString = ConnectionTools.bytesToSize(sessionDownloaded);
+    String uploadSpeedString = ConnectionTools.bytesToSize(uploadSpeed) +"ps";
+    String notificationString = "↓ "+downloadSpeedString + " ↑ "+ uploadSpeedString;
+//    String notificationString = "↓ " + sessionDownloadString +" | " +downloadSpeedString + " ↑ " + sessionUploadString+" | "+uploadSpeedString;
+    showToolbarNotification(notificationString,NOTIFY_ID,R.drawable.ic_stat);
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   @Override
   public int onStartCommand(Intent intent, int flags, int startID) {
     Log.d(LOG_TAG, "onStartCommand()");
 
     String action = intent != null ? intent.getAction() : "";
 
+
+
+
+
+
+
     if (ACTION_DISCONNECT.equals(action)) {
       Log.d("callingbelnetDeamon","true");
+      isCalling = false;
       disconnect();
       stopSelf();
+
+
+     callForEverySeconds(false);
+//      if(isCalling == false)
+//      {
+//        Log.d("isCalling-truessfalse","isCalling value" + isCalling);
+//        clearNotifications();
+//
+//      }
 
 //      nm.cancel(getIntent.getIntExtra(NOTIFICATION_ID, -1));
 //
@@ -111,6 +331,7 @@ public class BelnetDaemon extends VpnService{
       if (ACTION_CONNECT.equals(action)) { // started by the app
         exitNode = intent.getStringExtra(EXIT_NODE);
         upstreamDNS = intent.getStringExtra(UPSTREAM_DNS);
+        isCalling = true;
         // save values
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(EXIT_NODE, exitNode);
@@ -140,6 +361,12 @@ public class BelnetDaemon extends VpnService{
 
       // set log leve to info
       configVals.add(new ConfigValue("logging", "level", "info"));
+     sendNotification("belnet started", this);
+     if(isCalling){
+       Log.d("isCalling true or-false","isCalling value" + isCalling);
+       callForEverySeconds(true);
+     }
+
 
       boolean connectedSuccessfully = connect(configVals);
       if (connectedSuccessfully)
@@ -323,3 +550,27 @@ public class BelnetDaemon extends VpnService{
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

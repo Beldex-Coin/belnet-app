@@ -8,19 +8,30 @@ package io.beldex.belnet_lib
 
 //import android.content.Context
 
-
-
+import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.net.*
+import android.graphics.Color
+import android.net.TrafficStats
+import android.net.VpnService
+import android.os.Build
+
 import android.os.IBinder
+import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.NonNull
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -32,7 +43,8 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.PluginRegistry
 import network.beldex.belnet.BelnetDaemon
-
+import network.beldex.belnet.ConnectionTools
+import kotlin.math.roundToLong
 
 
 //import android.R.attr.name
@@ -54,9 +66,18 @@ import network.beldex.belnet.BelnetDaemon
 class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private var mShouldUnbind: Boolean = false
     private var mBoundService: BelnetDaemon? = null
-
+    private var lastTimestamp = 0L
     private lateinit var activityBinding: ActivityPluginBinding
+    private var sessionDownloaded = 0L
+    private var sessionUploaded = 0L
+    private var lastTotalDownload = 0L
+    private var lastTotalUpload = 0L
+    private var sessionStart = 0L
 
+    lateinit var notificationManager: NotificationManager
+    lateinit var notificationChannel: NotificationChannel
+    lateinit var builder: Notification.Builder
+    var mutableString : MutableLiveData<String> = MutableLiveData()
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -70,6 +91,8 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 // Propagate to the dart package.
                 mEventSink?.success(newIsConnected)
             }
+
+
 
     private var mLifecycleOwner =
             object : LifecycleOwner {
@@ -98,6 +121,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     }
                 }
         )
+
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
@@ -107,6 +131,14 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
 
+    fun activitybind():Context{
+        var context = activityBinding.activity.applicationContext
+        return context
+    }
+
+
+
+    @SuppressLint("NewApi")
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
         when (call.method) {
             "prepare" -> {
@@ -156,7 +188,6 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
                 activityBinding.activity.applicationContext.startService(belnetIntent)
                 doBindService()
-
                 result.success(true)
             }
             "disconnect" -> {
@@ -194,6 +225,61 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 } else {
                     result.success(false)
                 }
+            }
+             "getUploadSpeed" -> {
+
+                     val timestamp = SystemClock.elapsedRealtime()
+                     val elapsedMillis = timestamp - lastTimestamp
+                     val elapsedSeconds = elapsedMillis / 1000f
+
+                     // Speeds need to be divided by two due to TrafficStats calculating both phone and VPN
+                     // interfaces which leads to doubled data. NetworkStatsManager may have solved this
+                     // problem but is only available from marshmallow.
+                     val totalUpload = TrafficStats.getTotalTxBytes()
+                     val uploaded = (totalUpload - lastTotalUpload).coerceAtLeast(0) / 2
+
+                     val uploadSpeed = (uploaded / elapsedSeconds).roundToLong()
+
+                     sessionUploaded += uploaded
+                     val sessionTimeSeconds = (timestamp - sessionStart).toInt() / 1000
+                 var sessionUploadString = ConnectionTools.bytesToSize(sessionUploaded)
+                 var uploadSpeedString = ConnectionTools.bytesToSize(uploadSpeed) +"ps"
+
+
+                 val uploadString = ConnectionTools.bytesToSize(uploadSpeed) +"ps"
+                 result.success(uploadString)
+
+                     lastTotalUpload = totalUpload
+                     lastTimestamp = timestamp
+
+             }
+            "getDownloadSpeed" -> {
+                val timestamp = SystemClock.elapsedRealtime()
+                val elapsedMillis = timestamp - lastTimestamp
+                val elapsedSeconds = elapsedMillis / 1000f
+
+                // Speeds need to be divided by two due to TrafficStats calculating both phone and VPN
+                // interfaces which leads to doubled data. NetworkStatsManager may have solved this
+                // problem but is only available from marshmallow.
+                val totalDownload = TrafficStats.getTotalRxBytes()
+                val totalUpload = TrafficStats.getTotalTxBytes()
+                val downloaded = (totalDownload - lastTotalDownload).coerceAtLeast(0) / 2
+                val uploaded = (totalUpload - lastTotalUpload).coerceAtLeast(0) / 2
+                val downloadSpeed = (downloaded / elapsedSeconds).roundToLong()
+                val uploadSpeed = (uploaded / elapsedSeconds).roundToLong()
+
+                sessionDownloaded += downloaded
+                sessionUploaded += uploaded
+
+                val sessionTimeSeconds = (timestamp - sessionStart).toInt() / 1000
+                val downloadString = ConnectionTools.bytesToSize(downloadSpeed) + "ps"
+                Log.d("TagDownload", "This is downloadString$downloadString")
+                result.success(downloadString)
+
+
+                lastTotalDownload = totalDownload
+                lastTotalUpload = totalUpload
+                lastTimestamp = timestamp
             }
 
 
@@ -256,9 +342,54 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
     }
 
-
-
-
-
+//public fun getMutableString(value : String) {
+//    Log.e("StringValue", value.toString())
+//    Log.e("mutablevalue", mutableString.postValue(value).toString())
+//    return mutableString.postValue(value)
+//}
 
 }
+
+//class TrafficUpdate(
+//    val timestampMs: Long,
+//    val downloadSpeed: Long,
+//    val uploadSpeed: Long,
+//    val sessionDownload: Long,
+//    val sessionUpload: Long,
+//    //val sessionTimeSeconds: Int
+//) {
+//    val notificationString: String
+//        get() = "↓ $sessionDownloadString | $downloadSpeedString  ↑ $sessionUploadString | $uploadSpeedString"
+//
+//    val downloadSpeedString: String
+//        get() = ConnectionTools.bytesToSize(downloadSpeed) + "/s"
+//
+//    val uploadSpeedString: String
+//        get() = ConnectionTools.bytesToSize(uploadSpeed) + "/s"
+//
+//    private val sessionDownloadString: String
+//        get() = ConnectionTools.bytesToSize(sessionDownload)
+//
+//    private val sessionUploadString: String
+//        get() = ConnectionTools.bytesToSize(sessionUpload)
+//}
+
+
+
+// fun buildStatusForNotification(
+//    trafficUpdate: String?,
+//    context :Context
+//):Notification {
+//    val notificationContentString = trafficUpdate
+//
+//     Log.e("Build","buildStatus$trafficUpdate")
+//    val builder =
+//        NotificationCompat.Builder(context, BelnetDaemon.NOTIFICATION_ID)
+//            .setSmallIcon(R.drawable.ic_stat)
+//            .setContentTitle("Belnet")
+//            .setContentText(notificationContentString)
+//            .setOngoing(true)
+//            .setOnlyAlertOnce(true)
+//            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+//     return builder.build()
+//}

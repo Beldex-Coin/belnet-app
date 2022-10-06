@@ -15,6 +15,7 @@ import 'package:belnet_mobile/src/widget/belnet_power_button.dart';
 import 'package:belnet_mobile/src/widget/themed_belnet_logo.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:native_updater/native_updater.dart';
 import 'package:new_version/new_version.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,7 +32,6 @@ void main() async {
   await Settings.getInstance()!.initialize();
   Paint.enableDithering = true;
   Provider.debugCheckInvalidValueType = null;
-  SharedPreferences preferences = await SharedPreferences.getInstance();
 
   AwesomeNotifications()
       .initialize('resource://drawable/res_notification_app_icon', [
@@ -65,6 +65,11 @@ class _BelnetAppState extends State<BelnetApp> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+    ));
+
     // SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack, overlays: [SystemUiOverlay.top]);
     _initAppTheme();
   }
@@ -104,18 +109,7 @@ class BelnetHomePageState extends State<BelnetHomePage>
 
   @override
   void initState() {
-    final newVersion = NewVersion(
-      androidId: 'io.beldex.belnet',
-    );
-    // You can let the plugin handle fetching the status and showing a dialog,
-    // or you can fetch the status and display your own dialog, or no dialog.
-    const simpleBehavior = true;
-
-    if (simpleBehavior) {
-      basicStatusCheck(newVersion);
-    } else {
-      advancedStatusCheck(newVersion);
-    }
+    checkVersion(context);
     Timer.periodic(Duration(seconds: 5), (timer) {
       myNetwork();
     });
@@ -123,27 +117,43 @@ class BelnetHomePageState extends State<BelnetHomePage>
     super.initState();
   }
 
-  basicStatusCheck(NewVersion newVersion) {
-    newVersion.showAlertIfNecessary(context: context);
-  }
+  Future<void> checkVersion(BuildContext context) async {
+    /// For example: You got status code of 412 from the
+    /// response of HTTP request.
+    /// Let's say the statusCode 412 requires you to force update
+    final statusCode = 412;
 
-  advancedStatusCheck(NewVersion newVersion) async {
-    final status = await newVersion.getVersionStatus();
+    /// This could be kept in our local
+    final localVersion = 9;
 
-    if (status != null) {
-      debugPrint(status.releaseNotes);
-      debugPrint(status.appStoreLink);
-      debugPrint(status.localVersion);
-      debugPrint(status.storeVersion);
-      debugPrint(status.canUpdate.toString());
-      newVersion.showUpdateDialog(
-        context: context,
-        versionStatus: status,
-        dialogTitle: 'App update available',
-        dialogText:
-            'New version for belnet is now available with new features.Update your app from ${status.localVersion} to ${status.storeVersion}!',
-      );
-    }
+    /// This could get from the API
+    final serverLatestVersion = 10;
+
+    Future.delayed(Duration.zero, () {
+      if (statusCode == 412) {
+        NativeUpdater.displayUpdateAlert(
+          context,
+          forceUpdate: true,
+          appStoreUrl: '',
+          playStoreUrl:
+              'https://play.google.com/store/apps/details?id=io.beldex.belnet',
+          iOSDescription:
+              'A new version of the Belnet application is available. Update to continue using it.',
+          iOSUpdateButtonLabel: 'Upgrade',
+          iOSCloseButtonLabel: 'Exit',
+          iOSAlertTitle: 'Mandatory Update',
+        );
+      } /* else if (serverLatestVersion > localVersion) {
+        NativeUpdater.displayUpdateAlert(
+          context,
+          forceUpdate: true,
+          appStoreUrl: 'https://apps.apple.com/in/app/beldex-official-wallet/id1603063369',
+          playStoreUrl: 'https://play.google.com/store/apps/details?id=io.beldex.wallet',
+          iOSDescription: 'Your App requires that you update to the latest version. You cannot use this app until it is updated.',
+          iOSUpdateButtonLabel: 'Upgrade',
+          iOSCloseButtonLabel: 'Exit',
+        );*/
+    });
   }
 
   myNetwork() async {
@@ -226,8 +236,14 @@ class MyForm extends StatefulWidget {
 class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   static final key = new GlobalKey<FormState>();
   StreamSubscription<bool>? _isConnectedEventSubscription;
-
-  // SharedPreferences? preference;
+  dynamic downloadRate = '';
+  dynamic uploadRate = '';
+  String downloadProgress = '0';
+  String uploadProgress = '0';
+  double displayRate = 0;
+  String displayRateTxt = '0.0';
+  double displayPer = 0;
+  String unitText = 'Mbps';
   String? hintValue = '';
   late AppModel appModel;
   List exitItems = [
@@ -243,9 +259,18 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     super.initState();
     _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
         .listen((bool isConnected) => setState(() {}));
-
-   getRandomExitNodes();
+    callForUpdate();
+    getRandomExitNodes();
   }
+
+
+  callForUpdate(){
+    Timer.periodic(Duration(milliseconds: 200 ), (timer) {
+      getUploadAndDownload();
+    });
+  }
+
+
 
   getRandomExitNodes() async {
     SharedPreferences preference = await SharedPreferences.getInstance();
@@ -263,12 +288,13 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   void dispose() {
     super.dispose();
     _isConnectedEventSubscription?.cancel();
+    AwesomeNotifications().dispose();
   }
 
   Future toggleBelnet() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     if (BelnetLib.isConnected == false) {
-      // print('netvalue from disconnected --');
+      print('netvalue from disconnected --');
       AwesomeNotifications().dismiss(3);
     }
     bool dismiss = false;
@@ -310,33 +336,61 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
         appModel.connecting_belnet = true;
       }
 
-      MyNotificationWorkLoad(
-        appModel: appModel,
-      ).createMyNotification(dismiss);
-      setState(() {});
+      // setState(() {});
+      // MyNotificationWorkLoad(
+      //   appModel: appModel,
+      //   isLoading: loading,
+      //   function: () {
+      //     setState(() {});
+      //   },
+      // ).createMyNotification(
+      //   dismiss,
+      //   uploadRate,
+      //   downloadRate,
+      // );
     }
   }
 
-  // getIsConnect()async{
-  //   // Future.delayed(Duration(seconds:1),(){
-  //
-  //
-  //   if (BelnetLib.isConnected==false) {
-  //     if(!loading){
-  //       print('getConnected function call');
-  //       // print('Checking isConnected value ${BelnetLib.isConnected}');
-  //       AwesomeNotifications().dismiss(3);
-  //     }
-  //   } // });
-  // }
+  var uploadUnit = ' Mbps';
+  var downloadUnit = ' Mbps';
+  var uploadValue, kb, mb, gb, downloadValue, kb1, mb1, gb1;
 
+  getUploadAndDownload() async {
+    if (BelnetLib.isConnected) {
+      print('upload speed will be');
+
+      var uploadR = await BelnetLib.upload;
+      var downloadR = await BelnetLib.download;
+      setState(() {
+        uploadRate = uploadR;
+        print('upload displayed from dart side $uploadRate');
+        downloadRate = downloadR;
+      });
+
+    }
+  }
+
+  String stringBeforeSpace(String value) {
+    String str = value;
+    str = value.split(' ').first;
+    setState(() {});
+    return str;
+  }
+
+  String stringAfterSpace(String value) {
+    String str = value;
+    str = value.split(' ').last;
+    setState(() {});
+    return str;
+  }
 
   @override
   Widget build(BuildContext context) {
     appModel = Provider.of<AppModel>(context);
     Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
     double mHeight = MediaQuery.of(context).size.height;
-  // getIsConnect();
+
+    //getUploadAndDownload();
     return
         // SingleChildScrollView(
         // child:
@@ -344,162 +398,428 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       //crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Stack(children: [
-              Positioned(
-                //top:0,
-                child: Container(
-                    width: double.infinity,
-                    //color:Colors.green,
-                    height: mHeight * 1.35 / 3,
-                    child: Stack(children: [
-                      appModel.darkTheme
-                          ? Image.asset(
-                              'assets/images/Map_dark (1).png',
-                            )
-                          : Image.asset('assets/images/map_white (3).png'),
-                      //appModel.connecting_belnet &&
-                      BelnetLib.isConnected
-                          ? Image.asset(
-                              'assets/images/Map_white_gif (1).gif') //Image.asset('assets/images/Mobile_1.gif')
-                          : Container()
-                    ])),
-              ),
-              Positioned(
-                top: mHeight * 0.10 / 3,
-                right: mHeight * 0.04 / 3,
-                child: GestureDetector(
-                    onTap: () {
-                      appModel.darkTheme = !appModel.darkTheme;
-                    },
-                    child: appModel.darkTheme
-                        ? Image.asset('assets/images/dark_theme_4x (2).png',
-                            width: mHeight * 0.25 / 3,
-                            height: mHeight * 0.25 / 3)
-                        : Image.asset('assets/images/white_theme_4x (3).png',
-                            width: mHeight * 0.24 / 3,
-                            height: mHeight * 0.24 / 3)),
-              ),
-              Positioned(
-                top: mHeight * 0.40 / 3,
-                left: mHeight * 0.20 / 3,
-                child: ThemedBelnetLogo(
-                  model: appModel.darkTheme,
-                ),
-              ),
-              Center(
-                child: Padding(
-                  padding: EdgeInsets.only(top: mHeight * 0.63 / 3),
-                  child: Container(
-                    //color:Colors.yellow,
-                    child: BelnetPowerButton(
-                        onPressed: toggleBelnet,
-                        isClick: BelnetLib.isConnected,
-                        isLoading: loading),
+        Stack(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Stack(children: [
+                  Positioned(
+                    //top:0,
+                    child: Container(
+                        width: double.infinity,
+                        //color:Colors.green,
+                        height: mHeight * 1.35 / 3,
+                        child: Stack(children: [
+                          appModel.darkTheme
+                              ? Image.asset(
+                                  'assets/images/Map_dark (1).png',
+                                )
+                              : Image.asset('assets/images/map_white (3).png'),
+                          //appModel.connecting_belnet &&
+                          BelnetLib.isConnected
+                              ? Image.asset(
+                                  'assets/images/Map_white_gif (1).gif') //Image.asset('assets/images/Mobile_1.gif')
+                              : Container()
+                        ])),
                   ),
-                ),
-              ),
-            ]),
-            Padding(
-              padding: EdgeInsets.only(top: mHeight * 0.10 / 3),
-              child: ConnectingStatus(
-                isConnect: BelnetLib.isConnected,
-              ),
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(
-                      left: mHeight * 0.10 / 3, top: mHeight * 0.15 / 3),
-                  child: Text('Exit Node',
-                      style: TextStyle(
-                          color:
-                              appModel.darkTheme ? Colors.white : Colors.black,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w900,
-                          fontSize: mHeight * 0.06 / 3)),
-                ),
-              ],
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                  left: mHeight * 0.08 / 3,
-                  right: mHeight * 0.10 / 3,
-                  top: mHeight * 0.06 / 3),
-              child: BelnetLib.isConnected
-                  ? Container(
-                      height: mHeight * 0.20 / 3,
-                      decoration: BoxDecoration(
-                          color: color,
-                          borderRadius: BorderRadius.all(Radius.circular(5))),
-                      child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                  child: Center(
-                                child: Text('$hintValue',
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                    style: TextStyle(color: Color(0xff00DC00))),
-                              )),
-                              Container(
-                                  child: Icon(
-                                Icons.arrow_drop_down,
-                                color: Colors.grey,
-                              ))
-                            ],
-                          )))
-                  : Container(
-                      height: mHeight * 0.20 / 3,
-                      decoration: BoxDecoration(
-                          color: color,
-                          borderRadius: BorderRadius.all(Radius.circular(5))),
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                            left: 0.0, right: 6.0, top: 3.0, bottom: 5.0),
-                        child: CustDropDown(
-                          maxListHeight: 120,
-                          items: exitItems
-                              .map((e) => CustDropdownMenuItem(
-                                  value: e,
-                                  child: Center(
-                                      child: Text(
-                                    '$e',
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                    style: TextStyle(color: Color(0xff00DC00)),
-                                  ))))
-                              .toList(),
-                          hintText: "$selectedValue",
-                          borderRadius: 5,
-                          onChanged: (val) {
-                            print(val);
-                            setState(() {
-                              selectedValue = val;
-                            });
-                          },
-                          appModel: appModel,
-                        ),
+                  Positioned(
+                    top: mHeight * 0.10 / 3,
+                    right: mHeight * 0.04 / 3,
+                    child: GestureDetector(
+                        onTap: () {
+                          appModel.darkTheme = !appModel.darkTheme;
+                        },
+                        child: appModel.darkTheme
+                            ? Image.asset('assets/images/dark_theme_4x (2).png',
+                                width: mHeight * 0.25 / 3,
+                                height: mHeight * 0.25 / 3)
+                            : Image.asset(
+                                'assets/images/white_theme_4x (3).png',
+                                width: mHeight * 0.24 / 3,
+                                height: mHeight * 0.24 / 3)),
+                  ),
+                  Positioned(
+                    top: mHeight * 0.40 / 3,
+                    left: mHeight * 0.20 / 3,
+                    child: ThemedBelnetLogo(
+                      model: appModel.darkTheme,
+                    ),
+                  ),
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: mHeight * 0.63 / 3),
+                      child: Container(
+                        //color:Colors.yellow,
+                        child: BelnetPowerButton(
+                            onPressed: toggleBelnet,
+                            isClick: BelnetLib.isConnected,
+                            isLoading: loading),
                       ),
                     ),
+                  ),
+                ]),
+                Padding(
+                  padding: EdgeInsets.only(top: mHeight * 0.10 / 3),
+                  child: ConnectingStatus(
+                    isConnect: BelnetLib.isConnected,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(
+                          left: mHeight * 0.10 / 3, top: mHeight * 0.15 / 3),
+                      child: Text('Exit Node',
+                          style: TextStyle(
+                              color: appModel.darkTheme
+                                  ? Colors.white
+                                  : Colors.black,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w900,
+                              fontSize: mHeight * 0.06 / 3)),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.only(
+                      left: mHeight * 0.08 / 3,
+                      right: mHeight * 0.10 / 3,
+                      top: mHeight * 0.06 / 3),
+                  child: BelnetLib.isConnected
+                      ? Container(
+                          height: mHeight * 0.20 / 3,
+                          decoration: BoxDecoration(
+                              color: color,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(5))),
+                          child: Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                      child: Center(
+                                    child: Text('$hintValue',
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                            color: Color(0xff00DC00))),
+                                  )),
+                                  Container(
+                                      child: Icon(
+                                    Icons.arrow_drop_down,
+                                    color: Colors.grey,
+                                  ))
+                                ],
+                              )))
+                      : Container(
+                          height: mHeight * 0.20 / 3,
+                          decoration: BoxDecoration(
+                              color: color,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(5))),
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 0.0, right: 6.0, top: 3.0, bottom: 5.0),
+                            child: CustDropDown(
+                              maxListHeight: 120,
+                              items: exitItems
+                                  .map((e) => CustDropdownMenuItem(
+                                      value: e,
+                                      child: Center(
+                                          child: Text(
+                                        '$e',
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                        style:
+                                            TextStyle(color: Color(0xff00DC00)),
+                                      ))))
+                                  .toList(),
+                              hintText: "$selectedValue",
+                              borderRadius: 5,
+                              onChanged: (val) {
+                                print(val);
+                                setState(() {
+                                  selectedValue = val;
+                                });
+                              },
+                              appModel: appModel,
+                            ),
+                          ),
+                        ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Container(
+                    padding: EdgeInsets.all(8.0),
+                    color: Colors.grey,
+                    height: MediaQuery.of(context).size.height * 0.60 / 3,
+                    width: double.infinity,
+                    //child:
+                  ),
+                ),
+
+                //Spacer(),
+              ],
             ),
 
-            //Spacer(),
+            Positioned(
+              top: MediaQuery.of(context).size.height * 1.2 / 3,
+              left: 5,
+              right: 5,
+              child: Container(
+                  padding: EdgeInsets.only(left: 8.0, right: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          SvgPicture.asset(
+                            'assets/images/download_white_theme.svg',
+                            height: 9,
+                            width: 9,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 4.0),
+                            child: Text(
+                              'Download',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontFamily: 'Poppins',
+                                  color: appModel.darkTheme
+                                      ? Color(0xffA1A1C1)
+                                      : Colors.black),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 4.0),
+                            child: Text(
+                              'Upload',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontFamily: 'Poppins',
+                                  color: appModel.darkTheme
+                                      ? Color(0xffA1A1C1)
+                                      : Colors.black),
+                            ),
+                          ),
+                          SvgPicture.asset(
+                            'assets/images/upload_white_theme.svg',
+                            height: 9,
+                            width: 9,
+                          ),
+                        ],
+                      ),
+                    ],
+                  )),
+            ),
+            Positioned(
+              top: MediaQuery.of(context).size.height * 1.25 / 3,
+              left: 5,
+              right: 5,
+              child: Container(
+                  padding: EdgeInsets.only(left: 8.0, right: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Row(
+                      //   children: [
+                      RichText(
+                          text: TextSpan(
+                              text: downloadRate == ''
+                                  ? '00.00'
+                                  : BelnetLib.isConnected
+                                      ? '${stringBeforeSpace(downloadRate)}'
+                                      : '00.00',
+                              style: TextStyle(
+                                  fontSize: 15.0,
+                                  fontWeight: FontWeight.w900,
+                                  fontFamily: 'Poppins',
+                                  color: appModel.darkTheme
+                                      ? Color(0xffA1A1C1)
+                                      : Colors.black),
+                              children: [
+                            TextSpan(
+                                text: downloadRate == ''
+                                    ? ' MBps'
+                                    : ' ${stringAfterSpace(downloadRate)}',
+                                style: TextStyle(
+                                    fontSize: 11.0,
+                                    fontWeight: FontWeight.w100,
+                                    fontFamily: 'Poppins',
+                                    color: appModel.darkTheme
+                                        ? Color(0xffA1A1C1)
+                                        : Colors.black))
+                          ])),
+
+                      RichText(
+                          text: TextSpan(
+                              text: uploadRate == ''
+                                  ? '00.00'
+                                  : BelnetLib.isConnected
+                                      ? '${stringBeforeSpace(uploadRate)}'
+                                      : '00.00',
+                              style: TextStyle(
+                                  fontSize: 15.0,
+                                  fontWeight: FontWeight.w900,
+                                  fontFamily: 'Poppins',
+                                  color: appModel.darkTheme
+                                      ? Color(0xffA1A1C1)
+                                      : Colors.black),
+                              children: [
+                            TextSpan(
+                                text: uploadRate == ''
+                                    ? ' MBps'
+                                    : ' ${stringAfterSpace(uploadRate)}',
+                                style: TextStyle(
+                                    fontSize: 11.0,
+                                    fontWeight: FontWeight.w100,
+                                    fontFamily: 'Poppins',
+                                    color: appModel.darkTheme
+                                        ? Color(0xffA1A1C1)
+                                        : Colors.black))
+                          ])),
+
+                      //   ],
+                      // ),
+                    ],
+                  )),
+            )
+
+            // Positioned(
+            //   top: MediaQuery.of(context).size.height*1.2/3,
+            //   left: 5, right: 5,
+            //   // top:MediaQuery.of(context).size.height*1/3,
+            //
+            //   child: Container(
+            //     padding: EdgeInsets.only(left: 8.0, right: 8.0),
+            //     // color: Colors.yellow,
+            //     child: Row(
+            //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //       children: [
+            //         Column(
+            //           children: [
+            //             Row(
+            //               children: [
+            //                 SvgPicture.asset(
+            //                   'assets/images/download_white_theme.svg',
+            //                   height: 9,
+            //                   width: 9,
+            //                 ),
+            //                 Padding(
+            //                   padding: const EdgeInsets.only(left: 4.0),
+            //                   child: Text(
+            //                     'Download',
+            //                     style: TextStyle(
+            //                         fontSize: 11,
+            //                         fontFamily: 'Poppins',
+            //                         color: appModel.darkTheme
+            //                             ? Color(0xffA1A1C1)
+            //                             : Colors.black),
+            //                   ),
+            //                 ),
+            //               ],
+            //             ),
+            //             RichText(
+            //                 text: TextSpan(
+            //                     text: downloadRate == ''
+            //                         ? '0.00'
+            //                         : BelnetLib.isConnected
+            //                             ? '${stringBeforeSpace(downloadRate)}'
+            //                             : '0.00',
+            //                     style: TextStyle(
+            //                         fontSize: 15.0,
+            //                         fontWeight: FontWeight.w900,
+            //                         fontFamily: 'Poppins',
+            //                         color: appModel.darkTheme
+            //                             ? Color(0xffA1A1C1)
+            //                             : Colors.black),
+            //                     children: [
+            //                   TextSpan(
+            //                       text: downloadRate == '' ? ' MBps' : ' ${stringAfterSpace(downloadRate)}',
+            //                       style: TextStyle(
+            //                           fontSize: 11.0,
+            //                           fontWeight: FontWeight.w100,
+            //                           fontFamily: 'Poppins',
+            //                           color: appModel.darkTheme
+            //                               ? Color(0xffA1A1C1)
+            //                               : Colors.black))
+            //                 ])),
+            //           ],
+            //         ),
+            //         Column(
+            //           children: [
+            //             Row(
+            //               children: [
+            //                 Padding(
+            //                   padding: const EdgeInsets.only(right: 4.0),
+            //                   child: Text(
+            //                     'Upload',
+            //                     style: TextStyle(
+            //                         fontSize: 11,
+            //                         fontFamily: 'Poppins',
+            //                         color: appModel.darkTheme
+            //                             ? Color(0xffA1A1C1)
+            //                             : Colors.black),
+            //                   ),
+            //                 ),
+            //                 SvgPicture.asset(
+            //                   'assets/images/upload_white_theme.svg',
+            //                   height: 9,
+            //                   width: 9,
+            //                 ),
+            //               ],
+            //             ),
+            //             RichText(
+            //                 text: TextSpan(
+            //                     text: uploadRate == ''
+            //                         ? '0.00'
+            //                         : BelnetLib.isConnected
+            //                             ? '${stringBeforeSpace(uploadRate)}'
+            //                             : '0.00',
+            //                     style: TextStyle(
+            //                         fontSize: 15.0,
+            //                         fontWeight: FontWeight.w900,
+            //                         fontFamily: 'Poppins',
+            //                         color: appModel.darkTheme
+            //                             ? Color(0xffA1A1C1)
+            //                             : Colors.black),
+            //                     children: [
+            //                   TextSpan(
+            //                       text: uploadRate == '' ? ' MBps' : ' ${stringAfterSpace(uploadRate)}',
+            //                       style: TextStyle(
+            //                           fontSize: 11.0,
+            //                           fontWeight: FontWeight.w100,
+            //                           fontFamily: 'Poppins',
+            //                           color: appModel.darkTheme
+            //                               ? Color(0xffA1A1C1)
+            //                               : Colors.black))
+            //                 ])),
+            //             // SizedBox(
+            //             //   height: 20,
+            //             // ),
+            //           ],
+            //         )
+            //       ],
+            //     ),
+            //   ),
+            // ),
           ],
         ),
-        Container(
-            height: mHeight * 0.20 / 3,
-            child: Center(
-                child: Text(
-              'v0.0.1',
-              style: TextStyle(color: Color(0xffA8A8B7)),
-            ))),
+        // Container(
+        //     height: mHeight * 0.20 / 3,
+        //     child: Center(
+        //         child: Text(
+        //       'v0.0.1',
+        //       style: TextStyle(color: Color(0xffA8A8B7)),
+        //     ))),
       ],
     );
     //);

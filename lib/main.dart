@@ -15,6 +15,7 @@ import 'package:belnet_mobile/src/widget/belnet_power_button.dart';
 import 'package:belnet_mobile/src/widget/themed_belnet_logo.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:native_updater/native_updater.dart';
 import 'package:new_version/new_version.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -104,18 +105,7 @@ class BelnetHomePageState extends State<BelnetHomePage>
 
   @override
   void initState() {
-    final newVersion = NewVersion(
-      androidId: 'io.beldex.belnet',
-    );
-    // You can let the plugin handle fetching the status and showing a dialog,
-    // or you can fetch the status and display your own dialog, or no dialog.
-    const simpleBehavior = true;
-
-    if (simpleBehavior) {
-      basicStatusCheck(newVersion);
-    } else {
-      advancedStatusCheck(newVersion);
-    }
+    checkVersion(context);
     Timer.periodic(Duration(seconds: 5), (timer) {
       myNetwork();
     });
@@ -123,28 +113,72 @@ class BelnetHomePageState extends State<BelnetHomePage>
     super.initState();
   }
 
-  basicStatusCheck(NewVersion newVersion) {
-    newVersion.showAlertIfNecessary(context: context);
+
+  Future<void> checkVersion(BuildContext context) async {
+    /// For example: You got status code of 412 from the
+    /// response of HTTP request.
+    /// Let's say the statusCode 412 requires you to force update
+    final statusCode = 412;
+
+    /// This could be kept in our local
+    final localVersion = 9;
+
+    /// This could get from the API
+    final serverLatestVersion = 10;
+
+    Future.delayed(Duration.zero, () {
+      if (statusCode == 412) {
+        NativeUpdater.displayUpdateAlert(
+          context,
+          forceUpdate: true,
+          appStoreUrl: '',
+          playStoreUrl:
+          'https://play.google.com/store/apps/details?id=io.beldex.belnet',
+          iOSDescription:
+          'A new version of the Belnet application is available. Update to continue using it.',
+          iOSUpdateButtonLabel: 'Upgrade',
+          iOSCloseButtonLabel: 'Exit',
+          iOSAlertTitle: 'Mandatory Update',
+        );
+      } /* else if (serverLatestVersion > localVersion) {
+        NativeUpdater.displayUpdateAlert(
+          context,
+          forceUpdate: true,
+          appStoreUrl: 'https://apps.apple.com/in/app/beldex-official-wallet/id1603063369',
+          playStoreUrl: 'https://play.google.com/store/apps/details?id=io.beldex.wallet',
+          iOSDescription: 'Your App requires that you update to the latest version. You cannot use this app until it is updated.',
+          iOSUpdateButtonLabel: 'Upgrade',
+          iOSCloseButtonLabel: 'Exit',
+        );*/
+    });
   }
 
-  advancedStatusCheck(NewVersion newVersion) async {
-    final status = await newVersion.getVersionStatus();
 
-    if (status != null) {
-      debugPrint(status.releaseNotes);
-      debugPrint(status.appStoreLink);
-      debugPrint(status.localVersion);
-      debugPrint(status.storeVersion);
-      debugPrint(status.canUpdate.toString());
-      newVersion.showUpdateDialog(
-        context: context,
-        versionStatus: status,
-        dialogTitle: 'App update available',
-        dialogText:
-            'New version for belnet is now available with new features.Update your app from ${status.localVersion} to ${status.storeVersion}!',
-      );
-    }
-  }
+
+
+
+  // basicStatusCheck(NewVersion newVersion) {
+  //   newVersion.showAlertIfNecessary(context: context);
+  // }
+  //
+  // advancedStatusCheck(NewVersion newVersion) async {
+  //   final status = await newVersion.getVersionStatus();
+  //
+  //   if (status != null) {
+  //     debugPrint(status.releaseNotes);
+  //     debugPrint(status.appStoreLink);
+  //     debugPrint(status.localVersion);
+  //     debugPrint(status.storeVersion);
+  //     debugPrint(status.canUpdate.toString());
+  //     newVersion.showUpdateDialog(
+  //       context: context,
+  //       versionStatus: status,
+  //       dialogTitle: 'App update available',
+  //       dialogText:
+  //           'New version for belnet is now available with new features.Update your app from ${status.localVersion} to ${status.storeVersion}!',
+  //     );
+  //   }
+  // }
 
   myNetwork() async {
     connectivityResult = await Connectivity().checkConnectivity();
@@ -231,13 +265,13 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   String? hintValue = '';
   late AppModel appModel;
   List exitItems = [
-    'br5i6rsr9yg97kbnsxrqe47cbgknbfdxbmnt7ubjejt485zw4ggy.bdx',
+    'iyu3gajuzumj573tdy54sjs7b94fbqpbo3o44msrba4zez1o4p3o.bdx',
     'a6iiyy3c4qsp8kdt49ao79dqxskd81eejidhq9j36d8oodznibqy.bdx',
     'snoq7arak4d5mkpfsg69saj7bp1ikxyzqjkhzb96keywn6iyhc5y.bdx'
   ];
 
   String? selectedValue =
-      'br5i6rsr9yg97kbnsxrqe47cbgknbfdxbmnt7ubjejt485zw4ggy.bdx';
+      'iyu3gajuzumj573tdy54sjs7b94fbqpbo3o44msrba4zez1o4p3o.bdx';
   @override
   initState() {
     super.initState();
@@ -497,7 +531,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
             height: mHeight * 0.20 / 3,
             child: Center(
                 child: Text(
-              'v0.0.1',
+              'v1.0.1',
               style: TextStyle(color: Color(0xffA8A8B7)),
             ))),
       ],

@@ -21,6 +21,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 //Global variables
+//Main Functions
 
 bool netValue = true;
 bool isClick = false;

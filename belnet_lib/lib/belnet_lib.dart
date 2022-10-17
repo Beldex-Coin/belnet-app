@@ -24,8 +24,8 @@ class BelnetLib {
   static Stream<bool> get isConnectedEventStream => _isConnectedEventStream;
 
   static Future bootstrapBelnet() async {
-    final request = await HttpClient()
-        .getUrl(Uri.parse('https://deb.beldex.io/Beldex-projects/Belnet/bootstrap-files/bootstrap.signed'));
+    final request = await HttpClient().getUrl(Uri.parse(
+        'https://deb.beldex.io/Beldex-projects/Belnet/bootstrap-files/bootstrap.signed'));
     final response = await request.close();
     var path = await getApplicationDocumentsDirectory();
     await response
@@ -44,8 +44,11 @@ class BelnetLib {
     return prepare;
   }
 
-  static Future<bool> connectToBelnet(                                                                  //"9.9.9.9"
-      {String exitNode = "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx", String upstreamDNS = "1.1.1.1"}) async {
+  static Future<bool> connectToBelnet(
+      //"9.9.9.9"
+      {String exitNode =
+          "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx",
+      String upstreamDNS = "1.1.1.1"}) async {
     final bool connect = await _methodChannel.invokeMethod(
         'connect', {"exit_node": exitNode, "upstream_dns": upstreamDNS});
     return connect;
@@ -77,5 +80,30 @@ class BelnetLib {
     if (status.isNotEmpty) return jsonDecode(status);
     return null;
   }
+
+  static Future<dynamic> get upload async {
+    var uploadStatus = await _methodChannel.invokeMethod('getUploadSpeed');
+    return uploadStatus;
+  }
+
+  static Future<dynamic> get download async {
+    var downloadStatus = await _methodChannel.invokeMethod('getDownloadSpeed');
+    return downloadStatus;
+  }
+
+  static Future<String> get logDetails async{
+     var logD;
+    try{
+ logD = await _methodChannel.invokeMethod("logData");
+    }catch(e){
+      print('$e');
+    }
+    return logD;
+  }
+
+
+
+
+
 
 }

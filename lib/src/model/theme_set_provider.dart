@@ -7,6 +7,15 @@ class AppModel extends ChangeNotifier {
   bool _darkTheme = true;      //false
   bool get darkTheme => _darkTheme;
 
+
+  String _upload ="";
+  String get uploads => _upload;
+
+  String _download ="";
+  String get downloads => _download;
+
+
+
   set darkTheme(bool value) {
     _darkTheme = value;
     appPreference.setThemePref(value);
@@ -34,4 +43,21 @@ bool _status_bel = false;
     appPreference.setStatusBelnet(value);
     notifyListeners();
   }
+
+
+
+
+// for download
+set uploads(String value){
+  _upload = value;
+  notifyListeners();
+
+}
+
+set downloads(String value){
+  _download = value;
+  notifyListeners();
+}
+
+
 }

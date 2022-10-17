@@ -1,3 +1,5 @@
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -10,6 +12,7 @@ class ConnectingStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appModel = Provider.of<AppModel>(context);
+
     return Column(
       // mainAxisAlignment: MainAxisAlignment.center,
       // crossAxisAlignment: CrossAxisAlignment.center,
@@ -31,6 +34,7 @@ class ConnectingStatus extends StatelessWidget {
                             ? Color(0xff222222)
                             : Color(0xffA8A8B7),
                     fontFamily: 'Poppins',
+                    fontSize: MediaQuery.of(context).size.height*0.05/3,
                     fontWeight: isConnect! ? FontWeight.bold : FontWeight.w500),
               ),
             ),

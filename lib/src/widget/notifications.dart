@@ -6,7 +6,7 @@ import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:flutter/material.dart';
 
 bool setValue = false;
-Stream<String> myStream = Stream as Stream<String>;
+// Stream<String> myStream = Stream as Stream<String>;
 class MyNotificationWorkLoad extends StatelessWidget {
   AppModel appModel;
   bool isLoading;
@@ -28,7 +28,7 @@ class MyNotificationWorkLoad extends StatelessWidget {
 
       function();
       uploading = await BelnetLib.upload;
-     myStream = uploading.toString() as Stream<String>;
+    // myStream = uploading.toString() as Stream<String>;
     AwesomeNotifications().displayedStream.toString();
       print('uploading value is$uploading');
       // StatefulBuilder(builder: (BuildContext context, void Function(void Function()) setState){
@@ -45,12 +45,16 @@ class MyNotificationWorkLoad extends StatelessWidget {
 
   Future<void> createMyNotification(bool dismiss, upload, download) async {
     // getUploadDownloadDataUpdate();
+     appModel.notifyListeners();
     await AwesomeNotifications().createNotification(
+      
         content: NotificationContent(
             id: 3,
             channelKey: 'basic_channel',
             title: 'Belnet',
-            body:  "$myStream",
+            body: "Belnet started"
+                  // "${appModel.downloads} ${appModel.uploads}" 
+                  , //"$myStream",
             //notificationLayout: NotificationLayout.BigPicture,
             displayOnBackground: true,
             progress: 1,

@@ -285,15 +285,15 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     super.initState();
     _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
         .listen((bool isConnected) => setState(() {}));
-    callForUpdate();
+    //callForUpdate();
     getRandomExitNodes();
   }
 
-  callForUpdate() {
-    Timer.periodic(Duration(milliseconds: 200), (timer) {
-      getUploadAndDownload();
-    });
-  }
+  // callForUpdate() {
+  //   Timer.periodic(Duration(milliseconds: 200), (timer) {
+  //     getUploadAndDownload();
+  //   });
+  // }
 
   getRandomExitNodes() async {
     SharedPreferences preference = await SharedPreferences.getInstance();
@@ -313,6 +313,10 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     _isConnectedEventSubscription?.cancel();
     AwesomeNotifications().dispose();
   }
+
+
+late bool con;
+
 
   Future toggleBelnet() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -352,8 +356,23 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
         appModel.connecting_belnet = true;
       }
       if (result)
-        BelnetLib.connectToBelnet(
+      con =await BelnetLib.connectToBelnet(
             exitNode: settings.exitNode!, upstreamDNS: "");
+
+
+
+      if(!con){
+      print("connection value is $con");
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          backgroundColor: Colors.black,
+                          content: Text("Exit node could not connected!",style: TextStyle(color:Colors.white),)
+
+    )); 
+      }else{
+
+      }
+
+
 
       if (BelnetLib.isConnected) {
         appModel.connecting_belnet = true;
@@ -384,14 +403,21 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
       var uploadR = await BelnetLib.upload;
       var downloadR = await BelnetLib.download;
-      appModel.uploads = uploadR;
+     
+     
+      Future.delayed(Duration(seconds:1),(){
+         appModel.uploads = uploadR;
       appModel.downloads = downloadR;
-      setState(() {
+           setState(() {
+
         uploadRate = uploadR;
         print('upload displayed from dart side $uploadRate');
         downloadRate = downloadR;
       });
+      });
+      print("printed after 3seconds");
     }
+    
   }
 
   String stringBeforeSpace(String value) {
@@ -413,8 +439,10 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     appModel = pr.Provider.of<AppModel>(context);
     Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
     double mHeight = MediaQuery.of(context).size.height;
-
-    //getUploadAndDownload();
+    if(BelnetLib.isConnected){
+        getUploadAndDownload();
+    }
+   
     return
         // SingleChildScrollView(
         // child:
@@ -591,18 +619,24 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12.0),
                             color: Colors.grey,
-                            boxShadow: [
-                              BoxShadow(
-                                  color: Colors.black12,
-                                  offset: Offset(-10, -10),
-                                  spreadRadius: 0,
-                                  blurRadius: 10),
-                              BoxShadow(
-                                  color: Colors.black,
-                                  offset: Offset(10, 10),
-                                  spreadRadius: 0,
-                                  blurRadius: 10)
-                            ],
+                           boxShadow: appModel.darkTheme
+                            ? [
+                                // BoxShadow(
+                                //     color: Colors.black12,
+                                //     offset: Offset(-10, -10),
+                                //     spreadRadius: 0,
+                                //     blurRadius: 10),
+                                BoxShadow(
+                                    color: Colors.black,
+                                    offset: Offset(0, 1),
+                                    blurRadius: 2.0)
+                              ]
+                            : [
+                                BoxShadow(
+                                    color: Color(0xff6E6E6E),
+                                    offset: Offset(0, 1),
+                                    blurRadius: 2.0)
+                              ],
                             border: Border.all(
                               color: Color(0xffA1A1C1).withOpacity(0.1),
                             ),
@@ -720,7 +754,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                               )),
                         ),
                 ),
-
+              SizedBox(height:mHeight*0.05/3,)
                 //Spacer(),
               ],
             ),

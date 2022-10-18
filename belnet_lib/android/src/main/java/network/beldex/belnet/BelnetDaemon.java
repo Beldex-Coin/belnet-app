@@ -57,7 +57,7 @@ public class BelnetDaemon extends VpnService{
   public NotificationCompat.Builder mNotifyBuilder;
   public String updateNotify;
 
-  Stream<String> myStream;
+  // Stream<String> myStream;
 
   private String actionState = "network.beldex.belnet.STOP";
   public String updata ="empty" ;

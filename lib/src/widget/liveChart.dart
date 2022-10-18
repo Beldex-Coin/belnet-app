@@ -27,25 +27,29 @@ class _LiveChartState extends State<LiveChart> {
   late List<LiveData> charts;
    late AppModel appModel;
   var upload, download, uploadData = 0.0, downloadData = 0.0;
-
+  int time = 10;
   convertUploadDownloadStringToInt() async {
-    setTimers();
-    if (BelnetLib.isConnected) {
+    //setTimers();
+    try{
+      if (BelnetLib.isConnected) {
       setState(() {});
       print("the value from provider ${appModel.uploads}");
       uploadData = stringBeforeSpace(appModel.uploads);
       downloadData = stringBeforeSpace(appModel.downloads);
        print('${appModel.downloads}');
-      // print("upload value for chart $upload");
-      // print("download value for chart $download");
-      // print("upload data for chart $uploadData");
-      // print("download data for chart $downloadData");
+     
+       _updateData();
+        _updateDownload();
     } else {
       upload = null;
       download = null;
       downloadData = 0.0;
       uploadData = 0.0;
     }
+    }catch(e){
+      print("$e");
+    }
+    
   }
 
   double stringBeforeSpace(String value) {
@@ -63,12 +67,12 @@ class _LiveChartState extends State<LiveChart> {
       LiveData(0.0, 0),
       LiveData(0.0, 0),
       LiveData(0.0, 1),
-      LiveData(3, 12),
-      LiveData(4, 12),
-      LiveData(5, 12),
-      LiveData(0.0, 0),
-      LiveData(0.0, 0),
-      LiveData(0.0, 0),
+      // LiveData(3, 12),
+      // LiveData(4, 12),
+      // LiveData(5, 12),
+      // LiveData(0.0, 0),
+      // LiveData(0.0, 0),
+      // LiveData(0.0, 0),
     ];
   }
 
@@ -77,12 +81,12 @@ class _LiveChartState extends State<LiveChart> {
       LiveData(0.0, 0),
       LiveData(0.0, 0),
       LiveData(0.0, 0),
-      LiveData(0.0, 0),
-      LiveData(0.0, 0),
-      LiveData(0.0, 0),
-      LiveData(0.0, 0),
-      LiveData(0.0, 0),
-      LiveData(0.0, 0),
+      // LiveData(0.0, 0),
+      // LiveData(0.0, 0),
+      // LiveData(0.0, 0),
+      // LiveData(0.0, 0),
+      // LiveData(0.0, 0),
+      // LiveData(0.0, 0),
     ];
   }
 
@@ -90,30 +94,30 @@ class _LiveChartState extends State<LiveChart> {
   void initState() {
     chartData = getChart();
     charts = chartata();
-    setTimers();
+   // setTimers();
     setState(() {});
     super.initState();
   }
 
-  setTimers() {
-    var ti;
-    if (BelnetLib.isConnected) {
-      ti = Timer.periodic(Duration(seconds: 1), (timer) {
-        _updateData(timer);
-        _updateDownload(timer);
-      });
-    } else {
-    //ti.cancel();
-    }
-  }
+  // setTimers() {
+  //   var ti;
+  //   if (BelnetLib.isConnected) {
+  //     ti = Timer.periodic(Duration(seconds: 1), (timer) {
+  //       _updateData(timer);
+  //       _updateDownload(timer);
+  //     });
+  //   } else {
+  //   //ti.cancel();
+  //   }
+  // }
 
   @override
   void dispose() {
     super.dispose();
   }
 
-  int time = 10;
-  _updateData(Timer timer) {
+ 
+  _updateData() {
     print("updating data forr all uploads $uploadData");
     chartData.add(LiveData(uploadData, time++));
     chartData.removeAt(0);
@@ -121,7 +125,7 @@ class _LiveChartState extends State<LiveChart> {
         addedDataIndex: chartData.length - 1, removedDataIndex: 0);
   }
 
-  _updateDownload(Timer timer) {
+  _updateDownload() {
     print("updating data forr all downloads $downloadData");
     charts.add(LiveData(downloadData, time++));
     charts.removeAt(0);
@@ -132,41 +136,161 @@ class _LiveChartState extends State<LiveChart> {
   @override
   Widget build(BuildContext context) {
     appModel = Provider.of<AppModel>(context);
-    convertUploadDownloadStringToInt();
+    if(BelnetLib.isConnected){
+     convertUploadDownloadStringToInt();
+    }
+    
 
     return Container(
+      margin: EdgeInsets.only(top:20.0),
+          padding: EdgeInsets.only(bottom: 20.0,left:15.0),
         child: BelnetLib.isConnected
-            ? SfCartesianChart(
-            // selectionType: SelectionType.series,
-                // enableSideBySideSeriesPlacement: false,
-                plotAreaBorderColor: Colors.transparent,
-                plotAreaBackgroundColor: Colors.transparent,
-                series: <SplineSeries<LiveData, int>>[
-                    SplineSeries<LiveData, int>(
-                        width: 0.8,
-                        initialSelectedDataIndexes: [0, 0],
-                        splineType: SplineType.clamped,
-                        onRendererCreated: (ChartSeriesController controller) =>
-                            _chartSeriesController = controller,
-                        dataSource: chartData,
-                        xValueMapper: (LiveData netw, _) => netw.time,
-                        color: Color(0xff23DC27),
-                        yValueMapper: (LiveData netw, _) => netw.speed),
-                    SplineSeries<LiveData, int>(
-                        width: 0.8,
-                        initialSelectedDataIndexes: [0, 0],
-                        splineType: SplineType.clamped,
-                        onRendererCreated: (ChartSeriesController controller) =>
-                            _chartSeriesController = controller,
-                        dataSource: charts,
-                        xValueMapper: (LiveData netw, _) => netw.time,
-                        color: Color(0xff1CA3FC),
-                        yValueMapper: (LiveData netw, _) => netw.speed),
-                  ])
-            : SfCartesianChart(
-                plotAreaBorderColor: Colors.transparent,
-                plotAreaBackgroundColor: Colors.transparent,
-              ));
+            ? Stack(
+              children: [
+                Container(
+                 // color: Colors.green,
+                  padding: EdgeInsets.only(left:37.0),
+                  // decoration: BoxDecoration(  
+                  //   border: Border(bottom: BorderSide(width: 1.0, color: Colors.lightBlue.shade600))
+                  // ),
+                  child: SfCartesianChart(
+                    // axes:<ChartAxis>[
+                       
+                    // ],
+                   // enableAxisAnimation: true,
+        
+                   primaryXAxis: NumericAxis(
+                    //rangePadding: ChartRangePadding.,
+                    labelFormat:" ",
+                 // anchorRangeToVisiblePoints: false,
+                    //associatedAxisName: "time",
+                    majorGridLines: MajorGridLines(color: Colors.transparent)),
+                   primaryYAxis:NumericAxis(
+                     labelFormat:" ",
+                    majorGridLines: MajorGridLines(color: Colors.transparent,)),
+                      // primaryYAxis: CategoryAxis(),
+                    // primaryXAxis: NumericAxis(isVisible: false),
+                    // primaryYAxis: NumericAxis(isVisible: false),
+                  selectionType: SelectionType.series,
+                      //enableSideBySideSeriesPlacement: false,
+                      plotAreaBorderColor: Colors.transparent,
+                      plotAreaBackgroundColor: Colors.transparent,
+                      series: <LineSeries<LiveData, int>>[
+                          LineSeries<LiveData, int>(
+                            //xAxisName: "Download",
+                              width: 0.8,
+                              initialSelectedDataIndexes: [0, 0],
+                              
+                              //splineType: SplineType.clamped,
+                              onRendererCreated: (ChartSeriesController controller) =>
+                                  _chartSeriesController = controller,
+                              dataSource: chartData,
+                              xValueMapper: (LiveData netw, _) => netw.time,
+                              color: Color(0xff23DC27),
+                              yValueMapper: (LiveData netw, _) => netw.speed),
+                          LineSeries<LiveData, int>(
+                              width: 0.8,
+                              initialSelectedDataIndexes: [0, 0],
+                              //splineType: SplineType.clamped,
+                              onRendererCreated: (ChartSeriesController controller) =>
+                                  _chartSeriesController = controller,
+                              dataSource: charts,
+                              xValueMapper: (LiveData netw, _) => netw.time,
+                              color: Color(0xff1CA3FC),
+                              yValueMapper: (LiveData netw, _) => netw.speed),
+                        ]),
+                ),
+                Positioned(
+                  bottom:0.0,right:5.0,left:15.0,top:110.0,
+                  //width: double.infinity,
+                  child: Container(
+                    color:Colors.transparent,
+                    height:MediaQuery.of(context).size.height*0.50/3,padding: EdgeInsets.only(left:25.0),
+                    child: Column(
+                      children:[
+                       // Text("dad"),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left:8.0),
+                              child: Text("a minute ago",style: TextStyle(fontSize:MediaQuery.of(context).size.height*0.05/3),),
+                            ),
+                            Text("now",style: TextStyle(fontSize:MediaQuery.of(context).size.height*0.05/3),),
+                          ],
+                        ),
+                        SizedBox(height: 2.0,),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children:[
+                            Container(
+                              height:10.0,width: 10.0,decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color:Color(0xff23DC27)
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left:8.0,right:8.0),
+                              child: Text("Download",style: TextStyle(fontSize:MediaQuery.of(context).size.height*0.05/3,color:Color(0xff23DC27)),),
+                            ),
+                            Container(
+                              height:10.0,width: 10.0,decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color:Color(0xff1CA3FC)
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left:8.0,right:8.0),
+                              child: Text("upload",style: TextStyle(fontSize:MediaQuery.of(context).size.height*0.05/3,color:Color(0xff1CA3FC)),),
+                            )
+                          ]
+                        )
+                        // Row(
+                        //   children: [
+                        //     Text("a minute ago",style: TextStyle(fontSize: 0.5,color: Colors.white),),
+                        //     Text("now",style: TextStyle(fontSize:0.5,color: Colors.white),)
+                        //   ],
+                        // )
+                      ]
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: MediaQuery.of(context).size.height*0.15/3,left:MediaQuery.of(context).size.height*0.0/3 ,
+                  child: Container(
+                    height:MediaQuery.of(context).size.height*0.60/3,
+                    width: MediaQuery.of(context).size.width*0.49/3,
+                   // decoration: BoxDecoration(color: Colors.orange),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                       children: [
+                        Text("8.0 mb"),
+                        SizedBox(height:9.0),
+                        Text("4.0 mb"),  SizedBox(height:9.0),
+                        Text("2.0 mb"),  SizedBox(height:9.0),
+                        Text("0.5 mb")
+                       ],
+                    ),
+                  ),
+                )
+              ],
+            )
+            : Container(
+               margin: EdgeInsets.only(left:10.0),
+              //  decoration: BoxDecoration(  
+              //   border: Border(bottom: BorderSide(width: 1.0, color: Colors.grey),
+              //   left: BorderSide(width: 1.0, color: Colors.grey)
+              //   )
+              // ),
+              child: SfCartesianChart(
+                  plotAreaBorderColor: Colors.transparent,
+                  plotAreaBackgroundColor: Colors.transparent,
+                  primaryXAxis: CategoryAxis(),
+                  primaryYAxis: CategoryAxis(),
+                  // primaryXAxis: NumericAxis(isVisible: false),
+                  // primaryYAxis: NumericAxis(isVisible: false),
+                ),
+            ));
   }
 }
 

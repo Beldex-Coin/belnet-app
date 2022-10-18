@@ -56,28 +56,28 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
   //getIsConnect();
 
     var whiteLoadingImage = Image.asset('assets/images/load_white.gif',
-      height: MediaQuery.of(context).size.height * 0.78 / 3,  //0.98 / 3,
-       width: MediaQuery.of(context).size.width * 1.78 / 3,  //1.78 / 3,
+      height: MediaQuery.of(context).size.height * 0.73 / 3,  //0.98 / 3,
+       width: MediaQuery.of(context).size.width * 1.73 / 3,  //1.78 / 3,
     );
     var powerOnDark =  Image.asset('assets/images/power_on-01.png',
-      height: MediaQuery.of(context).size.height * 0.78 / 3,  //0.98 / 3,
-       width: MediaQuery.of(context).size.width * 1.78 / 3,  //1.78 / 3,
+      height: MediaQuery.of(context).size.height * 0.73 / 3,  //0.98 / 3,
+       width: MediaQuery.of(context).size.width * 1.73 / 3,  //1.78 / 3,
     );
     var powerOffDark = Image.asset('assets/images/power_off_3.png',
-      height: MediaQuery.of(context).size.height * 0.78 / 3,  //0.98 / 3,
-      width: MediaQuery.of(context).size.width * 1.78 / 3,  //1.78 / 3,
+      height: MediaQuery.of(context).size.height * 0.73 / 3,  //0.98 / 3,
+      width: MediaQuery.of(context).size.width * 1.73/ 3,  //1.78 / 3,
     );
     var darkLoadingImage = Image.asset('assets/images/load_darkss.gif',
-      height: MediaQuery.of(context).size.height * 0.78 / 3,  //0.98 / 3,
-      width: MediaQuery.of(context).size.width * 1.78 / 3,  //1.78 / 3,
+      height: MediaQuery.of(context).size.height * 0.73 / 3,  //0.98 / 3,
+      width: MediaQuery.of(context).size.width * 1.73 / 3,  //1.78 / 3,
     );
     var powerOnWhite = Image.asset('assets/images/image (1).png',
-      height: MediaQuery.of(context).size.height * 0.78 / 3,  //0.98 / 3,
-      width: MediaQuery.of(context).size.width * 1.78 / 3,
+      height: MediaQuery.of(context).size.height * 0.73 / 3,  //0.98 / 3,
+      width: MediaQuery.of(context).size.width * 1.73 / 3,
     );
     var powerOffWhite = Image.asset('assets/images/power_off_whites.png',
-      height: MediaQuery.of(context).size.height * 0.78 / 3,  //0.98 / 3,
-      width: MediaQuery.of(context).size.width * 1.78 / 3,
+      height: MediaQuery.of(context).size.height * 0.73 / 3,  //0.98 / 3,
+      width: MediaQuery.of(context).size.width * 1.73 / 3,
     );
 
 

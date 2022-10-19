@@ -38,10 +38,10 @@ public class ConnectionTools {
         }
         else {
             readableSize = dec.format(b).concat(" b");
-            if(readableSize == "0.00 b")
-                return "3.00 b";
-            else
-                return "4.00 b";
+//            if(readableSize == "0.00 b")
+//                return "3.00 b";
+//            else
+                return readableSize;
         }
 
         // return readableSize;

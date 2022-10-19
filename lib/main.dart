@@ -1546,45 +1546,7 @@ class NoInternetConnection extends StatelessWidget {
   }
 }
 
-// class BottomNavBarOption extends StatefulWidget {
-//   const BottomNavBarOption({Key? key}) : super(key: key);
 
-//   @override
-//   State<BottomNavBarOption> createState() => _BottomNavBarOptionState();
-// }
-
-// class _BottomNavBarOptionState extends State<BottomNavBarOption> {
-//    int pageIndex = 0;
-
-//    var pages =[
-//     Chart,
-//     Log];
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//          body: pages[pageIndex],
-//     );
-//   }
-// }
-
-// class Chart extends StatelessWidget {
-//   const Chart({Key? key}) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container();
-//   }
-// }
-
-// class Log extends StatelessWidget {
-//   const Log({Key? key}) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container();
-//   }
-// }
 
 var pageIndex = 0;
 

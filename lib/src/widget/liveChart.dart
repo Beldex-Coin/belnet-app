@@ -147,21 +147,14 @@ class _LiveChartState extends State<LiveChart> {
                 children: [
                   Container(
                     // color: Colors.green,
-                    padding: EdgeInsets.only(left: 37.0, right: 20.0),
+                    padding: EdgeInsets.only(left: MediaQuery.of(context).size.height*0.20/3, right: MediaQuery.of(context).size.height*0.09/3),
                     // decoration: BoxDecoration(
                     //   border: Border(bottom: BorderSide(width: 1.0, color: Colors.lightBlue.shade600))
                     // ),
                     child: SfCartesianChart(
-                        // axes:<ChartAxis>[
-
-                        // ],
-                        // enableAxisAnimation: true,
-                        //zoomPanBehavior: ZoomPanBehavior(enablePinching: true),
                         primaryXAxis: NumericAxis(
-                            //rangePadding: ChartRangePadding.,
                             labelFormat: " ",
-                            // anchorRangeToVisiblePoints: false,
-                            //associatedAxisName: "time",
+          
                             majorGridLines:
                                 MajorGridLines(color: Colors.transparent)),
                         primaryYAxis: NumericAxis(
@@ -209,7 +202,7 @@ class _LiveChartState extends State<LiveChart> {
                     child: Container(
                       color: Colors.transparent,
                       height: MediaQuery.of(context).size.height * 0.50 / 3,
-                      padding: EdgeInsets.only(left: 25.0),
+                      padding: EdgeInsets.only(left: MediaQuery.of(context).size.height*0.10/3),
                       child: Column(children: [
                         // Text("dad"),
                         Row(
@@ -251,14 +244,17 @@ class _LiveChartState extends State<LiveChart> {
                               Padding(
                                 padding: const EdgeInsets.only(
                                     left: 8.0, right: 8.0),
-                                child: Text(
-                                  "Download",
-                                  style: TextStyle(
-                                      fontSize:
-                                          MediaQuery.of(context).size.height *
-                                              0.04 /
-                                              3,
-                                      color: Color(0xff23DC27)),
+                                child: GestureDetector(
+                                      onTap: (() => Navigator.push(context, MaterialPageRoute(builder: (context)=>ChartPainter()))),
+                                  child: Text(
+                                    "Download",
+                                    style: TextStyle(
+                                        fontSize:
+                                            MediaQuery.of(context).size.height *
+                                                0.04 /
+                                                3,
+                                        color: Color(0xff23DC27)),
+                                  ),
                                 ),
                               ),
                               Container(
@@ -467,7 +463,7 @@ class _LiveChartState extends State<LiveChart> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                LineChartSample2()));
+                                                 ChartPainter()));
                                   },
                                   child: Text(
                                     "Download",

@@ -60,4 +60,27 @@ set downloads(String value){
 }
 
 
+
+
+
+List<String> logData=["belnet started", "data"];
+
+
+void addItem(String itemData){
+  logData.add(itemData);
+  notifyListeners();
 }
+
+
+
+List<String> get basketItem {
+    return logData;
+  }
+
+
+
+
+
+
+}
+

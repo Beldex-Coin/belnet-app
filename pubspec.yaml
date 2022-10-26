@@ -33,12 +33,14 @@ dependencies:
   connectivity_plus: ^2.3.6+1
   new_version: ^0.3.1
   in_app_update: any
+  get: any
   native_updater: any #^0.1.0
   syncfusion_flutter_charts: ^20.3.49
   flutter_riverpod: any
   fl_chart: ^0.55.2
   clipboard: any
   charts_painter: ^2.0.0+2
+  elapsed: any
 #  url_launcher: ^6.1.5
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

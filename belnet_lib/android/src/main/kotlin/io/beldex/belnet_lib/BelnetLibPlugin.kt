@@ -17,18 +17,13 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.graphics.Color
 import android.net.TrafficStats
 import android.net.VpnService
-import android.os.Build
 
 import android.os.IBinder
 import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.NonNull
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
@@ -62,6 +57,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     lateinit var notificationManager: NotificationManager
     lateinit var notificationChannel: NotificationChannel
     lateinit var builder: Notification.Builder
+    lateinit var  myD:String
     var mutableString : MutableLiveData<String> = MutableLiveData()
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
@@ -259,9 +255,13 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 lastTimestamp = timestamp
             }
             "logData" ->{
-                Log.d("Testings",logData)
-                logDataToFrontend("")
-               result.success(logData)
+
+                Log.d("Testings","")
+               var datas = logDataToFrontend("")
+
+//             myD = LogDisplayForUi("").displayData()
+//             Log.d("Dis data",myD)
+                result.success(datas)
             }
 
             else -> result.notImplemented()
@@ -335,3 +335,12 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
 }
 
+
+class LogDisplayForUi(var myLog: String) {
+    fun displayData(): String {
+
+        val timeStamp = SystemClock.elapsedRealtime()
+        Log.e("dataFromLog",timeStamp.toString()+myLog);
+        return timeStamp.toString() + myLog
+    }
+}

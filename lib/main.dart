@@ -8,6 +8,7 @@ import 'package:belnet_mobile/src/utils/styles.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
 import 'package:belnet_mobile/src/widget/exit_node_list.dart';
 import 'package:belnet_mobile/src/widget/liveChart.dart';
+// import 'package:belnet_mobile/src/widget/logProvider.dart';
 import 'package:belnet_mobile/src/widget/notifications.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,7 @@ import 'package:belnet_mobile/src/widget/themed_belnet_logo.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:native_updater/native_updater.dart';
 
 import 'package:provider/provider.dart' as pr;
@@ -106,7 +108,7 @@ class _BelnetAppState extends State<BelnetApp> {
     return pr.ChangeNotifierProvider<AppModel>.value(
       value: appModel,
       child: pr.Consumer<AppModel>(builder: (context, value, child) {
-        return MaterialApp(
+        return GetMaterialApp(
             title: 'Belnet App',
             debugShowCheckedModeBanner: false,
             theme: appModel.darkTheme ? buildDarkTheme() : buildLightTheme(),
@@ -277,7 +279,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   String unitText = 'Mbps';
   String? hintValue = '';
   late AppModel appModel;
-
+  //late LogProvider logProvider;
   String? selectedValue =
       'iyu3gajuzumj573tdy54sjs7b94fbqpbo3o44msrba4zez1o4p3o.bdx';
   @override
@@ -340,6 +342,13 @@ late bool con;
       dismiss = true;
       AwesomeNotifications()
           .dismiss(3); // dismiss the notification when belnet disconnected
+
+
+     //logProvider.logata_set = "belnet disconnected";
+
+
+
+
     } else {
       //Save the exit node and upstream dns
       final Settings settings = Settings.getInstance()!;
@@ -438,6 +447,7 @@ late bool con;
   Widget build(BuildContext context) {
     appModel = pr.Provider.of<AppModel>(context);
     Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
+    //logProvider = pr.Provider.of<LogProvider>(context);
     double mHeight = MediaQuery.of(context).size.height;
     if(BelnetLib.isConnected){
         getUploadAndDownload();

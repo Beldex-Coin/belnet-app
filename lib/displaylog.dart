@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:belnet_lib/belnet_lib.dart';
+import 'package:belnet_lib/saveForLog.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/widget/logProvider.dart';
 import 'package:clipboard/clipboard.dart';
 
 import 'package:flutter/material.dart';
@@ -10,6 +12,7 @@ import 'package:flutter/material.dart';
 // import 'package:flutter/src/foundation/key.dart';
 // import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
 class DisplayLog extends StatefulWidget {
@@ -20,42 +23,58 @@ class DisplayLog extends StatefulWidget {
 }
 
 class _DisplayLogState extends State<DisplayLog> {
+  late AppModel appModel;
+  final LogController logController = Get.put(LogController());
+  final SaveForLog logCon = Get.put(SaveForLog());
   ScrollController _scrollController =
-      new ScrollController(initialScrollOffset: 50.0);
-  // List<String> comments = <String>[];
-  // Stream<List<String>> coms = <String>[] as Stream<List<String>>;
+      new ScrollController(initialScrollOffset: 30.0);
+
   List datas = ["belnet about to start", "work good"];
-  final _recipeStreamController = StreamController();
+ 
   bool canCancel = true;
+
+
+
   @override
   void initState() {
-    // Timer.periodic(Duration(milliseconds: 100),(timer){
-    getDataFromLog();
-    //});
+   
+    continueslyCall();
+ 
 
     super.initState();
   }
 
-  getDataFromLog() async {
-    var data = await BelnetLib.logDetails;
-    _recipeStreamController.sink.add(data);
 
-    setState(() {
-      datas.add(data);
-    });
+void continueslyCall(){
+  Timer.periodic(Duration(seconds:1), (timer) { 
+    getDataFromLog();
+  });
+}
+
+
+
+   getDataFromLog() async {
+       var logS = SaveForLog.getLogDetails("");
+       print("Printing is the best way to find out error: $logS");
+       if(logS != null){
+          logController.addDataTolist(logS.toString());
+       }
+      
   }
 
   @override
   void dispose() {
-    _recipeStreamController.close();
+ //datas.clear();
+  //appModel.logData.clear();
+   logController.data.clear();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    getDataFromLog();
-
-    final appModel = Provider.of<AppModel>(context);
+   // getDataFromLog();
+     
+     appModel = Provider.of<AppModel>(context);
     return Container(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -75,17 +94,23 @@ class _DisplayLogState extends State<DisplayLog> {
                     borderRadius: BorderRadius.circular(9.0),
                     color:
                         appModel.darkTheme ? Color(0xff252532) : Colors.white),
-                child: ListView.builder(
-                    itemCount: datas.length,
+                child:Obx(() {
+                  return ListView.builder(
+                    itemCount: logController.data.length,
                     itemBuilder: ((context, index) {
+                    
                       return Text(
-                        '${datas[index]}',
+                        '${logController.data[index]}',
                         style: TextStyle(
                             color: appModel.darkTheme
                                 ? Colors.white
                                 : Colors.black),
                       );
-                    }))),
+                    }));
+                },)
+                
+                 
+                    ),
           )),
           Padding(
             padding: const EdgeInsets.only(bottom: 5.0),
@@ -102,7 +127,7 @@ class _DisplayLogState extends State<DisplayLog> {
                     InkWell(
                       onTap: () {
                         if (datas.isNotEmpty) {
-                          datas.clear();
+                         logController.data.clear();
                         } else {
                           setState(() {
                             canCancel = false;
@@ -152,7 +177,9 @@ class _DisplayLogState extends State<DisplayLog> {
                                 Padding(
                                   padding: const EdgeInsets.only(right: 8.0),
                                   child: SvgPicture.asset(
-                                      'assets/images/clear_x.svg'),
+                                      'assets/images/clear_x.svg',color:canCancel
+                                          ? Color(0xffFF3030)
+                                          : Colors.grey ,),
                                   //child: Icon(Icons.close,size:MediaQuery.of(context).size.height*0.07/3 ,color: Color(0xffFF3030),),
                                 ),
                                 Text(
@@ -259,4 +286,23 @@ class _DisplayLogState extends State<DisplayLog> {
       ),
     );
   }
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+

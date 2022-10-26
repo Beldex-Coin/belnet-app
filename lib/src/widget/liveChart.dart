@@ -147,14 +147,15 @@ class _LiveChartState extends State<LiveChart> {
                 children: [
                   Container(
                     // color: Colors.green,
-                    padding: EdgeInsets.only(left: MediaQuery.of(context).size.height*0.20/3, right: MediaQuery.of(context).size.height*0.09/3),
+                    padding: EdgeInsets.only(
+                        left: MediaQuery.of(context).size.height * 0.20 / 3,
+                        right: MediaQuery.of(context).size.height * 0.09 / 3),
                     // decoration: BoxDecoration(
                     //   border: Border(bottom: BorderSide(width: 1.0, color: Colors.lightBlue.shade600))
                     // ),
                     child: SfCartesianChart(
                         primaryXAxis: NumericAxis(
                             labelFormat: " ",
-          
                             majorGridLines:
                                 MajorGridLines(color: Colors.transparent)),
                         primaryYAxis: NumericAxis(
@@ -202,7 +203,8 @@ class _LiveChartState extends State<LiveChart> {
                     child: Container(
                       color: Colors.transparent,
                       height: MediaQuery.of(context).size.height * 0.50 / 3,
-                      padding: EdgeInsets.only(left: MediaQuery.of(context).size.height*0.10/3),
+                      padding: EdgeInsets.only(
+                          left: MediaQuery.of(context).size.height * 0.10 / 3),
                       child: Column(children: [
                         // Text("dad"),
                         Row(
@@ -245,7 +247,11 @@ class _LiveChartState extends State<LiveChart> {
                                 padding: const EdgeInsets.only(
                                     left: 8.0, right: 8.0),
                                 child: GestureDetector(
-                                      onTap: (() => Navigator.push(context, MaterialPageRoute(builder: (context)=>ChartPainter()))),
+                                  onTap: (() => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              ChartPainter()))),
                                   child: Text(
                                     "Download",
                                     style: TextStyle(
@@ -463,7 +469,7 @@ class _LiveChartState extends State<LiveChart> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                 ChartPainter()));
+                                                ChartPainter()));
                                   },
                                   child: Text(
                                     "Download",

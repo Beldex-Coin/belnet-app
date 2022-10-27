@@ -8,6 +8,7 @@ import 'package:belnet_mobile/src/utils/styles.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
 import 'package:belnet_mobile/src/widget/exit_node_list.dart';
 import 'package:belnet_mobile/src/widget/liveChart.dart';
+import 'package:belnet_mobile/src/widget/logProvider.dart';
 // import 'package:belnet_mobile/src/widget/logProvider.dart';
 import 'package:belnet_mobile/src/widget/notifications.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -270,7 +271,7 @@ class MyForm extends StatefulWidget {
 class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   static final key = new GlobalKey<FormState>();
   StreamSubscription<bool>? _isConnectedEventSubscription;
-
+  LogController logController = Get.put(LogController());
   String downloadProgress = '0';
   String uploadProgress = '0';
   double displayRate = 0;
@@ -323,7 +324,7 @@ late bool con;
   Future toggleBelnet() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     if (BelnetLib.isConnected == false) {
-      print('netvalue from disconnected --');
+      print('${DateTime.now().microsecondsSinceEpoch} netvalue from disconnected --');
       AwesomeNotifications().dismiss(3);
     }
     bool dismiss = false;
@@ -345,15 +346,18 @@ late bool con;
 
 
      //logProvider.logata_set = "belnet disconnected";
-
-
+    if(disConnectValue)
+      logController.addDataTolist(" Belnet Daemon stopped..","${DateTime.now().microsecondsSinceEpoch.toString()}");
+      logController.addDataTolist(" Belnet disconnected","${DateTime.now().microsecondsSinceEpoch.toString()}");
 
 
     } else {
+       
       //Save the exit node and upstream dns
       final Settings settings = Settings.getInstance()!;
       settings.exitNode = selectedValue!.trim().toString();
       var myVal = selectedValue!.trim().toString();
+      logController.addDataTolist(" Using $myVal as Exit node","${DateTime.now().microsecondsSinceEpoch.toString()}");
       preferences.setString('hintValue', myVal);
       hintValue = preferences.getString('hintValue');
       print('hint value is stored from getString $hintValue');
@@ -361,31 +365,32 @@ late bool con;
       settings.upstreamDNS = '';
 
       final result = await BelnetLib.prepareConnection();
+      logController.addDataTolist(" Preparing connection..","${DateTime.now().microsecondsSinceEpoch.toString()}");
       if (await BelnetLib.isPrepared) {
         appModel.connecting_belnet = true;
       }
-      if (result)
-      con =await BelnetLib.connectToBelnet(
+      if (result){
+       con =await BelnetLib.connectToBelnet(
             exitNode: settings.exitNode!, upstreamDNS: "");
-
-
-
-      if(!con){
-      print("connection value is $con");
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          backgroundColor: Colors.black,
-                          content: Text("Exit node could not connected!",style: TextStyle(color:Colors.white),)
-
-    )); 
-      }else{
-
+        logController.addDataTolist(" Connected successfully","${DateTime.now().microsecondsSinceEpoch.toString()}",);
+      print("connection data value for display $con");
       }
+      
+    //   if(con){
+    //    logController.addDataTolist(" ExitNode could not connected","${DateTime.now().microsecondsSinceEpoch.toString()}");
+    // //   // print("connection value is $con");
+    // //   //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    // //   //                     backgroundColor: Colors.black,
+    // //   //                     content: Text("Exit node could not connected!",style: TextStyle(color:Colors.white),)
+
+    // // )); 
+    //   }else{
+        
+    //   }
 
 
 
-      if (BelnetLib.isConnected) {
-        appModel.connecting_belnet = true;
-      }
+     
 
       setState(() {});
       MyNotificationWorkLoad(
@@ -399,7 +404,16 @@ late bool con;
         uploadRate,
         downloadRate,
       );
+      if (BelnetLib.isConnected) {
+        appModel.connecting_belnet = true;
+        logController.addDataTolist(" Connected successfully","${DateTime.now().microsecondsSinceEpoch.toString()}",);
+      }
+      // if(BelnetLib.isConnected == false){
+      //    logController.addDataTolist(" Could not find the exit node","${DateTime.now().microsecondsSinceEpoch.toString()}",);
+      //   logController.addDataTolist(" Could not connected to belnet","${DateTime.now().microsecondsSinceEpoch.toString()}",);
+      // }
     }
+     
   }
 
   var uploadUnit = ' Mbps';

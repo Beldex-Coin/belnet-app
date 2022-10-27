@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:belnet_lib/saveForLog.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
-class BelnetLib {
+class BelnetLib{
   static const MethodChannel _methodChannel =
       const MethodChannel('belnet_lib_method_channel');
 
@@ -50,27 +48,20 @@ class BelnetLib {
       {String exitNode =
           "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx",
       String upstreamDNS = "1.1.1.1"}) async {
-    SaveForLog.getLogDetails("using $exitNode as exitNode");
     final bool connect = await _methodChannel.invokeMethod(
         'connect', {"exit_node": exitNode, "upstream_dns": upstreamDNS});
-    if (connect) {
-      SaveForLog.getLogDetails("Belnet connected..");
-    } else {
-      SaveForLog.getLogDetails("unable to connect..");
-    }
+  
     return connect;
   }
 
   static Future<bool> disconnectFromBelnet() async {
     final bool disconnect = await _methodChannel.invokeMethod('disconnect');
-    if (disconnect) {
-      SaveForLog.getLogDetails("Belnet stoped");
-    }
+  
     return disconnect;
   }
 
   static Future<bool> get isPrepared async {
-    SaveForLog.getLogDetails("preparing for connection");
+   
     final bool prepared = await _methodChannel.invokeMethod('isPrepared');
 
     return prepared;
@@ -84,7 +75,6 @@ class BelnetLib {
   static Future<bool> get isBootstrapped async {
     var path = await getApplicationDocumentsDirectory();
     print('path for bootstrap ${path.parent.path}/files/bootstrap.signed');
-    SaveForLog.getLogDetails("checking");
     return File('${path.parent.path}/files/bootstrap.signed').existsSync();
   }
 

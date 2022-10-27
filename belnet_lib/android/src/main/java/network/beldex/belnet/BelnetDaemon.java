@@ -39,7 +39,7 @@ import java.util.TimerTask;
 import java.util.stream.Stream;
 
 import io.beldex.belnet_lib.BelnetLibPlugin;
-import io.beldex.belnet_lib.LogDisplayForUi;
+
 import io.beldex.belnet_lib.R;
 import io.beldex.belnet_lib.UpdateNetwork;
 
@@ -311,7 +311,6 @@ public class BelnetDaemon extends VpnService{
   public int onStartCommand(Intent intent, int flags, int startID) {
     Log.d(LOG_TAG, "onStartCommand()");
     new BelnetLibPlugin().logDataToFrontend("onstart");
-     new LogDisplayForUi("Checking...");
     String action = intent != null ? intent.getAction() : "";
 
 
@@ -326,9 +325,6 @@ public class BelnetDaemon extends VpnService{
               "TurnExitOFF OK result <= OK\n" +
               "exitNode set by daemon:";
 
-      new LogDisplayForUi(": TurnExitOFF =>\n");
-      new LogDisplayForUi("TurnExitOFF OK result <= OK\n");
-      new LogDisplayForUi("exitNode set by daemon:");
 
 
 
@@ -345,7 +341,7 @@ public class BelnetDaemon extends VpnService{
       SharedPreferences sharedPreferences = getSharedPreferences("belnet_lib", MODE_PRIVATE);
 
       if (ACTION_CONNECT.equals(action)) {
-        new LogDisplayForUi("Starting belnet...");
+
 
         // started by the app
         exitNode = intent.getStringExtra(EXIT_NODE);
@@ -356,24 +352,21 @@ public class BelnetDaemon extends VpnService{
         editor.putString(EXIT_NODE, exitNode);
         editor.putString(UPSTREAM_DNS, upstreamDNS);
         editor.commit();
-        new LogDisplayForUi("Exitnode setup");
-        new LogDisplayForUi("vpn starting with Exitnode:"+ exitNode);
       } else { // if started by the system because Always-on VPN setting is enabled
         // use the latest values
         exitNode = sharedPreferences.getString(EXIT_NODE, null);
         upstreamDNS = sharedPreferences.getString(UPSTREAM_DNS, null);
-        new LogDisplayForUi("vpn starting with Exitnode:"+ exitNode);
+
       }
 
       if (exitNode == null || exitNode.isEmpty()) {
         exitNode = DEFAULT_EXIT_NODE;
         Log.e(LOG_TAG, "No exit-node configured! Proceeding with default.");
-        new LogDisplayForUi("No exit-node configured! Proceeding with default.");
       }
 
       Log.e(LOG_TAG, "Using " + exitNode + " as exit-node.");
       configVals.add(new ConfigValue("network", "exit-node", exitNode));
-      new LogDisplayForUi("Using " + exitNode + " as exit-node.");
+
       if (upstreamDNS == null || upstreamDNS.isEmpty()) {
         upstreamDNS = DEFAULT_UPSTREAM_DNS;
         Log.e(LOG_TAG, "No upstream DNS configured! Proceeding with default.");
@@ -391,12 +384,10 @@ public class BelnetDaemon extends VpnService{
 
       boolean connectedSuccessfully = connect(configVals);
       if (connectedSuccessfully){
-        new LogDisplayForUi("Belnet connected successfully..");
         return START_STICKY;
       }
 
       else{
-        new LogDisplayForUi("could not connected...");
         return START_NOT_STICKY;
       }
 
@@ -449,7 +440,6 @@ public class BelnetDaemon extends VpnService{
         config = new BelnetConfig(dataDir);
       } catch (RuntimeException ex) {
         Log.e(LOG_TAG, ex.toString());
-        new LogDisplayForUi(ex.toString());
         return false;
       }
 
@@ -481,9 +471,7 @@ public class BelnetDaemon extends VpnService{
                 "failed to load (or create) config file at: "
                         + dataDir
                         + "/beldex.network.beldex.belnet.ini");
-        new LogDisplayForUi("failed to load (or create) config file at: "
-                + dataDir
-                + "/beldex.network.beldex.belnet.ini");
+
         return false;
       }
 

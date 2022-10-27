@@ -336,11 +336,3 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 }
 
 
-class LogDisplayForUi(var myLog: String) {
-    fun displayData(): String {
-
-        val timeStamp = SystemClock.elapsedRealtime()
-        Log.e("dataFromLog",timeStamp.toString()+myLog);
-        return timeStamp.toString() + myLog
-    }
-}

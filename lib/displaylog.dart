@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:belnet_lib/belnet_lib.dart';
-import 'package:belnet_lib/saveForLog.dart';
+
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/widget/logProvider.dart';
 import 'package:clipboard/clipboard.dart';
@@ -25,56 +25,38 @@ class DisplayLog extends StatefulWidget {
 class _DisplayLogState extends State<DisplayLog> {
   late AppModel appModel;
   final LogController logController = Get.put(LogController());
-  final SaveForLog logCon = Get.put(SaveForLog());
-  ScrollController _scrollController =
-      new ScrollController(initialScrollOffset: 30.0);
+  // final SaveForLog logCon = Get.put(SaveForLog());
+  ScrollController _scrollController = new ScrollController();
 
-  List datas = ["belnet about to start", "work good"];
- 
+
   bool canCancel = true;
-
-
 
   @override
   void initState() {
-   
-    continueslyCall();
- 
+    // continueslyCall();
 
     super.initState();
   }
 
-
-void continueslyCall(){
-  Timer.periodic(Duration(seconds:1), (timer) { 
-    getDataFromLog();
-  });
-}
-
-
-
-   getDataFromLog() async {
-       var logS = SaveForLog.getLogDetails("");
-       print("Printing is the best way to find out error: $logS");
-       if(logS != null){
-          logController.addDataTolist(logS.toString());
-       }
-      
+  void _scrollDown(){
+    _scrollController.jumpTo(
+    _scrollController.position.maxScrollExtent,
+  );
   }
+
+
+
 
   @override
   void dispose() {
- //datas.clear();
-  //appModel.logData.clear();
-   logController.data.clear();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-   // getDataFromLog();
-     
-     appModel = Provider.of<AppModel>(context);
+    // getDataFromLog();
+   // _scrollDown();
+    appModel = Provider.of<AppModel>(context);
     return Container(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -84,9 +66,10 @@ void continueslyCall(){
             padding: EdgeInsets.only(
                 left: MediaQuery.of(context).size.height * 0.08 / 3,
                 right: MediaQuery.of(context).size.height * 0.08 / 3,
-                top: MediaQuery.of(context).size.height * 0.06 / 3,
+                //top: MediaQuery.of(context).size.height * 0.06 / 3,
                 bottom: MediaQuery.of(context).size.height * 0.03 / 3),
             child: Container(
+                padding: EdgeInsets.only(left:10),
                 height: MediaQuery.of(context).size.height * 1 / 3,
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -94,23 +77,54 @@ void continueslyCall(){
                     borderRadius: BorderRadius.circular(9.0),
                     color:
                         appModel.darkTheme ? Color(0xff252532) : Colors.white),
-                child:Obx(() {
-                  return ListView.builder(
-                    itemCount: logController.data.length,
-                    itemBuilder: ((context, index) {
-                    
-                      return Text(
-                        '${logController.data[index]}',
-                        style: TextStyle(
-                            color: appModel.darkTheme
-                                ? Colors.white
-                                : Colors.black),
-                      );
-                    }));
-                },)
-                
-                 
-                    ),
+                child: Obx(
+                  () {
+                    return ListView.builder(
+                        controller: _scrollController,
+                        itemCount: logController.data.length,
+                        itemBuilder: ((context, index) {
+                          if(logController.data.isNotEmpty){
+                               canCancel= true;
+                          }
+                        
+                          if(logController.data.length > 8){
+                            _scrollDown();
+                          
+                          }
+                         
+                          return 
+                          RichText(text: TextSpan(
+                            text: '${logController.timeData[index]}',
+                            style: TextStyle(
+                               fontSize: MediaQuery.of(context).size.height*0.04/3,
+                               fontFamily: "Poppins",
+                                color: Color(0xffA1A1C1)
+                            ),
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: '${logController.data[index]}',
+                                style: TextStyle(
+                                  fontSize: MediaQuery.of(context).size.height*0.04/3,
+                               fontFamily: "Poppins",
+                               color: appModel.darkTheme ? Color(0xffFFFFFF) : Color(0xff222222)
+                                )
+                              )
+                            ]
+                          ));
+                          // Text(
+                            
+                          //   style: TextStyle(
+                          //     fontSize: MediaQuery.of(context).size.height*0.04/3,
+                          //      fontFamily: "Poppins",
+                          //       color: Color(0xffA8A8B7)
+                          //       // appModel.darkTheme
+                          //       //     ? Colors.white
+                          //       //     : Colors.black
+                          //           ),
+                          // );
+                        }));
+                  },
+                )),
           )),
           Padding(
             padding: const EdgeInsets.only(bottom: 5.0),
@@ -126,8 +140,8 @@ void continueslyCall(){
                   children: [
                     InkWell(
                       onTap: () {
-                        if (datas.isNotEmpty) {
-                         logController.data.clear();
+                        if (logController.data.isNotEmpty) {
+                          logController.data.clear();
                         } else {
                           setState(() {
                             canCancel = false;
@@ -177,9 +191,11 @@ void continueslyCall(){
                                 Padding(
                                   padding: const EdgeInsets.only(right: 8.0),
                                   child: SvgPicture.asset(
-                                      'assets/images/clear_x.svg',color:canCancel
-                                          ? Color(0xffFF3030)
-                                          : Colors.grey ,),
+                                    'assets/images/clear_x.svg',
+                                    color: canCancel
+                                        ? Color(0xffFF3030)
+                                        : Colors.grey,
+                                  ),
                                   //child: Icon(Icons.close,size:MediaQuery.of(context).size.height*0.07/3 ,color: Color(0xffFF3030),),
                                 ),
                                 Text(
@@ -204,8 +220,8 @@ void continueslyCall(){
                     ),
                     InkWell(
                       onTap: () {
-                        if (datas.isNotEmpty || datas == "") {
-                          FlutterClipboard.copy(datas.toString()).then(
+                        if (logController.data.isNotEmpty ) {
+                          FlutterClipboard.copy(logController.data.toString()).then(
                               (value) => ScaffoldMessenger.of(context)
                                   .showSnackBar(SnackBar(
                                       backgroundColor: Colors.black,
@@ -286,23 +302,4 @@ void continueslyCall(){
       ),
     );
   }
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-

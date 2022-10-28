@@ -516,8 +516,8 @@ public class BelnetDaemon extends VpnService{
     }
 
     updateIsConnected();
-    Intent browserI = new Intent(Intent.ACTION_VIEW,Uri.parse("https://whatismyipaddress.com/"));
-    startActivity(browserI);
+//    Intent browserI = new Intent(Intent.ACTION_VIEW,Uri.parse("https://whatismyipaddress.com/"));
+//    startActivity(browserI);
     return true;
 
   }

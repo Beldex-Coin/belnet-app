@@ -1638,31 +1638,34 @@ class _BottomNavBarOptionsState extends State<BottomNavBarOptions> {
                       pageIndex = 0;
                     });
                   },
-                  child: Row(
-                    //mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: SvgPicture.asset(
-                          'assets/images/chart (1).svg',
-                          color: pageIndex == 0
-                              ? Color(0xff1DC021)
-                              : Color(0xffA1A1C1),
-                          height: MediaQuery.of(context).size.height * 0.06 / 3,
-                        ),
-                      ),
-                      Text(
-                        'Chart',
-                        style: TextStyle(
+                  child: Container(
+                    //color:Colors.yellow,
+                    child: Row(
+                      //mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: SvgPicture.asset(
+                            'assets/images/chart (1).svg',
                             color: pageIndex == 0
                                 ? Color(0xff1DC021)
                                 : Color(0xffA1A1C1),
-                            fontWeight: pageIndex == 0
-                                ? FontWeight.w900
-                                : FontWeight.normal,
-                            fontFamily: "poppins"),
-                      )
-                    ],
+                            height: MediaQuery.of(context).size.height * 0.06 / 3,
+                          ),
+                        ),
+                        Text(
+                          'Chart',
+                          style: TextStyle(
+                              color: pageIndex == 0
+                                  ? Color(0xff1DC021)
+                                  : Color(0xffA1A1C1),
+                              fontWeight: pageIndex == 0
+                                  ? FontWeight.w900
+                                  : FontWeight.normal,
+                              fontFamily: "poppins"),
+                        )
+                      ],
+                    ),
                   ),
                 ),
                 VerticalDivider(
@@ -1674,31 +1677,33 @@ class _BottomNavBarOptionsState extends State<BottomNavBarOptions> {
                       pageIndex = 1;
                     });
                   },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: SvgPicture.asset(
-                          'assets/images/Log.svg',
-                          color: pageIndex == 1
-                              ? Color(0xff1DC021)
-                              : Color(0xffA1A1C1),
-                          height: MediaQuery.of(context).size.height * 0.05 / 3,
-                        ),
-                      ),
-                      Text(
-                        'Log',
-                        style: TextStyle(
+                  child: Container(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: SvgPicture.asset(
+                            'assets/images/Log.svg',
                             color: pageIndex == 1
                                 ? Color(0xff1DC021)
                                 : Color(0xffA1A1C1),
-                            fontWeight: pageIndex == 1
-                                ? FontWeight.w900
-                                : FontWeight.normal,
-                            fontFamily: "poppins"),
-                      )
-                    ],
+                            height: MediaQuery.of(context).size.height * 0.05 / 3,
+                          ),
+                        ),
+                        Text(
+                          'Log',
+                          style: TextStyle(
+                              color: pageIndex == 1
+                                  ? Color(0xff1DC021)
+                                  : Color(0xffA1A1C1),
+                              fontWeight: pageIndex == 1
+                                  ? FontWeight.w900
+                                  : FontWeight.normal,
+                              fontFamily: "poppins"),
+                        )
+                      ],
+                    ),
                   ),
                 )
               ],

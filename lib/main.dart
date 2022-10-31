@@ -1397,7 +1397,10 @@ late bool con;
                       //textForAuth = null;
                       isSet = false;
                       color = "blue";
+                      selectedValue = _cusExitNode.text.toString();
+                      toggleBelnet();
                     });
+
                     Navigator.pop(dcontext);
                   }
                 },

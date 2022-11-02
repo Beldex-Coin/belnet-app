@@ -42,7 +42,7 @@ class BelnetLib{
     final bool prepare = await _methodChannel.invokeMethod('prepare');
     return prepare;
   }
-
+//conncting belnet
   static Future<bool> connectToBelnet(
       //"9.9.9.9"
       {String exitNode =

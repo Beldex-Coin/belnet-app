@@ -59,7 +59,7 @@ class BelnetLib{
   
     return disconnect;
   }
-
+// is prepared function
   static Future<bool> get isPrepared async {
    
     final bool prepared = await _methodChannel.invokeMethod('isPrepared');
@@ -71,7 +71,7 @@ class BelnetLib{
     final bool isRunning = await _methodChannel.invokeMethod('isRunning');
     return isRunning;
   }
-
+//isbootstrap function
   static Future<bool> get isBootstrapped async {
     var path = await getApplicationDocumentsDirectory();
     print('path for bootstrap ${path.parent.path}/files/bootstrap.signed');

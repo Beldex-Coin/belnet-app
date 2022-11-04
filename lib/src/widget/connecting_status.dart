@@ -24,6 +24,7 @@ class ConnectingStatus extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: Text(
+                //checking the connection for belnet
                 isConnect! ? 'Connected' : 'Disconnected',
                 style: TextStyle(
                     color: appModel.darkTheme

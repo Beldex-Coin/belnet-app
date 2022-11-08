@@ -92,6 +92,7 @@ public class BelnetDaemon extends VpnService{
   private static native String DetectFreeRange();
 
   //public final void stopSelf();
+  public native String GetStatus();
 
   ByteBuffer impl = null;
   ParcelFileDescriptor iface;

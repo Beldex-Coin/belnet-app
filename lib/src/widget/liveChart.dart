@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/widget/LineChartSample10.dart';
+import 'package:belnet_mobile/src/widget/txrxspeed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -35,8 +36,8 @@ class _LiveChartState extends State<LiveChart> {
       if (BelnetLib.isConnected) {
         setState(() {});
         print("the value from provider ${appModel.uploads}");
-        uploadData = stringBeforeSpace(appModel.uploads);
-        downloadData = stringBeforeSpace(appModel.downloads);
+        uploadData = stringBeforeSpace(appModel.singleUpload);
+        downloadData = stringBeforeSpace(appModel.singleDownload);
         print('${appModel.downloads}');
 
         _updateData();
@@ -65,26 +66,14 @@ class _LiveChartState extends State<LiveChart> {
   List<LiveData> getChart() {
     return <LiveData>[
       LiveData(0.0, 0),
-      LiveData(0.0, 0),
-      LiveData(0.0, 1),
-      LiveData(3, 12),
-      LiveData(4, 12),
-      LiveData(5, 12),
       // LiveData(0.0, 0),
-      // LiveData(0.0, 0),
-      // LiveData(0.0, 0),
+      // LiveData(0.0, 1),
     ];
   }
 
   List<LiveData> chartata() {
     return <LiveData>[
       LiveData(0.0, 0),
-      LiveData(0.0, 0),
-      LiveData(0.0, 0),
-      LiveData(3, 12),
-      LiveData(4, 12),
-      LiveData(5, 12),
-      // LiveData(0.0, 0),
       // LiveData(0.0, 0),
       // LiveData(0.0, 0),
     ];
@@ -95,9 +84,29 @@ class _LiveChartState extends State<LiveChart> {
     chartData = getChart();
     charts = chartata();
     // setTimers();
+    getDataFromLog();
     setState(() {});
     super.initState();
   }
+
+
+
+
+
+ getDataFromLog() async {
+    Timer.periodic(Duration(milliseconds: 2000), (timer) {
+      if (BelnetLib.isConnected) TxRxSpeed().getDataFromChannel(appModel);
+    });
+  }
+
+
+
+//var dataOne = Map().entries.any((element) =>  element = BelnetLib.download.toString().) ;
+
+
+
+
+
 
   // setTimers() {
   //   var ti;
@@ -131,6 +140,18 @@ class _LiveChartState extends State<LiveChart> {
     _chartSeriesController.updateDataSource(
         addedDataIndex: charts.length - 1, removedDataIndex: 0);
   }
+
+
+
+ 
+
+
+
+
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -169,8 +190,8 @@ class _LiveChartState extends State<LiveChart> {
                         selectionType: SelectionType.series,
                         plotAreaBorderColor: Colors.transparent,
                         plotAreaBackgroundColor: Colors.transparent,
-                        series: <LineSeries<LiveData, int>>[
-                          LineSeries<LiveData, int>(
+                        series: <FastLineSeries<LiveData, int>>[
+                          FastLineSeries<LiveData, int>(
                               //xAxisName: "Download",
                               width: 0.8,
                               //initialSelectedDataIndexes: [0, 0],
@@ -183,7 +204,7 @@ class _LiveChartState extends State<LiveChart> {
                               xValueMapper: (LiveData netw, _) => netw.time,
                               color: Color(0xff23DC27),
                               yValueMapper: (LiveData netw, _) => netw.speed),
-                          LineSeries<LiveData, int>(
+                          FastLineSeries<LiveData, int>(
                               width: 0.8,
                               // initialSelectedDataIndexes: [0, 0],
                               //splineType: SplineType.clamped,
@@ -465,11 +486,11 @@ class _LiveChartState extends State<LiveChart> {
                                     left: 8.0, right: 8.0),
                                 child: GestureDetector(
                                   onTap: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                ChartPainter()));
+                                    // Navigator.push(
+                                    //     context,
+                                    //     MaterialPageRoute(
+                                    //         builder: (context) =>
+                                    //             ChartPainter()));
                                   },
                                   child: Text(
                                     "Download",

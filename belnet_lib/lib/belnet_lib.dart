@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
-class BelnetLib{
+class BelnetLib {
   static const MethodChannel _methodChannel =
       const MethodChannel('belnet_lib_method_channel');
 
@@ -42,6 +42,7 @@ class BelnetLib{
     final bool prepare = await _methodChannel.invokeMethod('prepare');
     return prepare;
   }
+
 //conncting belnet
   static Future<bool> connectToBelnet(
       //"9.9.9.9"
@@ -50,18 +51,18 @@ class BelnetLib{
       String upstreamDNS = "1.1.1.1"}) async {
     final bool connect = await _methodChannel.invokeMethod(
         'connect', {"exit_node": exitNode, "upstream_dns": upstreamDNS});
-  
+
     return connect;
   }
 
   static Future<bool> disconnectFromBelnet() async {
     final bool disconnect = await _methodChannel.invokeMethod('disconnect');
-  
+
     return disconnect;
   }
+
 // is prepared function
   static Future<bool> get isPrepared async {
-   
     final bool prepared = await _methodChannel.invokeMethod('isPrepared');
 
     return prepared;
@@ -71,6 +72,7 @@ class BelnetLib{
     final bool isRunning = await _methodChannel.invokeMethod('isRunning');
     return isRunning;
   }
+
 //isbootstrap function
   static Future<bool> get isBootstrapped async {
     var path = await getApplicationDocumentsDirectory();
@@ -104,5 +106,9 @@ class BelnetLib{
     return logD;
   }
 
-  
+  static Future<dynamic> get getSpeedStatus async {
+    var status = await _methodChannel.invokeMethod('getDataStatus');
+    if (status.isNotEmpty) return jsonDecode(status);
+    return null;
+  }
 }

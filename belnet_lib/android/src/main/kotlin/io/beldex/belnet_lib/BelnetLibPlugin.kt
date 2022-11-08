@@ -254,15 +254,23 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 lastTotalUpload = totalUpload
                 lastTimestamp = timestamp
             }
-            "logData" ->{
-
-                Log.d("Testings","")
-               var datas = logDataToFrontend("")
-
-//             myD = LogDisplayForUi("").displayData()
-//             Log.d("Dis data",myD)
-                result.success(datas)
+            "getDataStatus"->{
+                if (mBoundService != null) {
+                    result.success(mBoundService!!.GetStatus())
+                    Log.d("Test","mBoundService is " + mBoundService!!.GetStatus())
+                } else {
+                    result.success(false)
+                }
             }
+//             "logData" ->{
+
+//                 Log.d("Testings","")
+//                var datas = logDataToFrontend("")
+
+// //             myD = LogDisplayForUi("").displayData()
+// //             Log.d("Dis data",myD)
+//                 result.success(datas)
+//             }
 
             else -> result.notImplemented()
         }

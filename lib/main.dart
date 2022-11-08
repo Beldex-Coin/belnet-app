@@ -463,9 +463,9 @@ late bool con;
     Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
     //logProvider = pr.Provider.of<LogProvider>(context);
     double mHeight = MediaQuery.of(context).size.height;
-    if(BelnetLib.isConnected){
-        getUploadAndDownload();
-    }
+    // if(BelnetLib.isConnected){
+    //     getUploadAndDownload();
+    // }
    
     return
         // SingleChildScrollView(
@@ -850,11 +850,11 @@ late bool con;
                       //   children: [
                       RichText(
                           text: TextSpan(
-                              text: downloadRate == ''
-                                  ? '00.00'
+                              text: appModel.singleDownload.isEmpty
+                                  ? '0.0'
                                   : BelnetLib.isConnected
-                                      ? '${stringBeforeSpace(downloadRate)}'
-                                      : '00.00',
+                                      ? '${stringBeforeSpace(appModel.singleDownload)}'
+                                      : '0.0',
                               style: TextStyle(
                                   fontSize: 15.0,
                                   fontWeight: FontWeight.w900,
@@ -864,9 +864,9 @@ late bool con;
                                       : Colors.black),
                               children: [
                             TextSpan(
-                                text: downloadRate == ''
-                                    ? ' Mbps'
-                                    : ' ${stringAfterSpace(downloadRate)}',
+                                text: appModel.singleDownload.isEmpty
+                                    ? ' Bps'
+                                    : ' ${stringAfterSpace(appModel.singleDownload)}',
                                 style: TextStyle(
                                     fontSize: 11.0,
                                     fontWeight: FontWeight.w100,
@@ -878,11 +878,11 @@ late bool con;
 
                       RichText(
                           text: TextSpan(
-                              text: uploadRate == ''
-                                  ? '00.00'
+                              text: appModel.singleUpload.isEmpty
+                                  ? '0.0'
                                   : BelnetLib.isConnected
-                                      ? '${stringBeforeSpace(uploadRate)}'
-                                      : '00.00',
+                                      ? '${stringBeforeSpace(appModel.singleUpload)}'
+                                      : '0.0',
                               style: TextStyle(
                                   fontSize: 15.0,
                                   fontWeight: FontWeight.w900,
@@ -892,9 +892,9 @@ late bool con;
                                       : Colors.black),
                               children: [
                             TextSpan(
-                                text: uploadRate == ''
-                                    ? ' Mbps'
-                                    : ' ${stringAfterSpace(uploadRate)}',
+                                text: appModel.singleUpload.isEmpty
+                                    ? ' Bps'
+                                    : ' ${stringAfterSpace(appModel.singleUpload)}',
                                 style: TextStyle(
                                     fontSize: 11.0,
                                     fontWeight: FontWeight.w100,

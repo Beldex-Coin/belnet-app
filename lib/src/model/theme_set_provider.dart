@@ -80,6 +80,24 @@ List<String> get basketItem {
 
 
 
+String _singleUpload ="";
+ String get singleUpload => _singleUpload;
+
+ set singleUpload(String value){
+  _singleUpload = value;
+  notifyListeners();
+ }
+
+
+
+String _singleDownload = "";
+String get singleDownload => _singleDownload;
+
+set singleDownload(String value){
+  _singleDownload = value;
+  notifyListeners();
+}
+
 
 
 }

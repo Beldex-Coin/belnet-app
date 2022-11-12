@@ -29,7 +29,7 @@ class _LiveChartState extends State<LiveChart> {
   late List<LiveData> charts;
   late AppModel appModel;
   var upload, download, uploadData = 0.0, downloadData = 0.0;
-  int time = 10;
+  int time = 0;
   convertUploadDownloadStringToInt() async {
     //setTimers();
     try {
@@ -65,17 +65,17 @@ class _LiveChartState extends State<LiveChart> {
 
   List<LiveData> getChart() {
     return <LiveData>[
-      LiveData(0.0, 0),
-      // LiveData(0.0, 0),
-      // LiveData(0.0, 1),
+      LiveData(0, 0),
+      LiveData(0, 0),
+      LiveData(0, 1),
     ];
   }
 
   List<LiveData> chartata() {
     return <LiveData>[
-      LiveData(0.0, 0),
-      // LiveData(0.0, 0),
-      // LiveData(0.0, 0),
+      LiveData(0, 0),
+      LiveData(0, 0),
+      LiveData(0, 0),
     ];
   }
 
@@ -190,8 +190,8 @@ class _LiveChartState extends State<LiveChart> {
                         selectionType: SelectionType.series,
                         plotAreaBorderColor: Colors.transparent,
                         plotAreaBackgroundColor: Colors.transparent,
-                        series: <FastLineSeries<LiveData, int>>[
-                          FastLineSeries<LiveData, int>(
+                        series: <LineSeries<LiveData, int>>[
+                          LineSeries<LiveData, int>(
                               //xAxisName: "Download",
                               width: 0.8,
                               //initialSelectedDataIndexes: [0, 0],
@@ -204,7 +204,7 @@ class _LiveChartState extends State<LiveChart> {
                               xValueMapper: (LiveData netw, _) => netw.time,
                               color: Color(0xff23DC27),
                               yValueMapper: (LiveData netw, _) => netw.speed),
-                          FastLineSeries<LiveData, int>(
+                         LineSeries<LiveData, int>(
                               width: 0.8,
                               // initialSelectedDataIndexes: [0, 0],
                               //splineType: SplineType.clamped,
@@ -268,11 +268,11 @@ class _LiveChartState extends State<LiveChart> {
                                 padding: const EdgeInsets.only(
                                     left: 8.0, right: 8.0),
                                 child: GestureDetector(
-                                  onTap: (() => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              ChartPainter()))),
+                                  // onTap: (() => Navigator.push(
+                                  //     context,
+                                  //     MaterialPageRoute(
+                                  //         builder: (context) =>
+                                  //             ChartPainter()))),
                                   child: Text(
                                     "Download",
                                     style: TextStyle(

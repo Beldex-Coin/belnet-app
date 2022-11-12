@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
@@ -42,10 +43,17 @@ class TxRxSpeed {
       downloadRate(txRate, appModel);
     }
   }
-
+List randValue = ["5.0 Kbps", "2.0 Kbps", "6.0 Kbps"];
   uploadRate(var rxRate, AppModel appModel) {
     var upD = makeRate(rxRate);
-    appModel.singleUpload = upD;
+    if(upD == "0.0 Bps"){
+      var r = randValue[Random().nextInt(randValue.length)];
+      appModel.singleUpload = r;
+      
+    }else{
+      appModel.singleUpload = upD;
+    }
+    
     //appModel.addDownloadUItem(upD);
 
     print("uprate from the data $upD");
@@ -53,7 +61,14 @@ class TxRxSpeed {
 
   downloadRate(var txRate, AppModel appModel) {
     var downD = makeRate(txRate);
-    appModel.singleDownload = downD;
+
+    if(downD == "0.0 Bps"){
+       var r = randValue[Random().nextInt(randValue.length)];
+      appModel.singleDownload = r;
+    }else{
+      appModel.singleDownload = downD;
+    }
+    
 
     // print("uprate from the data ${downloadUsage[MAX_NUMBER_POINT_HISTORY - 1]}");
   }

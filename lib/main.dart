@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_mobile/displaylog.dart';
+import 'package:belnet_mobile/src/model/exitnodeModel.dart';
+import 'package:belnet_mobile/src/model/exitnodeRepo.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
@@ -90,9 +92,18 @@ class _BelnetAppState extends State<BelnetApp> {
 
     // SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack, overlays: [SystemUiOverlay.top]);
     setvalueToExitNode();
-
+    // getExitnodeListDataFromAPI();
     _initAppTheme();
   }
+
+ 
+
+
+
+
+
+
+
 
   setvalueToExitNode() async {
     final prefs = await SharedPreferences.getInstance();
@@ -141,7 +152,7 @@ class BelnetHomePageState extends State<BelnetHomePage>
       myNetwork();
     });
     setState(() {});
-
+   getExitnodeListDataFromAPI();
     super.initState();
   }
 
@@ -221,6 +232,33 @@ class BelnetHomePageState extends State<BelnetHomePage>
   void dispose() {
     super.dispose();
   }
+
+
+
+
+List<ExitNodeList> exitList = <ExitNodeList>[];
+
+ getExitnodeListDataFromAPI()async{
+
+   
+
+       exitList = await DataRepo().getDataFromNet(); 
+       print("exitlist from json $exitList");
+       setState(() {
+         
+       });
+ }
+
+
+
+
+
+
+
+
+
+
+
 
   Widget build(BuildContext context) {
     final appModel = pr.Provider.of<AppModel>(context);

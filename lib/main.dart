@@ -28,6 +28,8 @@ import 'package:native_updater/native_updater.dart';
 import 'package:provider/provider.dart' as pr;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'src/widget/containChart.dart';
+
 //Global variables
 
 bool netValue = true;
@@ -584,19 +586,25 @@ late bool con;
                     isConnect: BelnetLib.isConnected,
                   ),
                 ),
+                //SizedBox(height: MediaQuery.of(context),)
                 Row(
                   children: [
                     Padding(
                       padding:
                           EdgeInsets.only(left: mHeight * 0.10 / 3, top: 10),
-                      child: Text('Exit Node',
-                          style: TextStyle(
-                              color: appModel.darkTheme
-                                  ? Colors.white
-                                  : Colors.black,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w900,
-                              fontSize: mHeight * 0.05 / 3)),
+                      child: GestureDetector(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=>ContainChart()));
+                        },
+                        child: Text('Exit Node',
+                            style: TextStyle(
+                                color: appModel.darkTheme
+                                    ? Colors.white
+                                    : Colors.black,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w900,
+                                fontSize: mHeight * 0.05 / 3)),
+                      ),
                     ),
                   ],
                 ),
@@ -669,153 +677,162 @@ late bool con;
                           ),
                         ),
                 ),
-
-                Padding(
+                Padding(  
                   padding: EdgeInsets.only(
                       left: mHeight * 0.08 / 3,
                       right: mHeight * 0.10 / 3,
                       top: mHeight * 0.03 / 3),
-                  child: BelnetLib.isConnected
-                      ? Container(
-                          padding: EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12.0),
-                            color: Colors.grey,
-                           boxShadow: appModel.darkTheme
-                            ? [
-                                // BoxShadow(
-                                //     color: Colors.black12,
-                                //     offset: Offset(-10, -10),
-                                //     spreadRadius: 0,
-                                //     blurRadius: 10),
-                                BoxShadow(
-                                    color: Colors.black,
-                                    offset: Offset(0, 1),
-                                    blurRadius: 2.0)
-                              ]
-                            : [
-                                BoxShadow(
-                                    color: Color(0xff6E6E6E),
-                                    offset: Offset(0, 1),
-                                    blurRadius: 2.0)
-                              ],
-                            border: Border.all(
-                              color: Color(0xffA1A1C1).withOpacity(0.1),
-                            ),
-                            gradient: LinearGradient(
-                                colors: appModel.darkTheme
-                                    ? [Color(0xff20202B), Color(0xff2C2C39)]
-                                    : [Color(0xffF2F0F0), Color(0xffFAFAFA)]),
-                            //               boxShadow: [
-                            //                 BoxShadow(
-                            //                 color: Colors.grey.shade600,
-                            // blurRadius: 10.0,
-                            // spreadRadius: 0.1,
-                            // offset: Offset(
-                            //  4.0,4.0
-                            // )
-                            //               ),
-                            //               BoxShadow(
-                            //                 color: Colors.white,
-                            // blurRadius: 10.0,
-                            // spreadRadius: 0.1,
-                            // offset: Offset(
-                            //  -4.0,-4.0
-                            // )
-                            //               )
-
-                            //               ],
-                          ),
-                          height: MediaQuery.of(context).size.height * 0.18 / 3,
-                          width: double.infinity,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/Add.svg',
-                                color: Color(0xff56566F),
-                                height: MediaQuery.of(context).size.height *
-                                    0.05 /
-                                    3,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 5.0),
-                                child: Text(
-                                  "Add Exit Node",
-                                  style: TextStyle(
-                                      fontSize:
-                                          MediaQuery.of(context).size.height *
-                                              0.05 /
-                                              3,
-                                      color: Color(0xff56566F),
-                                      fontFamily: "Poppins",
-                                      fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                            ],
-                          ))
-
-                      // :
-                      //  Container()
-                      : GestureDetector(
-                          onTap: () {
-                            showDialog(
-                                useSafeArea: false,
-                                // barrierColor: Colors.orange,
-                                context: context,
-                                builder: (BuildContext dcontext) => Padding(
-                                      padding: const EdgeInsets.all(0.0),
-                                      child: AlertDialog(
-                                        scrollable: true,
-                                        backgroundColor: Colors.transparent,
-                                        contentPadding: EdgeInsets.all(0.0),
-                                        //insetPadding: EdgeInsets.all(8.0),
-                                        //clipBehavior: Clip.antiAliasWithSaveLayer,
-                                        content: containerWidget(dcontext),
-                                      ),
-                                    ));
-
-                            // Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //         builder: (context) =>
-                            //             ShowModelDialogbox()));
-                            // showCustomExitNodeDialogBox(context,);
-                          },
-                          child: Container(
-                              padding: EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  color: Colors.grey,
-                                  gradient: LinearGradient(colors: [
-                                    Color(0xff00B504),
-                                    Color(0xff23DC27)
-                                  ])),
-                              height:
-                                  MediaQuery.of(context).size.height * 0.18 / 3,
-                              width: double.infinity,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SvgPicture.asset(
-                                    'assets/images/Add.svg',
-                                    height: MediaQuery.of(context).size.height *
-                                        0.05 /
-                                        3,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 5.0),
-                                    child: Text(
-                                      "Add Exit Node",
-                                      style: TextStyle(
-                                          fontFamily: "Poppins",
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                  ),
-                                ],
-                              )),
-                        ),
+                      child: Container(
+                         height: MediaQuery.of(context).size.height * 0.18 / 3,
+                           width: double.infinity,
+                      )
                 ),
+                // Padding(
+                //   padding: EdgeInsets.only(
+                //       left: mHeight * 0.08 / 3,
+                //       right: mHeight * 0.10 / 3,
+                //       top: mHeight * 0.03 / 3),
+                //   child: BelnetLib.isConnected
+                //       ? Container(
+                //           padding: EdgeInsets.all(8.0),
+                //           decoration: BoxDecoration(
+                //             borderRadius: BorderRadius.circular(12.0),
+                //             color: Colors.grey,
+                //            boxShadow: appModel.darkTheme
+                //             ? [
+                //                 // BoxShadow(
+                //                 //     color: Colors.black12,
+                //                 //     offset: Offset(-10, -10),
+                //                 //     spreadRadius: 0,
+                //                 //     blurRadius: 10),
+                //                 BoxShadow(
+                //                     color: Colors.black,
+                //                     offset: Offset(0, 1),
+                //                     blurRadius: 2.0)
+                //               ]
+                //             : [
+                //                 BoxShadow(
+                //                     color: Color(0xff6E6E6E),
+                //                     offset: Offset(0, 1),
+                //                     blurRadius: 2.0)
+                //               ],
+                //             border: Border.all(
+                //               color: Color(0xffA1A1C1).withOpacity(0.1),
+                //             ),
+                //             gradient: LinearGradient(
+                //                 colors: appModel.darkTheme
+                //                     ? [Color(0xff20202B), Color(0xff2C2C39)]
+                //                     : [Color(0xffF2F0F0), Color(0xffFAFAFA)]),
+                //             //               boxShadow: [
+                //             //                 BoxShadow(
+                //             //                 color: Colors.grey.shade600,
+                //             // blurRadius: 10.0,
+                //             // spreadRadius: 0.1,
+                //             // offset: Offset(
+                //             //  4.0,4.0
+                //             // )
+                //             //               ),
+                //             //               BoxShadow(
+                //             //                 color: Colors.white,
+                //             // blurRadius: 10.0,
+                //             // spreadRadius: 0.1,
+                //             // offset: Offset(
+                //             //  -4.0,-4.0
+                //             // )
+                //             //               )
+
+                //             //               ],
+                //           ),
+                //           height: MediaQuery.of(context).size.height * 0.18 / 3,
+                //           width: double.infinity,
+                //           child: Row(
+                //             mainAxisAlignment: MainAxisAlignment.center,
+                //             children: [
+                //               SvgPicture.asset(
+                //                 'assets/images/Add.svg',
+                //                 color: Color(0xff56566F),
+                //                 height: MediaQuery.of(context).size.height *
+                //                     0.05 /
+                //                     3,
+                //               ),
+                //               Padding(
+                //                 padding: const EdgeInsets.only(left: 5.0),
+                //                 child: Text(
+                //                   "Add Exit Node",
+                //                   style: TextStyle(
+                //                       fontSize:
+                //                           MediaQuery.of(context).size.height *
+                //                               0.05 /
+                //                               3,
+                //                       color: Color(0xff56566F),
+                //                       fontFamily: "Poppins",
+                //                       fontWeight: FontWeight.w600),
+                //                 ),
+                //               ),
+                //             ],
+                //           ))
+
+                //       // :
+                //       //  Container()
+                //       : GestureDetector(
+                //           onTap: () {
+                //             showDialog(
+                //                 useSafeArea: false,
+                //                 // barrierColor: Colors.orange,
+                //                 context: context,
+                //                 builder: (BuildContext dcontext) => Padding(
+                //                       padding: const EdgeInsets.all(0.0),
+                //                       child: AlertDialog(
+                //                         scrollable: true,
+                //                         backgroundColor: Colors.transparent,
+                //                         contentPadding: EdgeInsets.all(0.0),
+                //                         //insetPadding: EdgeInsets.all(8.0),
+                //                         //clipBehavior: Clip.antiAliasWithSaveLayer,
+                //                         content: containerWidget(dcontext),
+                //                       ),
+                //                     ));
+
+                //             // Navigator.push(
+                //             //     context,
+                //             //     MaterialPageRoute(
+                //             //         builder: (context) =>
+                //             //             ShowModelDialogbox()));
+                //             // showCustomExitNodeDialogBox(context,);
+                //           },
+                //           child: Container(
+                //               padding: EdgeInsets.all(8.0),
+                //               decoration: BoxDecoration(
+                //                   borderRadius: BorderRadius.circular(12.0),
+                //                   color: Colors.grey,
+                //                   gradient: LinearGradient(colors: [
+                //                     Color(0xff00B504),
+                //                     Color(0xff23DC27)
+                //                   ])),
+                //               height:
+                //                   MediaQuery.of(context).size.height * 0.18 / 3,
+                //               width: double.infinity,
+                //               child: Row(
+                //                 mainAxisAlignment: MainAxisAlignment.center,
+                //                 children: [
+                //                   SvgPicture.asset(
+                //                     'assets/images/Add.svg',
+                //                     height: MediaQuery.of(context).size.height *
+                //                         0.05 /
+                //                         3,
+                //                   ),
+                //                   Padding(
+                //                     padding: const EdgeInsets.only(left: 5.0),
+                //                     child: Text(
+                //                       "Add Exit Node",
+                //                       style: TextStyle(
+                //                           fontFamily: "Poppins",
+                //                           fontWeight: FontWeight.w600),
+                //                     ),
+                //                   ),
+                //                 ],
+                //               )),
+                //         ),
+                // ),
               SizedBox(height:mHeight*0.05/3,)
                 //Spacer(),
               ],

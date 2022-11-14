@@ -25,7 +25,7 @@ class LiveChart extends StatefulWidget {
 class _LiveChartState extends State<LiveChart> {
   late List<LiveData> chartData;
   late ChartSeriesController _chartSeriesController;
-
+  late ChartSeriesController _chartSeriesController1;
   late List<LiveData> charts;
   late AppModel appModel;
   var upload, download, uploadData = 0.0, downloadData = 0.0;
@@ -38,10 +38,14 @@ class _LiveChartState extends State<LiveChart> {
         print("the value from provider ${appModel.uploads}");
         uploadData = stringBeforeSpace(appModel.singleUpload);
         downloadData = stringBeforeSpace(appModel.singleDownload);
+        print("uprate whether 0 or numbers $uploadData and $downloadData");
         print('${appModel.downloads}');
+        //Timer.periodic(Duration(milliseconds: 2000), (timer){
 
         _updateData();
         _updateDownload();
+        //});
+
       } else {
         upload = null;
         download = null;
@@ -65,17 +69,75 @@ class _LiveChartState extends State<LiveChart> {
 
   List<LiveData> getChart() {
     return <LiveData>[
-      LiveData(0, 0),
-      LiveData(0, 0),
-      LiveData(0, 1),
+      LiveData(0, 42),
+      LiveData(1, 47),
+      LiveData(2, 33),
+      LiveData(3, 49),
+      LiveData(4, 54),
+      LiveData(5, 41),
+      LiveData(6, 58),
+      LiveData(7, 51),
+      LiveData(8, 98),
+      LiveData(9, 41),
+      LiveData(10, 53),
+      LiveData(11, 72),
+      LiveData(12, 86),
+      LiveData(13, 52),
+      LiveData(14, 94),
+      LiveData(15, 92),
+      LiveData(16, 86),
+      LiveData(17, 72),
+      LiveData(18, 94),
+      // LiveData(0, 0),
+      // LiveData(0,1),
+      // LiveData(1.0, 3),
+      // LiveData(0.5,1),
+      // LiveData(3.9, 4),
+      // LiveData(2.0,8),
+      // LiveData(4.0, 3),
+      // LiveData(12.0,1),
+      // LiveData(2.0, 13),
+      // LiveData(0.0,1),
+      // LiveData(9.0, 3),
+      //   LiveData(0.0, 6),
+      // LiveData(0.2,9),
+      // LiveData(8.0, 10),
+      // LiveData(6.0,16),
+      // LiveData(3.0, 2),
+      // LiveData(0.0,12),
+      // LiveData(1.6, 3),
+
+      // LiveData(7.0,1),
+      // LiveData(9.0, 3),
+      // LiveData(10.0,5),
+      // LiveData(0.3, 1)
     ];
   }
 
   List<LiveData> chartata() {
     return <LiveData>[
-      LiveData(0, 0),
-      LiveData(0, 0),
-      LiveData(0, 0),
+      LiveData(0.0, 0),
+      LiveData(0.0, 0),
+      LiveData(3.0, 3),
+      LiveData(3.2, 1),
+      LiveData(4.2, 3),
+      LiveData(2.0, 4),
+      LiveData(6.1, 2),
+      LiveData(0.0, 1),
+      LiveData(8.0, 8),
+      LiveData(5.0, 2),
+      LiveData(9.0, 3),
+      LiveData(5.5, 1),
+      LiveData(6.0, 2),
+      LiveData(3.0, 3),
+      LiveData(0.8, 8),
+      LiveData(2, 2),
+      LiveData(0, 5),
+      LiveData(11.0, 12),
+      // LiveData(0.0,1),
+      // LiveData(5.0, 3),
+      // LiveData(0.0,15),
+      // LiveData(3.0, 3)
     ];
   }
 
@@ -89,24 +151,13 @@ class _LiveChartState extends State<LiveChart> {
     super.initState();
   }
 
-
-
-
-
- getDataFromLog() async {
+  getDataFromLog() async {
     Timer.periodic(Duration(milliseconds: 2000), (timer) {
       if (BelnetLib.isConnected) TxRxSpeed().getDataFromChannel(appModel);
     });
   }
 
-
-
 //var dataOne = Map().entries.any((element) =>  element = BelnetLib.download.toString().) ;
-
-
-
-
-
 
   // setTimers() {
   //   var ti;
@@ -119,6 +170,10 @@ class _LiveChartState extends State<LiveChart> {
   //   //ti.cancel();
   //   }
   // }
+
+/////////////////////////////////////////////
+
+//////////////////////////////////////////////
 
   @override
   void dispose() {
@@ -137,21 +192,9 @@ class _LiveChartState extends State<LiveChart> {
     print("updating data forr all downloads $downloadData");
     charts.add(LiveData(downloadData, time++));
     charts.removeAt(0);
-    _chartSeriesController.updateDataSource(
+    _chartSeriesController1.updateDataSource(
         addedDataIndex: charts.length - 1, removedDataIndex: 0);
   }
-
-
-
- 
-
-
-
-
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -184,19 +227,12 @@ class _LiveChartState extends State<LiveChart> {
                             majorGridLines: MajorGridLines(
                               color: Colors.transparent,
                             )),
-                        // primaryYAxis: CategoryAxis(),
-                        // primaryXAxis: NumericAxis(isVisible: false),
-                        // primaryYAxis: NumericAxis(isVisible: false),
                         selectionType: SelectionType.series,
                         plotAreaBorderColor: Colors.transparent,
                         plotAreaBackgroundColor: Colors.transparent,
-                        series: <LineSeries<LiveData, int>>[
-                          LineSeries<LiveData, int>(
-                              //xAxisName: "Download",
+                        series: <SplineSeries<LiveData, int>>[
+                          SplineSeries<LiveData, int>(
                               width: 0.8,
-                              //initialSelectedDataIndexes: [0, 0],
-
-                              //splineType: SplineType.clamped,
                               onRendererCreated:
                                   (ChartSeriesController controller) =>
                                       _chartSeriesController = controller,
@@ -204,13 +240,11 @@ class _LiveChartState extends State<LiveChart> {
                               xValueMapper: (LiveData netw, _) => netw.time,
                               color: Color(0xff23DC27),
                               yValueMapper: (LiveData netw, _) => netw.speed),
-                         LineSeries<LiveData, int>(
+                          SplineSeries<LiveData, int>(
                               width: 0.8,
-                              // initialSelectedDataIndexes: [0, 0],
-                              //splineType: SplineType.clamped,
                               onRendererCreated:
                                   (ChartSeriesController controller) =>
-                                      _chartSeriesController = controller,
+                                      _chartSeriesController1 = controller,
                               dataSource: charts,
                               xValueMapper: (LiveData netw, _) => netw.time,
                               color: Color(0xff1CA3FC),
@@ -305,12 +339,6 @@ class _LiveChartState extends State<LiveChart> {
                                 ),
                               )
                             ])
-                        // Row(
-                        //   children: [
-                        //     Text("a minute ago",style: TextStyle(fontSize: 0.5,color: Colors.white),),
-                        //     Text("now",style: TextStyle(fontSize:0.5,color: Colors.white),)
-                        //   ],
-                        // )
                       ]),
                     ),
                   ),
@@ -357,13 +385,6 @@ class _LiveChartState extends State<LiveChart> {
                             height:
                                 MediaQuery.of(context).size.height * 0.04 / 3,
                           ),
-                          // Text(
-                          //   "0.5 mb",
-                          //   style: TextStyle(
-                          //     fontSize:
-                          //         MediaQuery.of(context).size.height * 0.04 / 3,
-                          //   ),
-                          // )
                         ],
                       ),
                     ),
@@ -382,56 +403,30 @@ class _LiveChartState extends State<LiveChart> {
                     //   border: Border(bottom: BorderSide(width: 1.0, color: Colors.lightBlue.shade600))
                     // ),
                     child: SfCartesianChart(
-                        // axes:<ChartAxis>[
+                      // axes:<ChartAxis>[
 
-                        // ],
-                        // enableAxisAnimation: true,
+                      // ],
+                      // enableAxisAnimation: true,
 
-                        primaryXAxis: NumericAxis(
-                            //rangePadding: ChartRangePadding.,
-                            labelFormat: " ",
-                            // anchorRangeToVisiblePoints: false,
-                            //associatedAxisName: "time",
-                            majorGridLines:
-                                MajorGridLines(color: Colors.transparent)),
-                        primaryYAxis: NumericAxis(
-                            labelFormat: " ",
-                            majorGridLines: MajorGridLines(
-                              color: Colors.transparent,
-                            )),
-                        // primaryYAxis: CategoryAxis(),
-                        // primaryXAxis: NumericAxis(isVisible: false),
-                        // primaryYAxis: NumericAxis(isVisible: false),
-                        selectionType: SelectionType.series,
-                        //enableSideBySideSeriesPlacement: false,
-                        plotAreaBorderColor: Colors.transparent,
-                        plotAreaBackgroundColor: Colors.transparent,
-                        series: <SplineSeries<LiveData, int>>[
-                          // SplineSeries<LiveData, int>(
-                          //     //xAxisName: "Download",
-                          //     width: 0.8,
-                          //     initialSelectedDataIndexes: [0, 0],
-
-                          //     //splineType: SplineType.clamped,
-                          //     onRendererCreated:
-                          //         (ChartSeriesController controller) =>
-                          //             _chartSeriesController = controller,
-                          //     dataSource: chartData,
-                          //     xValueMapper: (LiveData netw, _) => netw.time,
-                          //     color: Color(0xff23DC27),
-                          //     yValueMapper: (LiveData netw, _) => netw.speed),
-                          // SplineSeries<LiveData, int>(
-                          //     width: 0.8,
-                          //     initialSelectedDataIndexes: [0, 0],
-                          //     //splineType: SplineType.clamped,
-                          //     onRendererCreated:
-                          //         (ChartSeriesController controller) =>
-                          //             _chartSeriesController = controller,
-                          //     dataSource: charts,
-                          //     xValueMapper: (LiveData netw, _) => netw.time,
-                          //     color: Color(0xff1CA3FC),
-                          //     yValueMapper: (LiveData netw, _) => netw.speed),
-                        ]),
+                      primaryXAxis: NumericAxis(
+                          //rangePadding: ChartRangePadding.,
+                          labelFormat: " ",
+                          // anchorRangeToVisiblePoints: false,
+                          //associatedAxisName: "time",
+                          majorGridLines:
+                              MajorGridLines(color: Colors.transparent)),
+                      primaryYAxis: NumericAxis(
+                          labelFormat: " ",
+                          majorGridLines: MajorGridLines(
+                            color: Colors.transparent,
+                          )),
+                      selectionType: SelectionType.series,
+                      //enableSideBySideSeriesPlacement: false,
+                      plotAreaBorderColor: Colors.transparent,
+                      plotAreaBackgroundColor: Colors.transparent,
+                      // series: <SplineSeries<LiveData, int>>[
+                      // ]
+                    ),
                   ),
                   Positioned(
                     bottom: 0.0, right: 5.0, left: 15.0,

@@ -366,6 +366,8 @@ late bool con;
     if (BelnetLib.isConnected == false) {
       print('${DateTime.now().microsecondsSinceEpoch} netvalue from disconnected --');
       AwesomeNotifications().dismiss(3);
+      appModel.singleDownload = "";
+      appModel.singleUpload = "";
     }
     bool dismiss = false;
     loading = true;

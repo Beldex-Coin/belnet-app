@@ -1,66 +1,108 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter/src/foundation/key.dart';
-// import 'package:flutter/src/widgets/framework.dart';
-// import 'package:syncfusion_flutter_charts/charts.dart';
+import 'dart:async';
 
-// class ChartPainter extends StatefulWidget {
-//   const ChartPainter({Key? key}) : super(key: key);
+import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:flutter/material.dart';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/foundation/key.dart';
+import 'package:provider/provider.dart';
 
-//   @override
-//   State<ChartPainter> createState() => _ChartPainterState();
-// }
+import '../model/theme_set_provider.dart';
 
-// class _ChartPainterState extends State<ChartPainter> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//      body:Container(
-//       child: SfCartesianChart(  
-//           primaryXAxis: NumericAxis(
-//                             //rangePadding: ChartRangePadding.,
-//                             labelFormat: " ",
-//                             // anchorRangeToVisiblePoints: false,
-//                             //associatedAxisName: "time",
-//                             majorGridLines:
-//                                 MajorGridLines(color: Colors.transparent)),
-//                         primaryYAxis: NumericAxis(
-//                             labelFormat: " ",
-//                             majorGridLines: MajorGridLines(
-//                               color: Colors.transparent,
-//                             )),
 
-//                            selectionType: SelectionType.series,
-//                         //enableSideBySideSeriesPlacement: false,
-//                         plotAreaBorderColor: Colors.transparent,
-//                         plotAreaBackgroundColor: Colors.transparent,
-//                         series: <SplineSeries>[
-//                           SplineSeries<dynamic, int>(
-//                               //xAxisName: "Download",
-//                               width: 0.8,
-//                               initialSelectedDataIndexes: [0, 0],
+class ChartData extends StatefulWidget {
+  const ChartData({Key? key}) : super(key: key);
 
-//                               //splineType: SplineType.clamped,
-//                               onRendererCreated:
-//                                   (ChartSeriesController controller) =>
-//                                       _chartSeriesController = controller,
-//                               dataSource: chartData,
-//                               xValueMapper: (LiveData netw, _) => netw.time,
-//                               color: Color(0xff23DC27),
-//                               yValueMapper: (LiveData netw, _) => netw.speed),
-//                           // SplineSeries<LiveData, int>(
-//                           //     width: 0.8,
-//                           //     initialSelectedDataIndexes: [0, 0],
-//                           //     //splineType: SplineType.clamped,
-//                           //     onRendererCreated:
-//                           //         (ChartSeriesController controller) =>
-//                           //             _chartSeriesController = controller,
-//                           //     dataSource: charts,
-//                           //     xValueMapper: (LiveData netw, _) => netw.time,
-//                           //     color: Color(0xff1CA3FC),
-//                           //     yValueMapper: (LiveData netw, _) => netw.speed),
-//                         ]), 
-//       ),
-//      )
-//     );
-//   }
-// }
+  @override
+  State<ChartData> createState() => _ChartDataState();
+}
+
+class _ChartDataState extends State<ChartData> {
+
+  late AppModel appModel;
+
+List<SpeedValues> mySpeedData=[];
+
+  @override
+  void initState() {
+    setIntervalToCall();
+    super.initState();
+  }
+
+  setIntervalToCall()async{
+    Timer.periodic(Duration(milliseconds: 1000), (timer) {
+     getAndAssignData(timer);
+    });
+  }
+  getAndAssignData(timer)async{
+    if(mySpeedData.length < 10){
+      //mySpeedData.add(SpeedValues(timer, appModel.singleDownload));
+      setState(() {
+
+      });
+    }else{
+      setState(() {
+        for(int i=0;i<mySpeedData.length;i++){
+          mySpeedData[i] = mySpeedData[1+i];
+
+        }
+      });
+
+    }
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    appModel = Provider.of<AppModel>(context);
+    return Scaffold(
+      body:Charts(data: [],)
+    );
+  }
+}
+
+
+
+
+class Charts extends StatelessWidget {
+  final List<SpeedValues> data;
+  const Charts({Key? key, required this.data}) : super(key: key);
+
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Container(
+        child: charts.TimeSeriesChart(
+            [
+              charts.Series<SpeedValues, DateTime>(
+                id: 'Values',
+                colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
+                domainFn: (SpeedValues values, _) => values.time,
+                measureFn: (SpeedValues values, _) => values.speed,
+                data: data,
+              ),
+              // charts.Series<SpeedValues, DateTime>(
+              //   id: 'Values',
+              //   colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
+              //   domainFn: (SpeedValues values, _) => values.time,
+              //   measureFn: (SpeedValues values, _) => values.speed,
+              //   data: data,
+              // )
+            ]
+        )
+    );
+  }
+}
+
+
+
+
+
+
+class SpeedValues{
+   final DateTime time;
+   final double speed;
+
+  SpeedValues(this.time, this.speed);
+
+}

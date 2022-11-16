@@ -73,16 +73,16 @@ class _LiveChartState extends State<LiveChart> {
       LiveData(1, 1),
       LiveData(2, 1),
       LiveData(3, 1),
-       LiveData(2, 0),
+      LiveData(2, 0),
       LiveData(4, 0),
-       LiveData(2, 0),
+      LiveData(2, 0),
       LiveData(6, 0),
-       LiveData(7, 0),
+      LiveData(7, 0),
       LiveData(8, 0),
       // LiveData(7, 1),
       // LiveData(8, 1),
       // LiveData(9, 1),
-      LiveData(5,1),
+      LiveData(5, 1),
       // LiveData(11, 1),
       // LiveData(12, 1),
       // LiveData(13, 1),
@@ -91,8 +91,6 @@ class _LiveChartState extends State<LiveChart> {
       // LiveData(16, 1),
       // LiveData(17, 1),
       // LiveData(18, 1),
-
-
 
       // LiveData(0, 0),
       // LiveData(0,1),
@@ -126,18 +124,15 @@ class _LiveChartState extends State<LiveChart> {
       LiveData(1, 0),
       LiveData(0, 0),
       LiveData(0, 0),
-       LiveData(2, 0),
+      LiveData(2, 0),
       LiveData(4, 0),
-       LiveData(6, 0),
+      LiveData(6, 0),
       LiveData(8, 0),
-       LiveData(9, 0),
+      LiveData(9, 0),
       LiveData(10, 0),
       // LiveData(5.0, 2),
       // LiveData(9.0, 3),
-      
-      
-      
-      
+
       // LiveData(5.5, 1),
       // LiveData(6.0, 2),
       // LiveData(3.0, 3),
@@ -145,15 +140,18 @@ class _LiveChartState extends State<LiveChart> {
       // LiveData(2, 2),
       // LiveData(0, 5),
       // LiveData(11.0, 12),
-      
-      
-      
+
       // LiveData(0.0,1),
       // LiveData(5.0, 3),
       // LiveData(0.0,15),
       // LiveData(3.0, 3)
     ];
   }
+
+
+
+
+
 
   @override
   void initState() {
@@ -246,6 +244,9 @@ class _LiveChartState extends State<LiveChart> {
                         plotAreaBackgroundColor: Colors.transparent,
                         series: <SplineSeries<LiveData, int>>[
                           SplineSeries<LiveData, int>(
+                              cardinalSplineTension: 0.7,
+                              emptyPointSettings:
+                                  EmptyPointSettings(mode: EmptyPointMode.drop),
                               width: 0.8,
                               onRendererCreated:
                                   (ChartSeriesController controller) =>
@@ -255,6 +256,9 @@ class _LiveChartState extends State<LiveChart> {
                               color: Color(0xff23DC27),
                               yValueMapper: (LiveData netw, _) => netw.speed),
                           SplineSeries<LiveData, int>(
+                              cardinalSplineTension: 0,
+                              emptyPointSettings:
+                                  EmptyPointSettings(mode: EmptyPointMode.zero),
                               width: 0.8,
                               onRendererCreated:
                                   (ChartSeriesController controller) =>

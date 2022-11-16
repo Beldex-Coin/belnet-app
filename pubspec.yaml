@@ -42,11 +42,12 @@ dependencies:
   charts_painter: ^2.0.0+2
   elapsed: any
   http: any
-  simple_dart_web_charts: ^0.0.6
+  flutter_charts: any
 #  url_launcher: ^6.1.5
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.5
+  charts_flutter: ^0.12.0
 
 dev_dependencies:
   flutter_test:

@@ -1,36 +1,36 @@
 // To parse this JSON data, do
 //
-//     final exitNodeList = exitNodeListFromJson(jsonString);
+//     final exitnodeList = exitnodeListFromJson(jsonString);
 
 import 'dart:convert';
 
-List<ExitNodeList> exitNodeListFromJson(String str) => List<ExitNodeList>.from(json.decode(str).map((x) => ExitNodeList.fromJson(x)));
+List<ExitnodeList> exitnodeListFromJson(String str) => List<ExitnodeList>.from(json.decode(str).map((x) => ExitnodeList.fromJson(x)));
 
-String exitNodeListToJson(List<ExitNodeList> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
+String exitnodeListToJson(List<ExitnodeList> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
-class ExitNodeList {
-    ExitNodeList({
+class ExitnodeList {
+    ExitnodeList({
         required this.id,
-        required this.exit,
+        required this.name,
         required this.country,
         required this.icon,
     });
 
     int id;
-    String exit;
+    String name;
     String country;
     String icon;
 
-    factory ExitNodeList.fromJson(Map<String, dynamic> json) => ExitNodeList(
+    factory ExitnodeList.fromJson(Map<String, dynamic> json) => ExitnodeList(
         id: json["id"] == null ? null : json["id"],
-        exit: json["exit"] == null ? null : json["exit"],
+        name: json["name"] == null ? null : json["name"],
         country: json["country"] == null ? null : json["country"],
         icon: json["icon"] == null ? null : json["icon"],
     );
 
     Map<String, dynamic> toJson() => {
         "id": id == null ? null : id,
-        "exit": exit == null ? null : exit,
+        "name": name == null ? null : name,
         "country": country == null ? null : country,
         "icon": icon == null ? null : icon,
     };

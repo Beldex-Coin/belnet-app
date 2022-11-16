@@ -7,6 +7,7 @@ import 'package:belnet_mobile/src/model/exitnodeRepo.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
+import 'package:belnet_mobile/src/widget/LineChartSample10.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
 import 'package:belnet_mobile/src/widget/exit_node_list.dart';
 import 'package:belnet_mobile/src/widget/liveChart.dart';
@@ -98,15 +99,6 @@ class _BelnetAppState extends State<BelnetApp> {
     _initAppTheme();
   }
 
- 
-
-
-
-
-
-
-
-
   setvalueToExitNode() async {
     final prefs = await SharedPreferences.getInstance();
     exitItems = prefs.getStringList("ExitNodes")!;
@@ -154,7 +146,7 @@ class BelnetHomePageState extends State<BelnetHomePage>
       myNetwork();
     });
     setState(() {});
-   getExitnodeListDataFromAPI();
+    getExitnodeListDataFromAPI();
     super.initState();
   }
 
@@ -235,32 +227,14 @@ class BelnetHomePageState extends State<BelnetHomePage>
     super.dispose();
   }
 
+  //List<ExitnodeList> exitList = <ExitnodeList>[];
 
-
-
-List<ExitNodeList> exitList = <ExitNodeList>[];
-
- getExitnodeListDataFromAPI()async{
-
-   
-
-       exitList = await DataRepo().getDataFromNet(); 
-       print("exitlist from json $exitList");
-       setState(() {
-         
-       });
- }
-
-
-
-
-
-
-
-
-
-
-
+  getExitnodeListDataFromAPI() async {
+    List<ExitnodeList> exitList = await DataRepo().getDataFromNet();
+    print("exitlist from json ${exitList.length}");
+    print("jsonvalue from the data ${exitList[0].country}");
+    setState(() {});
+  }
 
   Widget build(BuildContext context) {
     final appModel = pr.Provider.of<AppModel>(context);
@@ -357,14 +331,13 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     AwesomeNotifications().dispose();
   }
 
-
-late bool con;
-
+  late bool con;
 
   Future toggleBelnet() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     if (BelnetLib.isConnected == false) {
-      print('${DateTime.now().microsecondsSinceEpoch} netvalue from disconnected --');
+      print(
+          '${DateTime.now().microsecondsSinceEpoch} netvalue from disconnected --');
       AwesomeNotifications().dismiss(3);
       appModel.singleDownload = "";
       appModel.singleUpload = "";
@@ -386,20 +359,19 @@ late bool con;
       AwesomeNotifications()
           .dismiss(3); // dismiss the notification when belnet disconnected
 
-
-     //logProvider.logata_set = "belnet disconnected";
-    if(disConnectValue)
-      logController.addDataTolist(" Belnet Daemon stopped..","${DateTime.now().microsecondsSinceEpoch.toString()}");
-      logController.addDataTolist(" Belnet disconnected","${DateTime.now().microsecondsSinceEpoch.toString()}");
-
-
+      //logProvider.logata_set = "belnet disconnected";
+      if (disConnectValue)
+        logController.addDataTolist(" Belnet Daemon stopped..",
+            "${DateTime.now().microsecondsSinceEpoch.toString()}");
+      logController.addDataTolist(" Belnet disconnected",
+          "${DateTime.now().microsecondsSinceEpoch.toString()}");
     } else {
-       
       //Save the exit node and upstream dns
       final Settings settings = Settings.getInstance()!;
       settings.exitNode = selectedValue!.trim().toString();
       var myVal = selectedValue!.trim().toString();
-      logController.addDataTolist(" Using $myVal as Exit node","${DateTime.now().microsecondsSinceEpoch.toString()}");
+      logController.addDataTolist(" Using $myVal as Exit node",
+          "${DateTime.now().microsecondsSinceEpoch.toString()}");
       preferences.setString('hintValue', myVal);
       hintValue = preferences.getString('hintValue');
       print('hint value is stored from getString $hintValue');
@@ -407,32 +379,32 @@ late bool con;
       settings.upstreamDNS = '';
 
       final result = await BelnetLib.prepareConnection();
-      logController.addDataTolist(" Preparing connection..","${DateTime.now().microsecondsSinceEpoch.toString()}");
+      logController.addDataTolist(" Preparing connection..",
+          "${DateTime.now().microsecondsSinceEpoch.toString()}");
       if (await BelnetLib.isPrepared) {
         appModel.connecting_belnet = true;
       }
-      if (result){
-       con =await BelnetLib.connectToBelnet(
+      if (result) {
+        con = await BelnetLib.connectToBelnet(
             exitNode: settings.exitNode!, upstreamDNS: "");
-        logController.addDataTolist(" Connected successfully","${DateTime.now().microsecondsSinceEpoch.toString()}",);
-      print("connection data value for display $con");
+        logController.addDataTolist(
+          " Connected successfully",
+          "${DateTime.now().microsecondsSinceEpoch.toString()}",
+        );
+        print("connection data value for display $con");
       }
-      
-    //   if(con){
-    //    logController.addDataTolist(" ExitNode could not connected","${DateTime.now().microsecondsSinceEpoch.toString()}");
-    // //   // print("connection value is $con");
-    // //   //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    // //   //                     backgroundColor: Colors.black,
-    // //   //                     content: Text("Exit node could not connected!",style: TextStyle(color:Colors.white),)
 
-    // // )); 
-    //   }else{
-        
-    //   }
+      //   if(con){
+      //    logController.addDataTolist(" ExitNode could not connected","${DateTime.now().microsecondsSinceEpoch.toString()}");
+      // //   // print("connection value is $con");
+      // //   //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      // //   //                     backgroundColor: Colors.black,
+      // //   //                     content: Text("Exit node could not connected!",style: TextStyle(color:Colors.white),)
 
+      // // ));
+      //   }else{
 
-
-     
+      //   }
 
       setState(() {});
       MyNotificationWorkLoad(
@@ -448,14 +420,16 @@ late bool con;
       );
       if (BelnetLib.isConnected) {
         appModel.connecting_belnet = true;
-        logController.addDataTolist(" Connected successfully","${DateTime.now().microsecondsSinceEpoch.toString()}",);
+        logController.addDataTolist(
+          " Connected successfully",
+          "${DateTime.now().microsecondsSinceEpoch.toString()}",
+        );
       }
       // if(BelnetLib.isConnected == false){
       //    logController.addDataTolist(" Could not find the exit node","${DateTime.now().microsecondsSinceEpoch.toString()}",);
       //   logController.addDataTolist(" Could not connected to belnet","${DateTime.now().microsecondsSinceEpoch.toString()}",);
       // }
     }
-     
   }
 
   var uploadUnit = ' Mbps';
@@ -468,21 +442,18 @@ late bool con;
 
       var uploadR = await BelnetLib.upload;
       var downloadR = await BelnetLib.download;
-     
-     
-      Future.delayed(Duration(seconds:1),(){
-         appModel.uploads = uploadR;
-      appModel.downloads = downloadR;
-           setState(() {
 
-        uploadRate = uploadR;
-        print('upload displayed from dart side $uploadRate');
-        downloadRate = downloadR;
-      });
+      Future.delayed(Duration(seconds: 1), () {
+        appModel.uploads = uploadR;
+        appModel.downloads = downloadR;
+        setState(() {
+          uploadRate = uploadR;
+          print('upload displayed from dart side $uploadRate');
+          downloadRate = downloadR;
+        });
       });
       print("printed after 3seconds");
     }
-    
   }
 
   String stringBeforeSpace(String value) {
@@ -508,7 +479,7 @@ late bool con;
     // if(BelnetLib.isConnected){
     //     getUploadAndDownload();
     // }
-   
+
     return
         // SingleChildScrollView(
         // child:
@@ -595,8 +566,11 @@ late bool con;
                       padding:
                           EdgeInsets.only(left: mHeight * 0.10 / 3, top: 10),
                       child: GestureDetector(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=>ContainChart()));
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ChartData()));
                         },
                         child: Text('Exit Node',
                             style: TextStyle(
@@ -679,16 +653,15 @@ late bool con;
                           ),
                         ),
                 ),
-                Padding(  
-                  padding: EdgeInsets.only(
-                      left: mHeight * 0.08 / 3,
-                      right: mHeight * 0.10 / 3,
-                      top: mHeight * 0.03 / 3),
-                      child: Container(
-                         height: MediaQuery.of(context).size.height * 0.18 / 3,
-                           width: double.infinity,
-                      )
-                ),
+                Padding(
+                    padding: EdgeInsets.only(
+                        left: mHeight * 0.08 / 3,
+                        right: mHeight * 0.10 / 3,
+                        top: mHeight * 0.03 / 3),
+                    child: Container(
+                      height: MediaQuery.of(context).size.height * 0.18 / 3,
+                      width: double.infinity,
+                    )),
                 // Padding(
                 //   padding: EdgeInsets.only(
                 //       left: mHeight * 0.08 / 3,
@@ -835,7 +808,9 @@ late bool con;
                 //               )),
                 //         ),
                 // ),
-              SizedBox(height:mHeight*0.05/3,)
+                SizedBox(
+                  height: mHeight * 0.05 / 3,
+                )
                 //Spacer(),
               ],
             ),
@@ -1630,8 +1605,6 @@ class NoInternetConnection extends StatelessWidget {
   }
 }
 
-
-
 var pageIndex = 0;
 
 class BottomNavBarOptions extends StatefulWidget {
@@ -1710,7 +1683,8 @@ class _BottomNavBarOptionsState extends State<BottomNavBarOptions> {
                             color: pageIndex == 0
                                 ? Color(0xff1DC021)
                                 : Color(0xffA1A1C1),
-                            height: MediaQuery.of(context).size.height * 0.06 / 3,
+                            height:
+                                MediaQuery.of(context).size.height * 0.06 / 3,
                           ),
                         ),
                         Text(
@@ -1748,7 +1722,8 @@ class _BottomNavBarOptionsState extends State<BottomNavBarOptions> {
                             color: pageIndex == 1
                                 ? Color(0xff1DC021)
                                 : Color(0xffA1A1C1),
-                            height: MediaQuery.of(context).size.height * 0.05 / 3,
+                            height:
+                                MediaQuery.of(context).size.height * 0.05 / 3,
                           ),
                         ),
                         Text(

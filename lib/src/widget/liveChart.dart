@@ -148,11 +148,6 @@ class _LiveChartState extends State<LiveChart> {
     ];
   }
 
-
-
-
-
-
   @override
   void initState() {
     chartData = getChart();

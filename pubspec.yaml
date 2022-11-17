@@ -43,6 +43,7 @@ dependencies:
   elapsed: any
   http: any
   flutter_charts: any
+  url_launcher: any
 #  url_launcher: ^6.1.5
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

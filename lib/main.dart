@@ -8,6 +8,7 @@ import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
 import 'package:belnet_mobile/src/widget/LineChartSample10.dart';
+import 'package:belnet_mobile/src/widget/aboutpage.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
 import 'package:belnet_mobile/src/widget/exit_node_list.dart';
 import 'package:belnet_mobile/src/widget/liveChart.dart';
@@ -65,7 +66,7 @@ setExitStringsToSharedPrrefs() async {
   List<String> exitNodes = [
     'iyu3gajuzumj573tdy54sjs7b94fbqpbo3o44msrba4zez1o4p3o.bdx',
     'a6iiyy3c4qsp8kdt49ao79dqxskd81eejidhq9j36d8oodznibqy.bdx',
-    'snoq7arak4d5mkpfsg69saj7bp1ikxyzqjkhzb96keywn6iyhc5y.bdx'
+    'snoq7arak4d5mkpfsg69saj7bp1ikxyzqjkhzb96keywn6iyhc5y.bdx',
   ];
   final prefs = await SharedPreferences.getInstance();
   await prefs.setStringList("ExitNodes", exitNodes);
@@ -98,11 +99,57 @@ class _BelnetAppState extends State<BelnetApp> {
     // getExitnodeListDataFromAPI();
     _initAppTheme();
   }
-
+  
   setvalueToExitNode() async {
+    List<String> myExitData=[];
     final prefs = await SharedPreferences.getInstance();
-    exitItems = prefs.getStringList("ExitNodes")!;
+     List<ExitnodeList> exitList = await DataRepo().getDataFromNet();
+     if(exitList.isNotEmpty){
+        exitList.forEach((element) {
+      myExitData.add(element.name);
+    },);
+    if(myExitData.isNotEmpty){
+      exitItems = myExitData;
+      setState(() {
+        
+      });
+    }else{
+       exitItems = prefs.getStringList("ExitNodes")!;
+    }
+     }
+   
+   getRandomExitNodes();
   }
+
+
+
+
+
+
+  getRandomExitNodes() async {
+    SharedPreferences preference = await SharedPreferences.getInstance();
+    hintValue = preference.getString('hintValue');
+    if (BelnetLib.isConnected == false) {
+      print(
+          "is connected value from getRandomExitNodes ${BelnetLib.isConnected}");
+      final random = Random();
+      selectedValue = exitItems[random.nextInt(exitItems.length)];
+      setState(() {});
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +172,7 @@ class _BelnetAppState extends State<BelnetApp> {
   }
 }
 
-late List<String> exitItems;
+List<String> exitItems=[];
 
 class BelnetHomePage extends StatefulWidget {
   BelnetHomePage({Key? key}) : super(key: key);
@@ -228,13 +275,23 @@ class BelnetHomePageState extends State<BelnetHomePage>
   }
 
   //List<ExitnodeList> exitList = <ExitnodeList>[];
-
+ List myExitData =[];
   getExitnodeListDataFromAPI() async {
     List<ExitnodeList> exitList = await DataRepo().getDataFromNet();
+    exitList.forEach((element) {
+      myExitData.add(element.name);
+    },);
+    print("exitdata in foreach $myExitData");
     print("exitlist from json ${exitList.length}");
     print("jsonvalue from the data ${exitList[0].country}");
     setState(() {});
   }
+
+
+
+
+
+
 
   Widget build(BuildContext context) {
     final appModel = pr.Provider.of<AppModel>(context);
@@ -274,7 +331,9 @@ class BelnetHomePageState extends State<BelnetHomePage>
 
 dynamic downloadRate = '';
 dynamic uploadRate = '';
-
+String? selectedValue =
+      'iyu3gajuzumj573tdy54sjs7b94fbqpbo3o44msrba4zez1o4p3o.bdx';
+String? hintValue = '';
 class MyForm extends StatefulWidget {
   @override
   MyFormState createState() {
@@ -292,25 +351,18 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   String displayRateTxt = '0.0';
   double displayPer = 0;
   String unitText = 'Mbps';
-  String? hintValue = '';
+  
   late AppModel appModel;
   //late LogProvider logProvider;
-  String? selectedValue =
-      'iyu3gajuzumj573tdy54sjs7b94fbqpbo3o44msrba4zez1o4p3o.bdx';
+  
   @override
   initState() {
     super.initState();
     _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
         .listen((bool isConnected) => setState(() {}));
     //callForUpdate();
-    getRandomExitNodes();
+    //getRandomExitNodes();
   }
-
-  // callForUpdate() {
-  //   Timer.periodic(Duration(milliseconds: 200), (timer) {
-  //     getUploadAndDownload();
-  //   });
-  // }
 
   getRandomExitNodes() async {
     SharedPreferences preference = await SharedPreferences.getInstance();
@@ -394,18 +446,6 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
         print("connection data value for display $con");
       }
 
-      //   if(con){
-      //    logController.addDataTolist(" ExitNode could not connected","${DateTime.now().microsecondsSinceEpoch.toString()}");
-      // //   // print("connection value is $con");
-      // //   //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      // //   //                     backgroundColor: Colors.black,
-      // //   //                     content: Text("Exit node could not connected!",style: TextStyle(color:Colors.white),)
-
-      // // ));
-      //   }else{
-
-      //   }
-
       setState(() {});
       MyNotificationWorkLoad(
         appModel: appModel,
@@ -425,10 +465,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
           "${DateTime.now().microsecondsSinceEpoch.toString()}",
         );
       }
-      // if(BelnetLib.isConnected == false){
-      //    logController.addDataTolist(" Could not find the exit node","${DateTime.now().microsecondsSinceEpoch.toString()}",);
-      //   logController.addDataTolist(" Could not connected to belnet","${DateTime.now().microsecondsSinceEpoch.toString()}",);
-      // }
+  
     }
   }
 
@@ -514,6 +551,38 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                                   'assets/images/Map_white_gif (1).gif') //Image.asset('assets/images/Mobile_1.gif')
                               : Container()
                         ])),
+                  ),
+                  Positioned(
+                    top: mHeight * 0.10 / 3,
+                    left: mHeight * 0.04 / 3,
+                    child: GestureDetector(
+                       onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>AboutPage()));
+                              },
+                      child: Container(
+                        padding: EdgeInsets.only(left:MediaQuery.of(context).size.height*0.06/3),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            appModel.darkTheme
+                                ? SvgPicture.asset('assets/images/About_dark.svg',
+                                    width: mHeight * 0.06 / 3,
+                                    height: mHeight * 0.06 / 3)
+                                : SvgPicture.asset(
+                                    'assets/images/about_white_theme.svg',
+                                    width: mHeight * 0.06 / 3,
+                                    height: mHeight * 0.06 / 3),
+                           Padding(
+                             padding: EdgeInsets.only(left:MediaQuery.of(context).size.height*0.02/3,
+                             top:MediaQuery.of(context).size.height*0.06/3,
+                             bottom:MediaQuery.of(context).size.height*0.06/3,
+                             ),
+                             child: Text('About',style: TextStyle(fontSize:MediaQuery.of(context).size.height*0.06/3 ,color: Color(0xffAEAEBC)),),
+                           )
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                   Positioned(
                     top: mHeight * 0.10 / 3,
@@ -662,152 +731,6 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                       height: MediaQuery.of(context).size.height * 0.18 / 3,
                       width: double.infinity,
                     )),
-                // Padding(
-                //   padding: EdgeInsets.only(
-                //       left: mHeight * 0.08 / 3,
-                //       right: mHeight * 0.10 / 3,
-                //       top: mHeight * 0.03 / 3),
-                //   child: BelnetLib.isConnected
-                //       ? Container(
-                //           padding: EdgeInsets.all(8.0),
-                //           decoration: BoxDecoration(
-                //             borderRadius: BorderRadius.circular(12.0),
-                //             color: Colors.grey,
-                //            boxShadow: appModel.darkTheme
-                //             ? [
-                //                 // BoxShadow(
-                //                 //     color: Colors.black12,
-                //                 //     offset: Offset(-10, -10),
-                //                 //     spreadRadius: 0,
-                //                 //     blurRadius: 10),
-                //                 BoxShadow(
-                //                     color: Colors.black,
-                //                     offset: Offset(0, 1),
-                //                     blurRadius: 2.0)
-                //               ]
-                //             : [
-                //                 BoxShadow(
-                //                     color: Color(0xff6E6E6E),
-                //                     offset: Offset(0, 1),
-                //                     blurRadius: 2.0)
-                //               ],
-                //             border: Border.all(
-                //               color: Color(0xffA1A1C1).withOpacity(0.1),
-                //             ),
-                //             gradient: LinearGradient(
-                //                 colors: appModel.darkTheme
-                //                     ? [Color(0xff20202B), Color(0xff2C2C39)]
-                //                     : [Color(0xffF2F0F0), Color(0xffFAFAFA)]),
-                //             //               boxShadow: [
-                //             //                 BoxShadow(
-                //             //                 color: Colors.grey.shade600,
-                //             // blurRadius: 10.0,
-                //             // spreadRadius: 0.1,
-                //             // offset: Offset(
-                //             //  4.0,4.0
-                //             // )
-                //             //               ),
-                //             //               BoxShadow(
-                //             //                 color: Colors.white,
-                //             // blurRadius: 10.0,
-                //             // spreadRadius: 0.1,
-                //             // offset: Offset(
-                //             //  -4.0,-4.0
-                //             // )
-                //             //               )
-
-                //             //               ],
-                //           ),
-                //           height: MediaQuery.of(context).size.height * 0.18 / 3,
-                //           width: double.infinity,
-                //           child: Row(
-                //             mainAxisAlignment: MainAxisAlignment.center,
-                //             children: [
-                //               SvgPicture.asset(
-                //                 'assets/images/Add.svg',
-                //                 color: Color(0xff56566F),
-                //                 height: MediaQuery.of(context).size.height *
-                //                     0.05 /
-                //                     3,
-                //               ),
-                //               Padding(
-                //                 padding: const EdgeInsets.only(left: 5.0),
-                //                 child: Text(
-                //                   "Add Exit Node",
-                //                   style: TextStyle(
-                //                       fontSize:
-                //                           MediaQuery.of(context).size.height *
-                //                               0.05 /
-                //                               3,
-                //                       color: Color(0xff56566F),
-                //                       fontFamily: "Poppins",
-                //                       fontWeight: FontWeight.w600),
-                //                 ),
-                //               ),
-                //             ],
-                //           ))
-
-                //       // :
-                //       //  Container()
-                //       : GestureDetector(
-                //           onTap: () {
-                //             showDialog(
-                //                 useSafeArea: false,
-                //                 // barrierColor: Colors.orange,
-                //                 context: context,
-                //                 builder: (BuildContext dcontext) => Padding(
-                //                       padding: const EdgeInsets.all(0.0),
-                //                       child: AlertDialog(
-                //                         scrollable: true,
-                //                         backgroundColor: Colors.transparent,
-                //                         contentPadding: EdgeInsets.all(0.0),
-                //                         //insetPadding: EdgeInsets.all(8.0),
-                //                         //clipBehavior: Clip.antiAliasWithSaveLayer,
-                //                         content: containerWidget(dcontext),
-                //                       ),
-                //                     ));
-
-                //             // Navigator.push(
-                //             //     context,
-                //             //     MaterialPageRoute(
-                //             //         builder: (context) =>
-                //             //             ShowModelDialogbox()));
-                //             // showCustomExitNodeDialogBox(context,);
-                //           },
-                //           child: Container(
-                //               padding: EdgeInsets.all(8.0),
-                //               decoration: BoxDecoration(
-                //                   borderRadius: BorderRadius.circular(12.0),
-                //                   color: Colors.grey,
-                //                   gradient: LinearGradient(colors: [
-                //                     Color(0xff00B504),
-                //                     Color(0xff23DC27)
-                //                   ])),
-                //               height:
-                //                   MediaQuery.of(context).size.height * 0.18 / 3,
-                //               width: double.infinity,
-                //               child: Row(
-                //                 mainAxisAlignment: MainAxisAlignment.center,
-                //                 children: [
-                //                   SvgPicture.asset(
-                //                     'assets/images/Add.svg',
-                //                     height: MediaQuery.of(context).size.height *
-                //                         0.05 /
-                //                         3,
-                //                   ),
-                //                   Padding(
-                //                     padding: const EdgeInsets.only(left: 5.0),
-                //                     child: Text(
-                //                       "Add Exit Node",
-                //                       style: TextStyle(
-                //                           fontFamily: "Poppins",
-                //                           fontWeight: FontWeight.w600),
-                //                     ),
-                //                   ),
-                //                 ],
-                //               )),
-                //         ),
-                // ),
                 SizedBox(
                   height: mHeight * 0.05 / 3,
                 )
@@ -942,124 +865,6 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                   )),
             )
 
-            // Positioned(
-            //   top: MediaQuery.of(context).size.height*1.2/3,
-            //   left: 5, right: 5,
-            //   // top:MediaQuery.of(context).size.height*1/3,
-            //
-            //   child: Container(
-            //     padding: EdgeInsets.only(left: 8.0, right: 8.0),
-            //     // color: Colors.yellow,
-            //     child: Row(
-            //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //       children: [
-            //         Column(
-            //           children: [
-            //             Row(
-            //               children: [
-            //                 SvgPicture.asset(
-            //                   'assets/images/download_white_theme.svg',
-            //                   height: 9,
-            //                   width: 9,
-            //                 ),
-            //                 Padding(
-            //                   padding: const EdgeInsets.only(left: 4.0),
-            //                   child: Text(
-            //                     'Download',
-            //                     style: TextStyle(
-            //                         fontSize: 11,
-            //                         fontFamily: 'Poppins',
-            //                         color: appModel.darkTheme
-            //                             ? Color(0xffA1A1C1)
-            //                             : Colors.black),
-            //                   ),
-            //                 ),
-            //               ],
-            //             ),
-            //             RichText(
-            //                 text: TextSpan(
-            //                     text: downloadRate == ''
-            //                         ? '0.00'
-            //                         : BelnetLib.isConnected
-            //                             ? '${stringBeforeSpace(downloadRate)}'
-            //                             : '0.00',
-            //                     style: TextStyle(
-            //                         fontSize: 15.0,
-            //                         fontWeight: FontWeight.w900,
-            //                         fontFamily: 'Poppins',
-            //                         color: appModel.darkTheme
-            //                             ? Color(0xffA1A1C1)
-            //                             : Colors.black),
-            //                     children: [
-            //                   TextSpan(
-            //                       text: downloadRate == '' ? ' MBps' : ' ${stringAfterSpace(downloadRate)}',
-            //                       style: TextStyle(
-            //                           fontSize: 11.0,
-            //                           fontWeight: FontWeight.w100,
-            //                           fontFamily: 'Poppins',
-            //                           color: appModel.darkTheme
-            //                               ? Color(0xffA1A1C1)
-            //                               : Colors.black))
-            //                 ])),
-            //           ],
-            //         ),
-            //         Column(
-            //           children: [
-            //             Row(
-            //               children: [
-            //                 Padding(
-            //                   padding: const EdgeInsets.only(right: 4.0),
-            //                   child: Text(
-            //                     'Upload',
-            //                     style: TextStyle(
-            //                         fontSize: 11,
-            //                         fontFamily: 'Poppins',
-            //                         color: appModel.darkTheme
-            //                             ? Color(0xffA1A1C1)
-            //                             : Colors.black),
-            //                   ),
-            //                 ),
-            //                 SvgPicture.asset(
-            //                   'assets/images/upload_white_theme.svg',
-            //                   height: 9,
-            //                   width: 9,
-            //                 ),
-            //               ],
-            //             ),
-            //             RichText(
-            //                 text: TextSpan(
-            //                     text: uploadRate == ''
-            //                         ? '0.00'
-            //                         : BelnetLib.isConnected
-            //                             ? '${stringBeforeSpace(uploadRate)}'
-            //                             : '0.00',
-            //                     style: TextStyle(
-            //                         fontSize: 15.0,
-            //                         fontWeight: FontWeight.w900,
-            //                         fontFamily: 'Poppins',
-            //                         color: appModel.darkTheme
-            //                             ? Color(0xffA1A1C1)
-            //                             : Colors.black),
-            //                     children: [
-            //                   TextSpan(
-            //                       text: uploadRate == '' ? ' MBps' : ' ${stringAfterSpace(uploadRate)}',
-            //                       style: TextStyle(
-            //                           fontSize: 11.0,
-            //                           fontWeight: FontWeight.w100,
-            //                           fontFamily: 'Poppins',
-            //                           color: appModel.darkTheme
-            //                               ? Color(0xffA1A1C1)
-            //                               : Colors.black))
-            //                 ])),
-            //             // SizedBox(
-            //             //   height: 20,
-            //             // ),
-            //           ],
-            //         )
-            //       ],
-            //     ),
-            //   ),
-            // ),
           ],
         ),
 

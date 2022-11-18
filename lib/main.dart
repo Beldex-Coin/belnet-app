@@ -99,32 +99,27 @@ class _BelnetAppState extends State<BelnetApp> {
     // getExitnodeListDataFromAPI();
     _initAppTheme();
   }
-  
+
   setvalueToExitNode() async {
-    List<String> myExitData=[];
+    List<String> myExitData = [];
     final prefs = await SharedPreferences.getInstance();
-     List<ExitnodeList> exitList = await DataRepo().getDataFromNet();
-     if(exitList.isNotEmpty){
-        exitList.forEach((element) {
-      myExitData.add(element.name);
-    },);
-    if(myExitData.isNotEmpty){
-      exitItems = myExitData;
-      setState(() {
-        
-      });
-    }else{
-       exitItems = prefs.getStringList("ExitNodes")!;
+    List<ExitnodeList> exitList = await DataRepo().getDataFromNet();
+    if (exitList.isNotEmpty) {
+      exitList.forEach(
+        (element) {
+          myExitData.add(element.name);
+        },
+      );
+      if (myExitData.isNotEmpty) {
+        exitItems = myExitData;
+        setState(() {});
+      } else {
+        exitItems = prefs.getStringList("ExitNodes")!;
+      }
     }
-     }
-   
-   getRandomExitNodes();
+
+    getRandomExitNodes();
   }
-
-
-
-
-
 
   getRandomExitNodes() async {
     SharedPreferences preference = await SharedPreferences.getInstance();
@@ -137,19 +132,6 @@ class _BelnetAppState extends State<BelnetApp> {
       setState(() {});
     }
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +154,7 @@ class _BelnetAppState extends State<BelnetApp> {
   }
 }
 
-List<String> exitItems=[];
+List<String> exitItems = [];
 
 class BelnetHomePage extends StatefulWidget {
   BelnetHomePage({Key? key}) : super(key: key);
@@ -275,23 +257,19 @@ class BelnetHomePageState extends State<BelnetHomePage>
   }
 
   //List<ExitnodeList> exitList = <ExitnodeList>[];
- List myExitData =[];
+  List myExitData = [];
   getExitnodeListDataFromAPI() async {
     List<ExitnodeList> exitList = await DataRepo().getDataFromNet();
-    exitList.forEach((element) {
-      myExitData.add(element.name);
-    },);
+    exitList.forEach(
+      (element) {
+        myExitData.add(element.name);
+      },
+    );
     print("exitdata in foreach $myExitData");
     print("exitlist from json ${exitList.length}");
     print("jsonvalue from the data ${exitList[0].country}");
     setState(() {});
   }
-
-
-
-
-
-
 
   Widget build(BuildContext context) {
     final appModel = pr.Provider.of<AppModel>(context);
@@ -332,8 +310,9 @@ class BelnetHomePageState extends State<BelnetHomePage>
 dynamic downloadRate = '';
 dynamic uploadRate = '';
 String? selectedValue =
-      'iyu3gajuzumj573tdy54sjs7b94fbqpbo3o44msrba4zez1o4p3o.bdx';
+    'iyu3gajuzumj573tdy54sjs7b94fbqpbo3o44msrba4zez1o4p3o.bdx';
 String? hintValue = '';
+
 class MyForm extends StatefulWidget {
   @override
   MyFormState createState() {
@@ -351,10 +330,10 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   String displayRateTxt = '0.0';
   double displayPer = 0;
   String unitText = 'Mbps';
-  
+
   late AppModel appModel;
   //late LogProvider logProvider;
-  
+
   @override
   initState() {
     super.initState();
@@ -414,16 +393,16 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       //logProvider.logata_set = "belnet disconnected";
       if (disConnectValue)
         logController.addDataTolist(" Belnet Daemon stopped..",
-            "${DateTime.now().microsecondsSinceEpoch.toString()}");
+            "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
       logController.addDataTolist(" Belnet disconnected",
-          "${DateTime.now().microsecondsSinceEpoch.toString()}");
+          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
     } else {
       //Save the exit node and upstream dns
       final Settings settings = Settings.getInstance()!;
       settings.exitNode = selectedValue!.trim().toString();
       var myVal = selectedValue!.trim().toString();
-      logController.addDataTolist(" Using $myVal as Exit node",
-          "${DateTime.now().microsecondsSinceEpoch.toString()}");
+      logController.addDataTolist(" Exit node = $myVal",
+          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
       preferences.setString('hintValue', myVal);
       hintValue = preferences.getString('hintValue');
       print('hint value is stored from getString $hintValue');
@@ -431,8 +410,8 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       settings.upstreamDNS = '';
 
       final result = await BelnetLib.prepareConnection();
-      logController.addDataTolist(" Preparing connection..",
-          "${DateTime.now().microsecondsSinceEpoch.toString()}");
+      logController.addDataTolist(" Preparing Daemon connection..",
+          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
       if (await BelnetLib.isPrepared) {
         appModel.connecting_belnet = true;
       }
@@ -441,7 +420,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
             exitNode: settings.exitNode!, upstreamDNS: "");
         logController.addDataTolist(
           " Connected successfully",
-          "${DateTime.now().microsecondsSinceEpoch.toString()}",
+          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
         );
         print("connection data value for display $con");
       }
@@ -462,10 +441,9 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
         appModel.connecting_belnet = true;
         logController.addDataTolist(
           " Connected successfully",
-          "${DateTime.now().microsecondsSinceEpoch.toString()}",
+          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
         );
       }
-  
     }
   }
 
@@ -556,29 +534,50 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                     top: mHeight * 0.10 / 3,
                     left: mHeight * 0.04 / 3,
                     child: GestureDetector(
-                       onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>AboutPage()));
-                              },
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => AboutPage()));
+                      },
                       child: Container(
-                        padding: EdgeInsets.only(left:MediaQuery.of(context).size.height*0.06/3),
+                        padding: EdgeInsets.only(
+                            left:
+                                MediaQuery.of(context).size.height * 0.06 / 3),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             appModel.darkTheme
-                                ? SvgPicture.asset('assets/images/About_dark.svg',
+                                ? SvgPicture.asset(
+                                    'assets/images/About_dark.svg',
                                     width: mHeight * 0.06 / 3,
                                     height: mHeight * 0.06 / 3)
                                 : SvgPicture.asset(
                                     'assets/images/about_white_theme.svg',
                                     width: mHeight * 0.06 / 3,
                                     height: mHeight * 0.06 / 3),
-                           Padding(
-                             padding: EdgeInsets.only(left:MediaQuery.of(context).size.height*0.02/3,
-                             top:MediaQuery.of(context).size.height*0.06/3,
-                             bottom:MediaQuery.of(context).size.height*0.06/3,
-                             ),
-                             child: Text('About',style: TextStyle(fontSize:MediaQuery.of(context).size.height*0.06/3 ,color: Color(0xffAEAEBC)),),
-                           )
+                            Padding(
+                              padding: EdgeInsets.only(
+                                left: MediaQuery.of(context).size.height *
+                                    0.02 /
+                                    3,
+                                top: MediaQuery.of(context).size.height *
+                                    0.06 /
+                                    3,
+                                bottom: MediaQuery.of(context).size.height *
+                                    0.06 /
+                                    3,
+                              ),
+                              child: Text(
+                                'About',
+                                style: TextStyle(
+                                    fontSize:
+                                        MediaQuery.of(context).size.height *
+                                            0.06 /
+                                            3,
+                                    color: Color(0xffAEAEBC)),
+                              ),
+                            )
                           ],
                         ),
                       ),
@@ -623,7 +622,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                   ),
                 ]),
                 Padding(
-                  padding: EdgeInsets.only(top: 5.0),
+                  padding: EdgeInsets.only(top: mHeight*0.10/3),
                   child: ConnectingStatus(
                     isConnect: BelnetLib.isConnected,
                   ),
@@ -633,7 +632,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                   children: [
                     Padding(
                       padding:
-                          EdgeInsets.only(left: mHeight * 0.10 / 3, top: 10),
+                          EdgeInsets.only(left: mHeight * 0.10 / 3, top: mHeight*0.10/3),
                       child: GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -722,22 +721,21 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                           ),
                         ),
                 ),
-                Padding(
-                    padding: EdgeInsets.only(
-                        left: mHeight * 0.08 / 3,
-                        right: mHeight * 0.10 / 3,
-                        top: mHeight * 0.03 / 3),
-                    child: Container(
-                      height: MediaQuery.of(context).size.height * 0.18 / 3,
-                      width: double.infinity,
-                    )),
+                // Padding(
+                //     padding: EdgeInsets.only(
+                //         left: mHeight * 0.08 / 3,
+                //         right: mHeight * 0.10 / 3,
+                //         top: mHeight * 0.03 / 3),
+                //     child: Container(
+                //       height: MediaQuery.of(context).size.height * 0.18 / 3,
+                //       width: double.infinity,
+                //     )),
                 SizedBox(
                   height: mHeight * 0.05 / 3,
                 )
                 //Spacer(),
               ],
             ),
-
             Positioned(
               top: MediaQuery.of(context).size.height * 1.2 / 3,
               left: 5,
@@ -820,7 +818,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                               children: [
                             TextSpan(
                                 text: appModel.singleDownload.isEmpty
-                                    ? ' Bps'
+                                    ? ' bps'
                                     : ' ${stringAfterSpace(appModel.singleDownload)}',
                                 style: TextStyle(
                                     fontSize: 11.0,
@@ -848,7 +846,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                               children: [
                             TextSpan(
                                 text: appModel.singleUpload.isEmpty
-                                    ? ' Bps'
+                                    ? ' bps'
                                     : ' ${stringAfterSpace(appModel.singleUpload)}',
                                 style: TextStyle(
                                     fontSize: 11.0,
@@ -864,7 +862,6 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                     ],
                   )),
             )
-
           ],
         ),
 
@@ -1422,10 +1419,11 @@ class BottomNavBarOptions extends StatefulWidget {
 class _BottomNavBarOptionsState extends State<BottomNavBarOptions> {
   Widget getBody() {
     List<Widget> pages = [
-      LiveChart(
-        upData: uploadRate,
-        downData: downloadRate,
-      ),
+      ChartData(),
+      // LiveChart(
+      //   upData: uploadRate,
+      //   downData: downloadRate,
+      // ),
       DisplayLog()
     ];
     return IndexedStack(
@@ -1477,9 +1475,11 @@ class _BottomNavBarOptionsState extends State<BottomNavBarOptions> {
                     });
                   },
                   child: Container(
+                    width:MediaQuery.of(context).size.height*0.50/3,
+                    height:MediaQuery.of(context).size.height*0.16/3,
                     //color:Colors.yellow,
                     child: Row(
-                      //mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(right: 8.0),
@@ -1517,6 +1517,9 @@ class _BottomNavBarOptionsState extends State<BottomNavBarOptions> {
                     });
                   },
                   child: Container(
+                    width:MediaQuery.of(context).size.height*0.50/3,
+                    height:MediaQuery.of(context).size.height*0.16/3,
+                    //color:Colors.yellow,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

@@ -59,7 +59,7 @@ class _DisplayLogState extends State<DisplayLog> {
     appModel = Provider.of<AppModel>(context);
     return Container(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
+       // mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Flexible(
               child: Padding(
@@ -69,7 +69,7 @@ class _DisplayLogState extends State<DisplayLog> {
                 //top: MediaQuery.of(context).size.height * 0.06 / 3,
                 bottom: MediaQuery.of(context).size.height * 0.03 / 3),
             child: Container(
-                padding: EdgeInsets.only(left:10),
+                padding: EdgeInsets.only(left:10, top:0),
                 height: MediaQuery.of(context).size.height * 1 / 3,
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -111,17 +111,6 @@ class _DisplayLogState extends State<DisplayLog> {
                               )
                             ]
                           ));
-                          // Text(
-                            
-                          //   style: TextStyle(
-                          //     fontSize: MediaQuery.of(context).size.height*0.04/3,
-                          //      fontFamily: "Poppins",
-                          //       color: Color(0xffA8A8B7)
-                          //       // appModel.darkTheme
-                          //       //     ? Colors.white
-                          //       //     : Colors.black
-                          //           ),
-                          // );
                         }));
                   },
                 )),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:intl/intl.dart';
 ThemeData buildLightTheme() {
   final ThemeData base = ThemeData.light();
   return base.copyWith(
@@ -22,4 +22,15 @@ ThemeData buildDarkTheme() {
       fontFamily: 'Poppins',)),
     scaffoldBackgroundColor: Colors.grey[900],
   );
+}
+
+
+class ConvertTimeToHMS{
+
+  String displayHour_minute_seconds(DateTime DateTim){
+    var dateTime = DateTime.parse(DateTim.toString());
+    var date = DateFormat('hh:mm:ss').format(dateTime);
+
+    return date;
+  }
 }

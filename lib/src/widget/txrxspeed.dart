@@ -46,7 +46,7 @@ class TxRxSpeed {
 List randValue = ["5.0 Kbps", "2.0 Kbps", "6.0 Kbps"];
   uploadRate(var rxRate, AppModel appModel) {
     var upD = makeRate(rxRate);
-    if(upD == "0.0 Bps"){
+    if(upD == "0.0 bps"){
       var r = randValue[Random().nextInt(randValue.length)];
       appModel.singleUpload = r;
       
@@ -88,9 +88,9 @@ List randValue = ["5.0 Kbps", "2.0 Kbps", "6.0 Kbps"];
 
   String makeRate(dynamic originalValue, {bool forceMBUnit = false}) {
     var unit_idx = 0;
-    List units = ['B', 'KB', 'MB'];
+    List units = ['b', 'Kb', 'Mb'];
     if (forceMBUnit) {
-      return "${(originalValue / (1024 * 1024)).toStringAsFixed(2)} ${units[2]}/s";
+      return "${((originalValue / (1024 * 1024))*8).toStringAsFixed(2)} ${units[2]}/s";
     }
     var value = originalValue;
     while (value > 1024.0 && unit_idx + 1 < units.length) {

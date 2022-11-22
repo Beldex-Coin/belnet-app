@@ -17,16 +17,6 @@ class TxRxSpeed {
   var rxRate, txRate;
 
   List<Welcome> welcome = <Welcome>[];
-
-  // dataString() {
-  //   // if (lastDownloadUsage == null || lastUploadUsage == null) {
-
-  //   // }
-  //   Timer.periodic(Duration(milliseconds: 500), ((timer){
-  //     getDataFromChannel();
-  //   }));
-  // }
-
   getDataFromChannel(AppModel appModel) async {
     var fromDaemon = await BelnetLib.getSpeedStatus;
     if (fromDaemon != null) {
@@ -62,7 +52,7 @@ List randValue = ["5.0 Kbps", "2.0 Kbps", "6.0 Kbps"];
   downloadRate(var txRate, AppModel appModel) {
     var downD = makeRate(txRate);
 
-    if(downD == "0.0 Bps"){
+    if(downD == "0.0 bps"){
        var r = randValue[Random().nextInt(randValue.length)];
       appModel.singleDownload = r;
     }else{

@@ -80,6 +80,41 @@ List<String> get basketItem {
 
 
 
+
+
+// provider for graph data list
+// for upload data list
+List<dynamic> uploadList = [];
+
+void addUploadToList(dynamic itemData){
+  uploadList.add(itemData);
+  notifyListeners();
+}
+List<dynamic> get listUploadItems {
+  return uploadList;
+}
+
+// for download data list
+
+List<dynamic> downloadList = [];
+
+void addDownloadToList(dynamic itemData){
+  downloadList.add(itemData);
+  notifyListeners();
+}
+List<dynamic> get listDownloadItems {
+  return downloadList;
+}
+
+
+
+
+
+
+
+
+
+
 String _singleUpload ="";
  String get singleUpload => _singleUpload;
 

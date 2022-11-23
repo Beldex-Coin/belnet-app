@@ -57,6 +57,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.3.1"
+  chart_sparkline:
+    dependency: "direct main"
+    description:
+      name: chart_sparkline
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.11"
   charts_common:
     dependency: transitive
     description:

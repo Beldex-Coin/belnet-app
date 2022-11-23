@@ -84,19 +84,19 @@ List<String> get basketItem {
 
 // provider for graph data list
 // for upload data list
-List<dynamic> uploadList = [];
+List<double> uploadList = [];
 
 void addUploadToList(dynamic itemData){
   uploadList.add(itemData);
   notifyListeners();
 }
-List<dynamic> get listUploadItems {
+List<double> get listUploadItems {
   return uploadList;
 }
 
 // for download data list
 
-List<dynamic> downloadList = [];
+List<double> downloadList = [];
 
 void addDownloadToList(dynamic itemData){
   downloadList.add(itemData);

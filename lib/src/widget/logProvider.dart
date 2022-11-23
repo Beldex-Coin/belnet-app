@@ -11,8 +11,7 @@ List data = [" Connect to belnet",
              " Checking for connection..",
              " Click start button to start belnet"].obs;
 
-List timeData = [
-   "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
+List timeData = ["${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
    "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
    "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
 ].obs;

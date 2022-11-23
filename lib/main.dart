@@ -30,14 +30,135 @@ import 'package:native_updater/native_updater.dart';
 import 'package:provider/provider.dart' as pr;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'src/widget/containChart.dart';
-
 //Global variables
 
 bool netValue = true;
 bool isClick = false;
 bool loading = false;
-
+List<double> sampleUpData = [
+  26.6,
+  26.6,
+  16.2,
+  16.2,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  9.8,
+  9.8,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  9.8,
+  9.8,
+  25.1,
+  25.1,
+  19.5,
+  19.5,
+  5.0,
+  5.0,
+  2.0,
+  2.0,
+  5.0,
+  5.0,
+  2.0,
+  2.0,
+  13.7,
+  13.7,
+  6.0,
+  6.0,
+  6.0,
+  6.0,
+  5.0,
+  5.0,
+  15.4,
+  15.4,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  16.1,
+  16.1,
+  2.0,
+  2.0,
+  5.0,
+  5.0,
+  5.0,
+  5.0
+];
+List<double> sampleDownData = [
+  5.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  5.0,
+  5.0,
+  15.6,
+  15.6,
+  22.1,
+  22.1,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  5.0,
+  5.0,
+  2.0,
+  2.0,
+  12.1,
+  12.1,
+  15.7,
+  15.7,
+  10.1,
+  10.1,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  6.0,
+  6.0,
+  5.0,
+  5.0,
+  10.5,
+  10.5,
+  6.0,
+  6.0,
+  5.0,
+  5.0,
+  5.0,
+  5.0,
+  2.0,
+  2.0,
+  5.0
+];
 void main() async {
   //Load settings
   WidgetsFlutterBinding.ensureInitialized();
@@ -366,6 +487,8 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
   Future toggleBelnet() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
+    appModel.uploadList = sampleUpData;
+    appModel.downloadList = sampleDownData;
     if (BelnetLib.isConnected == false) {
       print(
           '${DateTime.now().microsecondsSinceEpoch} netvalue from disconnected --');
@@ -622,7 +745,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                   ),
                 ]),
                 Padding(
-                  padding: EdgeInsets.only(top: mHeight*0.10/3),
+                  padding: EdgeInsets.only(top: mHeight * 0.10 / 3),
                   child: ConnectingStatus(
                     isConnect: BelnetLib.isConnected,
                   ),
@@ -631,8 +754,8 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                 Row(
                   children: [
                     Padding(
-                      padding:
-                          EdgeInsets.only(left: mHeight * 0.10 / 3, top: mHeight*0.10/3),
+                      padding: EdgeInsets.only(
+                          left: mHeight * 0.10 / 3, top: mHeight * 0.10 / 3),
                       child: GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -1475,8 +1598,8 @@ class _BottomNavBarOptionsState extends State<BottomNavBarOptions> {
                     });
                   },
                   child: Container(
-                    width:MediaQuery.of(context).size.height*0.50/3,
-                    height:MediaQuery.of(context).size.height*0.16/3,
+                    width: MediaQuery.of(context).size.height * 0.50 / 3,
+                    height: MediaQuery.of(context).size.height * 0.16 / 3,
                     //color:Colors.yellow,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -1517,8 +1640,8 @@ class _BottomNavBarOptionsState extends State<BottomNavBarOptions> {
                     });
                   },
                   child: Container(
-                    width:MediaQuery.of(context).size.height*0.50/3,
-                    height:MediaQuery.of(context).size.height*0.16/3,
+                    width: MediaQuery.of(context).size.height * 0.50 / 3,
+                    height: MediaQuery.of(context).size.height * 0.16 / 3,
                     //color:Colors.yellow,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,

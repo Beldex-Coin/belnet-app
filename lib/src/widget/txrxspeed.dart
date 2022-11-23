@@ -76,18 +76,22 @@ List randValue = ["5.0 Kbps", "2.0 Kbps", "6.0 Kbps"];
 
 // }
 
-  String makeRate(dynamic originalValue, {bool forceMBUnit = false}) {
+  String makeRate(dynamic originalValue,{bool forceMBUnit = false}) {
     var unit_idx = 0;
     List units = ['b', 'Kb', 'Mb'];
+    print("original value $originalValue");
     if (forceMBUnit) {
-      return "${((originalValue / (1024 * 1024))*8).toStringAsFixed(2)} ${units[2]}/s";
+      return "${((originalValue /(1024*1024)* 8)).toStringAsFixed(2)} ${units[2]}ps";
     }
     var value = originalValue;
-    while (value > 1024.0 && unit_idx + 1 < units.length) {
+    var value1 = 0.0;
+    while (value > 1024.0  && unit_idx + 1 < units.length) {
       value /= 1024.0;
+    // value = value / 1024.0;
+     value1 = value * 8;
       unit_idx += 1;
     }
     var unitSpeed = " ${units[unit_idx]}ps";
-    return value.toStringAsFixed(1) + unitSpeed;
+    return value1.toStringAsFixed(1) + unitSpeed;
   }
 }

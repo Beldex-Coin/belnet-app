@@ -28,7 +28,6 @@ class _DisplayLogState extends State<DisplayLog> {
   // final SaveForLog logCon = Get.put(SaveForLog());
   ScrollController _scrollController = new ScrollController();
 
-
   bool canCancel = true;
 
   @override
@@ -38,14 +37,11 @@ class _DisplayLogState extends State<DisplayLog> {
     super.initState();
   }
 
-  void _scrollDown(){
+  void _scrollDown() {
     _scrollController.jumpTo(
-    _scrollController.position.maxScrollExtent,
-  );
+      _scrollController.position.maxScrollExtent,
+    );
   }
-
-
-
 
   @override
   void dispose() {
@@ -55,22 +51,22 @@ class _DisplayLogState extends State<DisplayLog> {
   @override
   Widget build(BuildContext context) {
     // getDataFromLog();
-   // _scrollDown();
+    // _scrollDown();
     appModel = Provider.of<AppModel>(context);
     return Container(
       child: Column(
-       // mainAxisAlignment: MainAxisAlignment.end,
+        // mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Flexible(
               child: Padding(
             padding: EdgeInsets.only(
                 left: MediaQuery.of(context).size.height * 0.08 / 3,
                 right: MediaQuery.of(context).size.height * 0.08 / 3,
-                //top: MediaQuery.of(context).size.height * 0.06 / 3,
+                top: MediaQuery.of(context).size.height * 0.0 / 3,
                 bottom: MediaQuery.of(context).size.height * 0.03 / 3),
             child: Container(
-                padding: EdgeInsets.only(left:10, top:0),
-                height: MediaQuery.of(context).size.height * 1 / 3,
+                padding: EdgeInsets.only(left: 10, top: 0),
+                // height: MediaQuery.of(context).size.height * 1 / 3,
                 width: double.infinity,
                 decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey.withOpacity(0.1)),
@@ -79,39 +75,46 @@ class _DisplayLogState extends State<DisplayLog> {
                         appModel.darkTheme ? Color(0xff252532) : Colors.white),
                 child: Obx(
                   () {
-                    return ListView.builder(
-                        controller: _scrollController,
-                        itemCount: logController.data.length,
-                        itemBuilder: ((context, index) {
-                          if(logController.data.isNotEmpty){
-                               canCancel= true;
-                          }
-                        
-                          if(logController.data.length > 8){
-                            _scrollDown();
-                          
-                          }
-                         
-                          return 
-                          RichText(text: TextSpan(
-                            text: '${logController.timeData[index]}',
-                            style: TextStyle(
-                               fontSize: MediaQuery.of(context).size.height*0.04/3,
-                               fontFamily: "Poppins",
-                                color: Color(0xffA1A1C1)
-                            ),
-                            children: <TextSpan>[
-                              TextSpan(
-                                text: '${logController.data[index]}',
-                                style: TextStyle(
-                                  fontSize: MediaQuery.of(context).size.height*0.04/3,
-                               fontFamily: "Poppins",
-                               color: appModel.darkTheme ? Color(0xffFFFFFF) : Color(0xff222222)
-                                )
-                              )
-                            ]
-                          ));
-                        }));
+                    return Container(
+                      // color: Colors.yellow,
+                      child: ListView.builder(
+                          controller: _scrollController,
+                          itemCount: logController.data.length,
+                          itemBuilder: ((context, index) {
+                            if (logController.data.isNotEmpty) {
+                              canCancel = true;
+                            }
+
+                            if (logController.data.length > 8) {
+                              _scrollDown();
+                            }
+
+                            return RichText(
+                                text: TextSpan(
+                                    text: '${logController.timeData[index]}',
+                                    style: TextStyle(
+                                        fontSize:
+                                            MediaQuery.of(context).size.height *
+                                                0.04 /
+                                                3,
+                                        fontFamily: "Poppins",
+                                        color: Color(0xffA1A1C1)),
+                                    children: <TextSpan>[
+                                  TextSpan(
+                                      text: '${logController.data[index]}',
+                                      style: TextStyle(
+                                          fontSize: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.04 /
+                                              3,
+                                          fontFamily: "Poppins",
+                                          color: appModel.darkTheme
+                                              ? Color(0xffFFFFFF)
+                                              : Color(0xff222222)))
+                                ]));
+                          })),
+                    );
                   },
                 )),
           )),
@@ -209,9 +212,9 @@ class _DisplayLogState extends State<DisplayLog> {
                     ),
                     InkWell(
                       onTap: () {
-                        if (logController.data.isNotEmpty ) {
-                          FlutterClipboard.copy(logController.data.toString()).then(
-                              (value) => ScaffoldMessenger.of(context)
+                        if (logController.data.isNotEmpty) {
+                          FlutterClipboard.copy(logController.data.toString())
+                              .then((value) => ScaffoldMessenger.of(context)
                                   .showSnackBar(SnackBar(
                                       backgroundColor: Colors.black,
                                       content: Text(

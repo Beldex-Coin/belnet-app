@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:math';
 
 import 'package:belnet_lib/belnet_lib.dart';
@@ -76,22 +77,58 @@ List randValue = ["5.0 Kbps", "2.0 Kbps", "6.0 Kbps"];
 
 // }
 
+
+//   String makeRate(dynamic originalValue,{bool forceMBUnit = false}) {
+//     List units = ['b', 'Kb', 'Mb','Gb','Tb'];
+//   // double originalValue = double.parse(originalValue1);
+//      var b = originalValue;
+//         var k = (originalValue / 1024.0)*8;
+//         var m = (((originalValue / 1024.0) / 1024.0)* 8);
+//         // var g = ((((originalValue / 1024.0) / 1024.0) / 1024.0)*8);
+//         // var t = (((((originalValue / 1024.0) / 1024.0) / 1024.0) / 1024.0)*8);   
+//         String readableSize;
+//         if(m > 1){
+//           readableSize = "${m.toStringAsFixed(1)} ${units[2]}ps";
+//           return readableSize;
+
+//         }else if(k > 1){
+//            readableSize = "${k.toStringAsFixed(1)} ${units[1]}ps";
+//           return readableSize;
+//         }else 
+//         return "${b.toStringAsFixed(1)} ${units[0]}ps";
+          
+       
+//        //return value1.toStringAsFixed(1) + unitSpeed;
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   String makeRate(dynamic originalValue,{bool forceMBUnit = false}) {
     var unit_idx = 0;
     List units = ['b', 'Kb', 'Mb'];
     print("original value $originalValue");
     if (forceMBUnit) {
-      return "${((originalValue /(1024*1024)* 8)).toStringAsFixed(2)} ${units[2]}ps";
+      return "${((originalValue /(1024*1024)* 8)).toStringAsFixed(1)} ${units[2]}ps";
     }
     var value = originalValue;
-    var value1 = 0.0;
     while (value > 1024.0  && unit_idx + 1 < units.length) {
-      value /= 1024.0;
-    // value = value / 1024.0;
-     value1 = value * 8;
+      //value /= 1024.0;
+      value = (value / 1024.0)*8;
       unit_idx += 1;
     }
     var unitSpeed = " ${units[unit_idx]}ps";
-    return value1.toStringAsFixed(1) + unitSpeed;
+    return value.toStringAsFixed(1) + unitSpeed;
   }
 }

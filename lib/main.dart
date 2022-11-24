@@ -35,130 +35,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 bool netValue = true;
 bool isClick = false;
 bool loading = false;
-List<double> sampleUpData = [
-  26.6,
-  26.6,
-  16.2,
-  16.2,
-  2.0,
-  2.0,
-  6.0,
-  6.0,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  9.8,
-  9.8,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  9.8,
-  9.8,
-  25.1,
-  25.1,
-  19.5,
-  19.5,
-  5.0,
-  5.0,
-  2.0,
-  2.0,
-  5.0,
-  5.0,
-  2.0,
-  2.0,
-  13.7,
-  13.7,
-  6.0,
-  6.0,
-  6.0,
-  6.0,
-  5.0,
-  5.0,
-  15.4,
-  15.4,
-  2.0,
-  2.0,
-  6.0,
-  6.0,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  16.1,
-  16.1,
-  2.0,
-  2.0,
-  5.0,
-  5.0,
-  5.0,
-  5.0
-];
-List<double> sampleDownData = [
-  5.0,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  5.0,
-  5.0,
-  15.6,
-  15.6,
-  22.1,
-  22.1,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  5.0,
-  5.0,
-  2.0,
-  2.0,
-  12.1,
-  12.1,
-  15.7,
-  15.7,
-  10.1,
-  10.1,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  6.0,
-  6.0,
-  2.0,
-  2.0,
-  6.0,
-  6.0,
-  2.0,
-  2.0,
-  6.0,
-  6.0,
-  6.0,
-  6.0,
-  5.0,
-  5.0,
-  10.5,
-  10.5,
-  6.0,
-  6.0,
-  5.0,
-  5.0,
-  5.0,
-  5.0,
-  2.0,
-  2.0,
-  5.0
-];
+List<double> sampleUpData = [26.6,26.6,16.2,16.2,2.0,2.0,6.0,6.0,2.0,2.0,2.0,2.0,9.8,9.8,2.0,2.0,2.0,2.0,9.8,9.8,25.1,25.1,19.5,19.5,5.0,5.0,2.0,2.0,5.0,5.0,2.0,2.0,13.7,13.7,6.0,6.0,6.0,6.0,5.0,5.0,15.4,15.4,2.0,2.0,6.0,6.0,2.0,2.0,2.0,2.0,2.0,2.0,16.1,16.1,2.0,2.0,5.0,5.0,5.0,5.0];
+List<double> sampleDownData = [5.0,2.0,2.0,2.0,2.0,5.0,5.0,15.6,15.6,22.1,22.1,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,5.0,5.0,2.0,2.0,12.1,12.1,15.7,15.7,10.1,10.1,2.0,2.0,2.0,2.0,6.0,6.0,2.0,2.0,6.0,6.0,2.0,2.0,6.0,6.0,6.0,6.0,5.0, 5.0, 10.5, 10.5, 6.0, 6.0, 5.0,5.0,5.0,5.0,2.0,2.0,5.0];
 void main() async {
   //Load settings
   WidgetsFlutterBinding.ensureInitialized();
@@ -633,117 +511,123 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Stack(children: [
-                  Positioned(
-                    //top:0,
-                    child: Container(
-                        width: double.infinity,
-                        //color:Colors.green,
-                        height: mHeight * 1.35 / 3,
-                        child: Stack(children: [
-                          appModel.darkTheme
-                              ? Image.asset(
-                                  'assets/images/Map_dark (1).png',
-                                )
-                              : Image.asset('assets/images/map_white (3).png'),
-                          //appModel.connecting_belnet &&
-                          BelnetLib.isConnected
-                              ? Image.asset(
-                                  'assets/images/Map_white_gif (1).gif') //Image.asset('assets/images/Mobile_1.gif')
-                              : Container()
-                        ])),
-                  ),
-                  Positioned(
-                    top: mHeight * 0.10 / 3,
-                    left: mHeight * 0.04 / 3,
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => AboutPage()));
-                      },
+                Stack(
+                  children: [
+                    Positioned(
+                      //top:0,
                       child: Container(
-                        padding: EdgeInsets.only(
-                            left:
-                                MediaQuery.of(context).size.height * 0.06 / 3),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
+                          width: double.infinity,
+                          //color:Colors.green,
+                          height: mHeight * 1.35 / 3,
+                          child: Stack(children: [
                             appModel.darkTheme
-                                ? SvgPicture.asset(
-                                    'assets/images/About_dark.svg',
-                                    width: mHeight * 0.06 / 3,
-                                    height: mHeight * 0.06 / 3)
-                                : SvgPicture.asset(
-                                    'assets/images/about_white_theme.svg',
-                                    width: mHeight * 0.06 / 3,
-                                    height: mHeight * 0.06 / 3),
-                            Padding(
-                              padding: EdgeInsets.only(
-                                left: MediaQuery.of(context).size.height *
-                                    0.02 /
-                                    3,
-                                top: MediaQuery.of(context).size.height *
-                                    0.06 /
-                                    3,
-                                bottom: MediaQuery.of(context).size.height *
-                                    0.06 /
-                                    3,
-                              ),
-                              child: Text(
-                                'About',
-                                style: TextStyle(
-                                    fontSize:
-                                        MediaQuery.of(context).size.height *
-                                            0.06 /
-                                            3,
-                                    color: Color(0xffAEAEBC)),
-                              ),
-                            )
-                          ],
+                                ? Image.asset(
+                                    'assets/images/Map_dark (1).png',
+                                  )
+                                : Image.asset(
+                                    'assets/images/map_white (3).png'),
+                            //appModel.connecting_belnet &&
+                            BelnetLib.isConnected
+                                ? Image.asset(
+                                    'assets/images/Map_white_gif (1).gif') //Image.asset('assets/images/Mobile_1.gif')
+                                : Container()
+                          ])),
+                    ),
+                    Positioned(
+                      top: mHeight * 0.10 / 3,
+                      left: mHeight * 0.04 / 3,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => AboutPage()));
+                        },
+                        child: Container(
+                          padding: EdgeInsets.only(
+                              left: MediaQuery.of(context).size.height *
+                                  0.06 /
+                                  3),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              appModel.darkTheme
+                                  ? SvgPicture.asset(
+                                      'assets/images/About_dark.svg',
+                                      width: mHeight * 0.06 / 3,
+                                      height: mHeight * 0.06 / 3)
+                                  : SvgPicture.asset(
+                                      'assets/images/about_white_theme.svg',
+                                      width: mHeight * 0.06 / 3,
+                                      height: mHeight * 0.06 / 3),
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  left: MediaQuery.of(context).size.height *
+                                      0.02 /
+                                      3,
+                                  top: MediaQuery.of(context).size.height *
+                                      0.06 /
+                                      3,
+                                  bottom: MediaQuery.of(context).size.height *
+                                      0.06 /
+                                      3,
+                                ),
+                                child: Text(
+                                  'About',
+                                  style: TextStyle(
+                                      fontSize:
+                                          MediaQuery.of(context).size.height *
+                                              0.06 /
+                                              3,
+                                      color: Color(0xffAEAEBC)),
+                                ),
+                              )
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: mHeight * 0.10 / 3,
-                    right: mHeight * 0.04 / 3,
-                    child: GestureDetector(
-                        onTap: () {
-                          appModel.darkTheme = !appModel.darkTheme;
-                        },
-                        child: appModel.darkTheme
-                            ? Image.asset('assets/images/dark_theme_4x (2).png',
-                                width: mHeight * 0.25 / 3,
-                                height: mHeight * 0.25 / 3)
-                            : Image.asset(
-                                'assets/images/white_theme_4x (3).png',
-                                width: mHeight * 0.24 / 3,
-                                height: mHeight * 0.24 / 3)),
-                  ),
-                  Positioned(
-                    top: mHeight * 0.40 / 3,
-                    left: mHeight * 0.20 / 3,
-                    child: ThemedBelnetLogo(
-                      model: appModel.darkTheme,
+                    Positioned(
+                      top: mHeight * 0.10 / 3,
+                      right: mHeight * 0.04 / 3,
+                      child: GestureDetector(
+                          onTap: () {
+                            appModel.darkTheme = !appModel.darkTheme;
+                          },
+                          child: appModel.darkTheme
+                              ? Image.asset(
+                                  'assets/images/dark_theme_4x (2).png',
+                                  width: mHeight * 0.25 / 3,
+                                  height: mHeight * 0.25 / 3)
+                              : Image.asset(
+                                  'assets/images/white_theme_4x (3).png',
+                                  width: mHeight * 0.24 / 3,
+                                  height: mHeight * 0.24 / 3)),
                     ),
-                  ),
-                  Center(
-                    child: Padding(
-                      padding: EdgeInsets.only(top: mHeight * 0.63 / 3),
-                      child: Container(
-                        decoration: BoxDecoration(
-                            //color:Colors.yellow,
-                            shape: BoxShape.circle),
-                        child: BelnetPowerButton(
-                            onPressed: toggleBelnet,
-                            isClick: BelnetLib.isConnected,
-                            isLoading: loading),
+                    Positioned(
+                      top: mHeight * 0.40 / 3,
+                      left: mHeight * 0.20 / 3,
+                      child: ThemedBelnetLogo(
+                        model: appModel.darkTheme,
                       ),
                     ),
-                  ),
-                ]),
+                    Center(
+                      child: Padding(
+                        padding:
+                            EdgeInsets.only(top: mHeight * 0.70 / 3), //0.63
+                        child: Container(
+                          decoration: BoxDecoration(
+                              //color:Colors.yellow,
+                              shape: BoxShape.circle),
+                          child: BelnetPowerButton(
+                              onPressed: toggleBelnet,
+                              isClick: BelnetLib.isConnected,
+                              isLoading: loading),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 Padding(
                   padding: EdgeInsets.only(top: mHeight * 0.10 / 3),
                   child: ConnectingStatus(

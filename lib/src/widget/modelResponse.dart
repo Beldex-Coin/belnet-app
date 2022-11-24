@@ -32,8 +32,8 @@ class Welcome {
     int numRoutersKnown;
     dynamic ratio;
     bool running;
-    int rxRate;
-    int txRate;
+    dynamic rxRate;
+    dynamic txRate;
     int uptime;
     String version;
 

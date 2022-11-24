@@ -6,6 +6,7 @@ import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/widget/logProvider.dart';
 import 'package:clipboard/clipboard.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 import 'package:flutter/material.dart';
 // import 'package:flutter/rendering.dart';
@@ -14,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 class DisplayLog extends StatefulWidget {
   const DisplayLog({Key? key}) : super(key: key);
@@ -217,9 +219,12 @@ class _DisplayLogState extends State<DisplayLog> {
                               .then((value) => ScaffoldMessenger.of(context)
                                   .showSnackBar(SnackBar(
                                       backgroundColor: Colors.black,
+                                      behavior: SnackBarBehavior.floating,
+                                      width: 200,
                                       content: Text(
-                                        "Copied successfully!",
+                                        "Copied to clipboard!",
                                         style: TextStyle(color: Colors.white),
+                                        textAlign: TextAlign.center,
                                       )
                                       //content: Text("Sending Message"),
                                       )));

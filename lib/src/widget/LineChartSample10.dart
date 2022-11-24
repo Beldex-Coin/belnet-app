@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/widget/txrxspeed.dart';
@@ -13,7 +14,8 @@ import '../model/theme_set_provider.dart';
 
 late DateTime _now;
 late AppModel appModel;
-
+double mbForDown = 0.0;
+double mbForUp = 0.0, mbForUpDown=0.0;
 class ChartData extends StatefulWidget {
   const ChartData({Key? key}) : super(key: key);
 
@@ -31,6 +33,7 @@ class _ChartDataState extends State<ChartData> {
   void initState() {
     getDataFromDaemon();
     setIntervalToCall();
+    changeData();
     super.initState();
   }
 
@@ -80,6 +83,48 @@ class _ChartDataState extends State<ChartData> {
     valu = double.parse(str);
     setState(() {});
     return valu;
+  }
+
+  changeData() async {
+    Timer.periodic(Duration(seconds: 20), (timer) {
+      setChangeData();
+    });
+  }
+ List makeList =[];
+  setChangeData() async {
+    List s1 = [2.0, 4.0, 8.5, 1.3];
+    List s2 = [3.0, 5.0, 1.2, 7.0];
+    List s3 = [8.2, 2.7, 3.0, 9.2];
+    if (BelnetLib.isConnected) {
+     makeList =[];
+      var rand = Random();
+      var a = s1[rand.nextInt(s1.length)];
+      var b = s2[rand.nextInt(s2.length)];
+      var c = s3[rand.nextInt(s3.length)];
+      makeList.add(a);
+      makeList.add(b);
+      makeList.add(c);
+      makeList.sort();
+
+    setState(() {
+       mbForUpDown = makeList[0];
+      mbForUp = makeList[1];
+      mbForDown = makeList[2];
+     
+    });
+
+      // var a1, a2;
+      // if (a < b) {
+      //   mbForDown = a;
+      //   mbForUp = b;
+      //   setState(() {});
+      // } else {
+      //   mbForDown = b;
+      //   mbForUp = a;
+      //   setState(() {});
+      // }
+      print("$mbForUp $mbForDown $mbForUpDown");
+    }
   }
 
   @override
@@ -246,7 +291,7 @@ class Charts extends StatelessWidget {
                   Positioned(
                     bottom: 0.0, right: 5.0,
                     left: MediaQuery.of(context).size.height * 0.05 / 3,
-                    top: MediaQuery.of(context).size.height * 0.59 / 3,
+                    top: MediaQuery.of(context).size.height * 0.52 / 3,
                     //width: double.infinity,
                     child: Container(
                       //color: Colors.black,
@@ -267,19 +312,23 @@ class Charts extends StatelessWidget {
                               child: Text(
                                 "a minute ago",
                                 style: TextStyle(
-                                  color: appModel.darkTheme ? Colors.white : Colors.black,
+                                    color: appModel.darkTheme
+                                        ? Colors.white
+                                        : Colors.black,
                                     fontSize:
                                         MediaQuery.of(context).size.height *
-                                            0.04 /
+                                            0.03 /
                                             3),
                               ),
                             ),
                             Text(
                               "now",
                               style: TextStyle(
-                                  color: appModel.darkTheme ? Colors.white : Colors.black,
+                                  color: appModel.darkTheme
+                                      ? Colors.white
+                                      : Colors.black,
                                   fontSize: MediaQuery.of(context).size.height *
-                                      0.04 /
+                                      0.03 /
                                       3),
                             ),
                           ],
@@ -288,8 +337,8 @@ class Charts extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                      bottom: MediaQuery.of(context).size.height * 0.0 / 3,
-                      top: MediaQuery.of(context).size.height * 0.65 / 3,
+                      bottom: MediaQuery.of(context).size.height * 0.01 / 3,
+                      top: MediaQuery.of(context).size.height * 0.60 / 3,
                       right: MediaQuery.of(context).size.height * 0.0 / 3,
                       child: Container(
                           //color: Colors.pink,
@@ -353,46 +402,52 @@ class Charts extends StatelessWidget {
                     left: MediaQuery.of(context).size.height * 0.0 / 3,
                     child: Container(
                       height: MediaQuery.of(context).size.height * 0.60 / 3,
-                      width: MediaQuery.of(context).size.width * 0.29 / 3,
+                      width: MediaQuery.of(context).size.width * 0.30 / 3,
                       // decoration: BoxDecoration(color: Colors.orange),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Text(
-                            "8.0 Mb",
+                            "$mbForDown Mb/s",
                             style: TextStyle(
-                              color: appModel.darkTheme ? Colors.white : Colors.black,
+                              color: appModel.darkTheme
+                                  ? Colors.white
+                                  : Colors.black,
                               fontSize:
-                                  MediaQuery.of(context).size.height * 0.04 / 3,
+                                  MediaQuery.of(context).size.height * 0.03 / 3,
                             ),
                           ),
                           SizedBox(
                               height: MediaQuery.of(context).size.height *
-                                  0.20 /
+                                  0.15 /
                                   3),
                           Text(
-                            "2.0 Mb",
+                            "$mbForUp Mb/s",
                             style: TextStyle(
-                              color: appModel.darkTheme ? Colors.white : Colors.black,
+                              color: appModel.darkTheme
+                                  ? Colors.white
+                                  : Colors.black,
                               fontSize:
-                                  MediaQuery.of(context).size.height * 0.04 / 3,
+                                  MediaQuery.of(context).size.height * 0.03 / 3,
                             ),
                           ),
                           SizedBox(
                             height:
-                                MediaQuery.of(context).size.height * 0.20 / 3,
+                                MediaQuery.of(context).size.height * 0.15 / 3,
                           ),
                           Text(
-                            "0.0 Mb",
+                            "$mbForUpDown Mb/s",
                             style: TextStyle(
-                              color: appModel.darkTheme ? Colors.white : Colors.black,
+                              color: appModel.darkTheme
+                                  ? Colors.white
+                                  : Colors.black,
                               fontSize:
-                                  MediaQuery.of(context).size.height * 0.04 / 3,
+                                  MediaQuery.of(context).size.height * 0.03 / 3,
                             ),
                           ),
                           SizedBox(
                             height:
-                                MediaQuery.of(context).size.height * 0.04 / 3,
+                                MediaQuery.of(context).size.height * 0.10 / 3,
                           ),
                         ],
                       ),
@@ -435,19 +490,15 @@ class Charts extends StatelessWidget {
                                     color: Colors.grey,
                                   ),
                                   bottom: BorderSide(color: Colors.grey))),
-                          child: 
-                          Stack(
-                            children: [
-                          
-                            ],
+                          child: Stack(
+                            children: [],
                           ),
                         ),
-                      )
-                      ),
+                      )),
                   Positioned(
                     bottom: 0.0, right: 5.0,
                     left: MediaQuery.of(context).size.height * 0.05 / 3,
-                    top: MediaQuery.of(context).size.height * 0.59 / 3,
+                    top: MediaQuery.of(context).size.height * 0.52 / 3,
                     //width: double.infinity,
                     child: Container(
                       //color: Colors.black,
@@ -468,19 +519,19 @@ class Charts extends StatelessWidget {
                               child: Text(
                                 "a minute ago",
                                 style: TextStyle(
-                                  color: Color(0xff56566F),
+                                    color: Color(0xff56566F),
                                     fontSize:
                                         MediaQuery.of(context).size.height *
-                                            0.04 /
+                                            0.03 /
                                             3),
                               ),
                             ),
                             Text(
                               "now",
                               style: TextStyle(
-                                color: Color(0xff56566F),
+                                  color: Color(0xff56566F),
                                   fontSize: MediaQuery.of(context).size.height *
-                                      0.04 /
+                                      0.03 /
                                       3),
                             ),
                           ],
@@ -489,8 +540,8 @@ class Charts extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                      bottom: MediaQuery.of(context).size.height * 0.0 / 3,
-                      top: MediaQuery.of(context).size.height * 0.65 / 3,
+                      bottom: MediaQuery.of(context).size.height * 0.01 / 3,
+                      top: MediaQuery.of(context).size.height * 0.60 / 3,
                       right: MediaQuery.of(context).size.height * 0.0 / 3,
                       child: Container(
                           //color: Colors.pink,
@@ -504,7 +555,7 @@ class Charts extends StatelessWidget {
                               width: 10.0,
                               decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                 color: Color(0xff56566F)),
+                                  color: Color(0xff56566F)),
                             ),
                             Padding(
                               padding:
@@ -524,7 +575,7 @@ class Charts extends StatelessWidget {
                                           MediaQuery.of(context).size.height *
                                               0.04 /
                                               3,
-                                     color: Color(0xff56566F)),
+                                      color: Color(0xff56566F)),
                                 ),
                               ),
                             ),
@@ -545,7 +596,7 @@ class Charts extends StatelessWidget {
                                         MediaQuery.of(context).size.height *
                                             0.04 /
                                             3,
-                                   color: Color(0xff56566F)),
+                                    color: Color(0xff56566F)),
                               ),
                             )
                           ]))),
@@ -560,40 +611,40 @@ class Charts extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Text(
-                            "0.0 Mb",
+                            "0.0 Mb/s",
                             style: TextStyle(
                               color: Color(0xff56566F),
                               fontSize:
-                                  MediaQuery.of(context).size.height * 0.04 / 3,
+                                  MediaQuery.of(context).size.height * 0.03 / 3,
                             ),
                           ),
                           SizedBox(
                               height: MediaQuery.of(context).size.height *
-                                  0.20 /
+                                  0.15 /
                                   3),
                           Text(
-                            "",
+                            "0.0 Mb/s",
                             style: TextStyle(
                               color: Color(0xff56566F),
                               fontSize:
-                                  MediaQuery.of(context).size.height * 0.04 / 3,
+                                  MediaQuery.of(context).size.height * 0.03 / 3,
                             ),
                           ),
                           SizedBox(
                             height:
-                                MediaQuery.of(context).size.height * 0.20 / 3,
+                                MediaQuery.of(context).size.height * 0.15 / 3,
                           ),
                           Text(
-                            "0.0 Mb",
+                            "0.0 Mb/s",
                             style: TextStyle(
                               color: Color(0xff56566F),
                               fontSize:
-                                  MediaQuery.of(context).size.height * 0.04 / 3,
+                                  MediaQuery.of(context).size.height * 0.03 / 3,
                             ),
                           ),
                           SizedBox(
                             height:
-                                MediaQuery.of(context).size.height * 0.04 / 3,
+                                MediaQuery.of(context).size.height * 0.10 / 3,
                           ),
                         ],
                       ),

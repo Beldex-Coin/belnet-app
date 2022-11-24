@@ -78,16 +78,18 @@ class _MyWidgetState extends State<AboutPage> {
                                     color: Color(0xff23DC27)))
                           ])),
                       GestureDetector(
-                              onTap: (() {
-                                Navigator.pop(context);
-                              }),
-                              child: Container(
-                                child: SvgPicture.asset( appModel.darkTheme ? 'assets/images/About_Close_dark.svg' : 
-                                    'assets/images/Close_about_white_theme.svg',
-                                    width: mHeight * 0.09 / 3,
-                                    height: mHeight * 0.09 / 3),
-                              ),
-                            )
+                        onTap: (() {
+                          Navigator.pop(context);
+                        }),
+                        child: Container(
+                          child: SvgPicture.asset(
+                              appModel.darkTheme
+                                  ? 'assets/images/About_Close_dark.svg'
+                                  : 'assets/images/Close_about_white_theme.svg',
+                              width: mHeight * 0.09 / 3,
+                              height: mHeight * 0.09 / 3),
+                        ),
+                      )
                     ],
                   ))),
           body: Container(
@@ -314,18 +316,19 @@ class _MyWidgetState extends State<AboutPage> {
                               : Color(0xff56566F)),
                     ),
                     GestureDetector(
-                      onTap: ()async{
-                        if (!await launchUrl(
-     Uri.parse("http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/"),
-      mode: LaunchMode.externalApplication,
-    )) {
-      throw 'Could not launch ${Uri.parse("http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/")}';
-    }
+                      onTap: () async {
+                        if (await canLaunchUrl(Uri.parse("http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/"))) {
+                          await launchUrl(Uri.parse("http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/"),
+                          
+                          );
+                        }else{
+                          throw 'Could not launch http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/';
+                        }
                       },
                       child: Text(
                         """http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/""",
-                      style: TextStyle(
-                        decoration: TextDecoration.underline,
+                        style: TextStyle(
+                            decoration: TextDecoration.underline,
                             fontSize: mHeight * 0.060 / 3,
                             fontFamily: "Poppins",
                             color: appModel.darkTheme
@@ -384,9 +387,7 @@ BNS names end with the top level domain .bdx
         ));
   }
 
-  String getMnappUrl(String data){
-
+  String getMnappUrl(String data) {
     return "http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/";
-  
   }
 }

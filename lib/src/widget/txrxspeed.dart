@@ -53,6 +53,7 @@ List randValue = ["5.0 Kbps", "2.0 Kbps", "6.0 Kbps"];
   downloadRate(var txRate, AppModel appModel) {
     var downD = makeRate(txRate);
 
+    getDataForCalculation(txRate,appModel);
     if(downD == "0.0 bps"){
        var r = randValue[Random().nextInt(randValue.length)];
       appModel.singleDownload = r;
@@ -103,7 +104,19 @@ List randValue = ["5.0 Kbps", "2.0 Kbps", "6.0 Kbps"];
 // }
 
 
+ getDataForCalculation(dynamic data, AppModel appModel){
+   //var con = data;
+     double d1 = ((data/(1024.0 * 1024.0))* 8);
 
+      appModel.graphData1 = d1;
+      
+      double d2 = (((data/(1024.0 * 1024.0))* 8)/2);
+      appModel.graphData2 = d2;
+
+      double d3 = (((data/(1024.0 * 1024.0))* 8)/3);
+      appModel.graphData3 = d3;
+
+ }
 
 
 
@@ -119,13 +132,14 @@ List randValue = ["5.0 Kbps", "2.0 Kbps", "6.0 Kbps"];
     var unit_idx = 0;
     List units = ['b', 'Kb', 'Mb'];
     print("original value $originalValue");
+
+
     if (forceMBUnit) {
-      return "${((originalValue /(1024*1024)* 8)).toStringAsFixed(1)} ${units[2]}ps";
+      return "${((originalValue /(1024*1024))* 8).toStringAsFixed(1)} ${units[2]}ps";
     }
-    var value = originalValue;
-    while (value > 1024.0  && unit_idx + 1 < units.length) {
-      //value /= 1024.0;
-      value = (value / 1024.0)*8;
+    var value = (originalValue *8);
+    while (value > 1000.0  && unit_idx + 1 < units.length) {
+      value /= 1000.0;
       unit_idx += 1;
     }
     var unitSpeed = " ${units[unit_idx]}ps";

@@ -82,6 +82,7 @@ class _MyWidgetState extends State<AboutPage> {
                           Navigator.pop(context);
                         }),
                         child: Container(
+                          
                           child: SvgPicture.asset(
                               appModel.darkTheme
                                   ? 'assets/images/About_Close_dark.svg'
@@ -331,9 +332,7 @@ class _MyWidgetState extends State<AboutPage> {
                             decoration: TextDecoration.underline,
                             fontSize: mHeight * 0.060 / 3,
                             fontFamily: "Poppins",
-                            color: appModel.darkTheme
-                                ? Color(0xffA1A1C1)
-                                : Color(0xff56566F)),
+                            color: Colors.blue),
                       ),
                     ),
                     Text(

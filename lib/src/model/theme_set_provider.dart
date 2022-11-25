@@ -135,5 +135,35 @@ set singleDownload(String value){
 
 
 
+double _graphData1 =0.0;
+double get graphData1 => _graphData1;
+
+set graphData1(dynamic value){
+  _graphData1 = value;
+  notifyListeners();
+}
+
+double _graphData2 =0.0;
+double get graphData2 => _graphData2;
+
+set graphData2(double value){
+  _graphData2 = value;
+  notifyListeners();
+}
+
+double _graphData3 =0.0;
+double get graphData3 => _graphData3;
+
+set graphData3(double value){
+  _graphData3 = value;
+  notifyListeners();
+}
+
+
+
+
+
+// for data 
+
 }
 

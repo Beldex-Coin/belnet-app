@@ -86,32 +86,32 @@ class _ChartDataState extends State<ChartData> {
   }
 
   changeData() async {
-    Timer.periodic(Duration(seconds: 20), (timer) {
+    Timer.periodic(Duration(seconds: 1), (timer) {
       setChangeData();
     });
   }
  List makeList =[];
   setChangeData() async {
-    List s1 = [2.0, 4.0, 8.5, 1.3];
-    List s2 = [3.0, 5.0, 1.2, 7.0];
+    List s1 = [2.0, 4.0, 8.5, 6.3];
+    List s2 = [2.0, 2.0, 1.2, 7.0];
     List s3 = [8.2, 2.7, 3.0, 9.2];
     if (BelnetLib.isConnected) {
-     makeList =[];
-      var rand = Random();
-      var a = s1[rand.nextInt(s1.length)];
-      var b = s2[rand.nextInt(s2.length)];
-      var c = s3[rand.nextInt(s3.length)];
-      makeList.add(a);
-      makeList.add(b);
-      makeList.add(c);
-      makeList.sort();
+    //  makeList =[];
+    //   var rand = Random();
+    //   var a = s1[rand.nextInt(s1.length)];
+    //   var b = s2[rand.nextInt(s2.length)];
+    //   var c = s3[rand.nextInt(s3.length)];
+    //   makeList.add(a);
+    //   makeList.add(b);
+    //   makeList.add(c);
+    //   makeList.sort();
 
-    setState(() {
-       mbForUpDown = makeList[0];
-      mbForUp = makeList[1];
-      mbForDown = makeList[2];
+    // setState(() {
+    //    mbForUpDown = makeList[0];
+    //   mbForUp = makeList[1];
+    //   mbForDown = makeList[2];
      
-    });
+    // });
 
       // var a1, a2;
       // if (a < b) {
@@ -123,7 +123,22 @@ class _ChartDataState extends State<ChartData> {
       //   mbForUp = a;
       //   setState(() {});
       // }
-      print("$mbForUp $mbForDown $mbForUpDown");
+
+    List myD=[];
+    myD.add(appModel.graphData1);
+    myD.add(appModel.graphData2);
+    myD.add(appModel.graphData3);
+    myD.sort();
+    setState(() {
+      mbForDown = myD[0];
+    mbForUp = myD[1];
+    mbForUpDown = myD[2];
+    });
+    
+
+
+
+      print(" valeu fpr this $mbForUp $mbForDown $mbForUpDown");
     }
   }
 
@@ -338,7 +353,7 @@ class Charts extends StatelessWidget {
                   ),
                   Positioned(
                       bottom: MediaQuery.of(context).size.height * 0.01 / 3,
-                      top: MediaQuery.of(context).size.height * 0.60 / 3,
+                      top: MediaQuery.of(context).size.height * 0.55 / 3,
                       right: MediaQuery.of(context).size.height * 0.0 / 3,
                       child: Container(
                           //color: Colors.pink,
@@ -408,7 +423,7 @@ class Charts extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Text(
-                            "$mbForDown Mb/s",
+                            "${mbForUpDown.toStringAsFixed(1)} Mb/s",
                             style: TextStyle(
                               color: appModel.darkTheme
                                   ? Colors.white
@@ -416,13 +431,15 @@ class Charts extends StatelessWidget {
                               fontSize:
                                   MediaQuery.of(context).size.height * 0.03 / 3,
                             ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis
                           ),
                           SizedBox(
                               height: MediaQuery.of(context).size.height *
                                   0.15 /
                                   3),
                           Text(
-                            "$mbForUp Mb/s",
+                            "${mbForUp.toStringAsFixed(1)} Mb/s",
                             style: TextStyle(
                               color: appModel.darkTheme
                                   ? Colors.white
@@ -430,13 +447,15 @@ class Charts extends StatelessWidget {
                               fontSize:
                                   MediaQuery.of(context).size.height * 0.03 / 3,
                             ),
+                             maxLines: 2,
+                            overflow: TextOverflow.ellipsis
                           ),
                           SizedBox(
                             height:
                                 MediaQuery.of(context).size.height * 0.15 / 3,
                           ),
                           Text(
-                            "$mbForUpDown Mb/s",
+                            "${mbForDown.toStringAsFixed(1)} Mb/s",
                             style: TextStyle(
                               color: appModel.darkTheme
                                   ? Colors.white
@@ -444,6 +463,8 @@ class Charts extends StatelessWidget {
                               fontSize:
                                   MediaQuery.of(context).size.height * 0.03 / 3,
                             ),
+                             maxLines: 2,
+                            overflow: TextOverflow.ellipsis
                           ),
                           SizedBox(
                             height:
@@ -541,7 +562,7 @@ class Charts extends StatelessWidget {
                   ),
                   Positioned(
                       bottom: MediaQuery.of(context).size.height * 0.01 / 3,
-                      top: MediaQuery.of(context).size.height * 0.60 / 3,
+                      top: MediaQuery.of(context).size.height * 0.55 / 3,
                       right: MediaQuery.of(context).size.height * 0.0 / 3,
                       child: Container(
                           //color: Colors.pink,

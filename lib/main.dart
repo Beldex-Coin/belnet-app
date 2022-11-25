@@ -35,8 +35,41 @@ import 'package:shared_preferences/shared_preferences.dart';
 bool netValue = true;
 bool isClick = false;
 bool loading = false;
+// these data just for testing purpose 
 List<double> sampleUpData = [26.6,26.6,16.2,16.2,2.0,2.0,6.0,6.0,2.0,2.0,2.0,2.0,9.8,9.8,2.0,2.0,2.0,2.0,9.8,9.8,25.1,25.1,19.5,19.5,5.0,5.0,2.0,2.0,5.0,5.0,2.0,2.0,13.7,13.7,6.0,6.0,6.0,6.0,5.0,5.0,15.4,15.4,2.0,2.0,6.0,6.0,2.0,2.0,2.0,2.0,2.0,2.0,16.1,16.1,2.0,2.0,5.0,5.0,5.0,5.0];
-List<double> sampleDownData = [5.0,2.0,2.0,2.0,2.0,5.0,5.0,15.6,15.6,22.1,22.1,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,5.0,5.0,2.0,2.0,12.1,12.1,15.7,15.7,10.1,10.1,2.0,2.0,2.0,2.0,6.0,6.0,2.0,2.0,6.0,6.0,2.0,2.0,6.0,6.0,6.0,6.0,5.0, 5.0, 10.5, 10.5, 6.0, 6.0, 5.0,5.0,5.0,5.0,2.0,2.0,5.0];
+List<double> sampleDownData = [5.0,2.0,2.0,2.0,2.0,5.0,5.0,15.6,15.6,22.1,22.1,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,5.0,5.0,2.0,2.0,12.1,12.1,15.7,15.7,
+  10.1,
+  10.1,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  6.0,
+  6.0,
+  5.0,
+  5.0,
+  10.5,
+  10.5,
+  6.0,
+  6.0,
+  5.0,
+  5.0,
+  5.0,
+  5.0,
+  2.0,
+  2.0,
+  5.0
+];
 void main() async {
   //Load settings
   WidgetsFlutterBinding.ensureInitialized();
@@ -328,7 +361,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   double displayRate = 0;
   String displayRateTxt = '0.0';
   double displayPer = 0;
-  String unitText = 'Mbps';
+
 
   late AppModel appModel;
   //late LogProvider logProvider;
@@ -365,8 +398,8 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
   Future toggleBelnet() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    appModel.uploadList = sampleUpData;
-    appModel.downloadList = sampleDownData;
+    appModel.uploadList.addAll(sampleUpData);
+    appModel.downloadList.addAll(sampleDownData);
     if (BelnetLib.isConnected == false) {
       print(
           '${DateTime.now().microsecondsSinceEpoch} netvalue from disconnected --');
@@ -548,6 +581,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                               left: MediaQuery.of(context).size.height *
                                   0.06 /
                                   3),
+                                 // color: Colors.yellow,
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -891,419 +925,17 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     //);
   }
 
-  var invalidExit = "";
-  var invalidAuth = "";
+  // var invalidExit = "";
+  // var invalidAuth = "";
 
-  TextEditingController _cusExitNode = TextEditingController();
-  TextEditingController _cusAuthCode = TextEditingController();
+  // TextEditingController _cusExitNode = TextEditingController();
+  // TextEditingController _cusAuthCode = TextEditingController();
 
-  var textForExit;
-  var textForAuth;
-  var isSet = false;
-  var color = "blue";
-  Widget containerWidget(BuildContext dcontext) {
-    bool isAuthCode = false;
-    return StatefulBuilder(builder: (dcontext, StateSetter setState) {
-      return Container(
-        padding: EdgeInsets.all(15.0),
-        height: MediaQuery.of(dcontext).size.height * 1.63 / 3,
-        // width: MediaQuery.of(dcontext).size.width * 2 / 3,
-        decoration: BoxDecoration(
-          color: appModel.darkTheme ? Color(0xff1C1C26) : Color(0xffF5F5F5),
-          border: Border.all(color: Color(0xff707070).withOpacity(0.4)),
-          borderRadius: BorderRadius.circular(30.0),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding:
-                  EdgeInsets.only(left: 5.0, right: 5.0, top: 4.0, bottom: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: Container(
-                      // color: Colors.orange,
-                      child: Stack(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Center(
-                                  child: Text(
-                                "Add Exit Node",
-                                style: TextStyle(
-                                    color: appModel.darkTheme
-                                        ? Colors.white
-                                        : Colors.black,
-                                    fontWeight: FontWeight.w900,
-                                    fontSize:
-                                        MediaQuery.of(dcontext).size.height *
-                                            0.062 /
-                                            3,
-                                    fontFamily: "Poppins"),
-                              )),
-                            ],
-                          ),
-                          Positioned(
-                            right: 0.0,
-                            bottom: 0.3,
-                            child: Container(
-                              padding: EdgeInsets.only(top: 8.0),
-                              width:
-                                  MediaQuery.of(context).size.width * 0.16 / 3,
-                              child: GestureDetector(
-                                  onTap: () {
-                                    invalidExit = "";
-                                    invalidAuth = "";
-
-                                    // _cusExitNode.dispose();
-                                    // _cusAuthCode.dispose();
-
-                                    textForExit = null;
-                                    //textForAuth = null;
-                                    isSet = false;
-                                    color = "blue";
-
-                                    Navigator.pop(dcontext);
-
-                                    // Navigator.
-                                  },
-                                  child: SvgPicture.asset(
-                                    'assets/images/close.svg',
-                                    color: appModel.darkTheme
-                                        ? Colors.white
-                                        : Colors.black,
-                                  )),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.end,
-                  //   children: [
-                  //     //Flexible(child: Container()),
-
-                  //   ],
-                  // )
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 10.0),
-              child: Text(
-                'Exit Node',
-                style: TextStyle(
-                    color: appModel.darkTheme ? Colors.white : Colors.black,
-                    fontSize: MediaQuery.of(dcontext).size.height * 0.06 / 3,
-                    fontWeight: FontWeight.w900,
-                    fontFamily: "Poppins"),
-              ),
-            ),
-            Container(
-              height: MediaQuery.of(dcontext).size.height * 0.18 / 3,
-              padding: EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                  color: appModel.darkTheme ? Color(0xff292937) : Colors.white,
-                  //boxShadow: [
-
-                  //  BoxShadow(
-                  //             color: Colors.white,
-                  //             offset: Offset(-10, -10),
-                  //             blurRadius: 20,
-                  //             spreadRadius: 0),
-                  //         // BoxShadow(
-                  //         //     color: Color(0xff6E6E6E),
-                  //         //     offset: Offset(-10, -10),
-                  //         //     blurRadius: 20,
-                  //         //     spreadRadius: 0)
-                  //           ],
-                  borderRadius: BorderRadius.circular(5.0)),
-              child: TextFormField(
-                style: TextStyle(color: Color(0xff00DC00)),
-                controller: _cusExitNode,
-                decoration: InputDecoration(border: InputBorder.none),
-                validator: (value) {
-                  setState(() {});
-                },
-                onChanged: (value) {
-                  if (_cusExitNode.text == null || _cusExitNode.text == "") {
-                    setState(() {});
-                    isSet = false;
-                  }
-                },
-              ),
-            ),
-            Container(
-                height: MediaQuery.of(dcontext).size.height * 0.10 / 3,
-                //color:Colors.orange,
-                child: Center(
-                    child: Text(
-                  textForExit == null ? " " : '$textForExit',
-                  style: TextStyle(
-                      fontSize: MediaQuery.of(dcontext).size.height * 0.05 / 3,
-                      color: Color(0xffFF3333),
-                      fontFamily: "Poppins"),
-                ))),
-            Padding(
-              padding: const EdgeInsets.only(left: 10.0),
-              child: Text(
-                'Auth Code',
-                style: TextStyle(
-                    color: isAuthCode
-                        ? appModel.darkTheme
-                            ? Colors.white
-                            : Colors.black
-                        : Color(0xff38384D),
-                    fontSize: MediaQuery.of(dcontext).size.height * 0.06 / 3,
-                    fontWeight: FontWeight.w900,
-                    fontFamily: "Poppins"),
-              ),
-            ),
-            Container(
-              height: MediaQuery.of(dcontext).size.height * 0.18 / 3,
-              padding: EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                  color: appModel.darkTheme ? Color(0xff292937) : Colors.white,
-                  borderRadius: BorderRadius.circular(5.0)),
-              child: isAuthCode
-                  ? TextFormField(
-                      controller: _cusAuthCode,
-                      style: TextStyle(color: Color(0xff1994FC)),
-                      decoration: InputDecoration(border: InputBorder.none),
-                    )
-                  : Container(),
-            ),
-            Container(
-                height: MediaQuery.of(dcontext).size.height * 0.10 / 3,
-                // color:Colors.orange,
-                child: Center(
-                    child: Text(
-                  textForAuth == null ? " " : '$textForAuth',
-                  style: TextStyle(
-                      fontSize: MediaQuery.of(dcontext).size.height * 0.05 / 3,
-                      color: Color(0xffFF3333),
-                      fontFamily: "Poppins"),
-                ))),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 10.0, right: 8.0),
-                  child: Text(
-                    'Auth Code',
-                    style: TextStyle(
-                        color: appModel.darkTheme ? Colors.white : Colors.black,
-                        fontSize:
-                            MediaQuery.of(dcontext).size.height * 0.06 / 3,
-                        fontWeight: FontWeight.w900,
-                        fontFamily: "Poppins"),
-                  ),
-                ),
-                GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        isAuthCode = isAuthCode ? false : true;
-                        print("this is for authcode$isAuthCode");
-                      });
-                    },
-                    child: appModel.darkTheme
-                        ? SvgPicture.asset(isAuthCode
-                            ? 'assets/images/check.svg'
-                            : 'assets/images/Rectangle 10.svg')
-                        : SvgPicture.asset(isAuthCode
-                            ? 'assets/images/check.svg'
-                            : 'assets/images/Rectangle 10 (1).svg')),
-              ],
-            ),
-            GestureDetector(
-              onTap: () {
-                print('test button clicked');
-                if (_cusExitNode.text == null || _cusExitNode.text == "") {
-                  setState(() {
-                    textForExit = "ExitNode should not be empty";
-                    color = "red";
-                  });
-                } else if (_cusExitNode.text.isNotEmpty &&
-                    !_cusExitNode.text.contains(".bdx")) {
-                  setState(() {
-                    textForExit = "Please enter a valid Exit Node";
-                    print(
-                        "is contain method call ${!_cusExitNode.text.contains(".bdx")}");
-                    color = "red";
-                  });
-                } else {
-                  setState(() {
-                    textForExit = null;
-                    isSet = true;
-                    color = "green";
-                  });
-                }
-
-                print("isSet value $isSet");
-                // if(_cusAuthCode.text.isNotEmpty)
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Container(
-                    padding: EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: Colors.grey,
-                        gradient: color == "blue"
-                            ? LinearGradient(
-                                colors: [Color(0xff007ED1), Color(0xff0093FF)])
-                            : color == "red"
-                                ? LinearGradient(colors: [
-                                    Color(0xffE50012),
-                                    Color(0xffFF1A23)
-                                  ])
-                                : color == "green"
-                                    ? LinearGradient(colors: [
-                                        Color(0xff00B504),
-                                        Color(0xff23DC27)
-                                      ])
-                                    : LinearGradient(colors: []),
-                        boxShadow: appModel.darkTheme
-                            ? [
-                                // BoxShadow(
-                                //     color: Colors.black12,
-                                //     offset: Offset(-10, -10),
-                                //     spreadRadius: 0,
-                                //     blurRadius: 10),
-                                BoxShadow(
-                                    color: Colors.black,
-                                    offset: Offset(0, 1),
-                                    blurRadius: 2.0)
-                              ]
-                            : [
-                                BoxShadow(
-                                    color: Color(0xff6E6E6E),
-                                    offset: Offset(0, 1),
-                                    blurRadius: 2.0)
-                              ]),
-                    height: MediaQuery.of(dcontext).size.height * 0.18 / 3,
-                    width: double.infinity,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        color == "red"
-                            ? SvgPicture.asset(
-                                'assets/images/icons8-error.svg',
-                                height: MediaQuery.of(dcontext).size.height *
-                                    0.05 /
-                                    3,
-                              )
-                            : color == "green"
-                                ? SvgPicture.asset(
-                                    'assets/images/icons8-error.svg',
-                                    height:
-                                        MediaQuery.of(dcontext).size.height *
-                                            0.05 /
-                                            3,
-                                  )
-                                : Container(),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 5.0),
-                          child: Text(
-                            "Test",
-                            style: TextStyle(
-                                fontFamily: "Poppins",
-                                fontWeight: FontWeight.w900),
-                          ),
-                        ),
-                      ],
-                    )),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 10.0),
-              child: GestureDetector(
-                onTap: () {
-                  if (isSet) {
-                    setState(() {
-                      print("Simply clicked");
-
-                      exitItems.insert(0, _cusExitNode.text);
-
-                      invalidExit = "";
-                      invalidAuth = "";
-
-                      // _cusExitNode.dispose();
-                      // _cusAuthCode.dispose();
-
-                      textForExit = null;
-                      //textForAuth = null;
-                      isSet = false;
-                      color = "blue";
-                      selectedValue = _cusExitNode.text.toString();
-                      toggleBelnet();
-                    });
-
-                    Navigator.pop(dcontext);
-                  }
-                },
-                child: Container(
-                    padding: EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: Colors.grey,
-                        gradient: appModel.darkTheme
-                            ? isSet
-                                ? LinearGradient(colors: [
-                                    Color(0xff007ED1),
-                                    Color(0xff0093FF)
-                                  ])
-                                : LinearGradient(colors: [
-                                    Color(0xff20202B),
-                                    Color(0xff2C2C39)
-                                  ])
-                            : isSet
-                                ? LinearGradient(colors: [
-                                    Color(0xff007ED1),
-                                    Color(0xff0093FF)
-                                  ])
-                                : LinearGradient(colors: [
-                                    Color(0xffF2F0F0),
-                                    Color(0xffFAFAFA)
-                                  ]),
-                        // border: Border.all(color:Color(0xff56566F)),
-                        boxShadow: [
-                          appModel.darkTheme
-                              ? BoxShadow(
-                                  color: Colors.black,
-                                  offset: Offset(0, 1),
-                                  //spreadRadius: 0,
-                                  blurRadius: 2.0)
-                              : BoxShadow(
-                                  color: Color(0xff6E6E6E),
-                                  offset: Offset(0, 1),
-                                  blurRadius: 2.0)
-                        ]),
-                    height: MediaQuery.of(dcontext).size.height * 0.18 / 3,
-                    width: double.infinity,
-                    child: Center(
-                        child: Text(
-                      "OK",
-                      style: TextStyle(
-                          color: isSet ? Colors.white : Color(0xff56566F),
-                          fontFamily: "Poppins",
-                          fontWeight: FontWeight.w900),
-                    ))
-                    // Image.asset(
-                    //   'assets/images/ok.png',
-                    //   fit: BoxFit.cover,
-                    // ),
-                    ),
-              ),
-            ),
-          ],
-        ),
-      );
-    });
-  }
+  // var textForExit;
+  // var textForAuth;
+  // var isSet = false;
+  // var color = "blue";
+  
 }
 
 // if there is no internet, this page only displays when there is no inter
@@ -1482,9 +1114,9 @@ class _BottomNavBarOptionsState extends State<BottomNavBarOptions> {
                     });
                   },
                   child: Container(
-                    width: MediaQuery.of(context).size.height * 0.50 / 3,
+                    width: MediaQuery.of(context).size.height * 0.55 / 3,
                     height: MediaQuery.of(context).size.height * 0.16 / 3,
-                    //color:Colors.yellow,
+                    color:Colors.transparent,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -1524,9 +1156,9 @@ class _BottomNavBarOptionsState extends State<BottomNavBarOptions> {
                     });
                   },
                   child: Container(
-                    width: MediaQuery.of(context).size.height * 0.50 / 3,
+                    width: MediaQuery.of(context).size.height * 0.55 / 3,
                     height: MediaQuery.of(context).size.height * 0.16 / 3,
-                    //color:Colors.yellow,
+                    color:Colors.transparent,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

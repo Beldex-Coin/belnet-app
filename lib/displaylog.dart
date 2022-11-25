@@ -1,12 +1,12 @@
-import 'dart:async';
-import 'dart:developer';
+// import 'dart:async';
+// import 'dart:developer';
 
-import 'package:belnet_lib/belnet_lib.dart';
+// import 'package:belnet_lib/belnet_lib.dart';
 
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/widget/logProvider.dart';
 import 'package:clipboard/clipboard.dart';
-import 'package:fl_chart/fl_chart.dart';
+
 
 import 'package:flutter/material.dart';
 // import 'package:flutter/rendering.dart';
@@ -15,7 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
+
 
 class DisplayLog extends StatefulWidget {
   const DisplayLog({Key? key}) : super(key: key);
@@ -31,11 +31,12 @@ class _DisplayLogState extends State<DisplayLog> {
   ScrollController _scrollController = new ScrollController();
 
   bool canCancel = true;
-
+  bool canCopy = true;
+  int count = 0;
   @override
   void initState() {
     // continueslyCall();
-
+    //_scrollController.initialScrollOffset.isInfinite
     super.initState();
   }
 
@@ -44,6 +45,23 @@ class _DisplayLogState extends State<DisplayLog> {
       _scrollController.position.maxScrollExtent,
     );
   }
+
+
+setCancel(){
+     if (logController.data.isNotEmpty) {
+                              canCancel = true;
+                              canCopy = true;
+      }else{
+        canCancel = false;
+        canCopy = false;
+        count =0;
+      }
+  
+}
+
+
+
+
 
   @override
   void dispose() {
@@ -54,12 +72,14 @@ class _DisplayLogState extends State<DisplayLog> {
   Widget build(BuildContext context) {
     // getDataFromLog();
     // _scrollDown();
+    setCancel();
     appModel = Provider.of<AppModel>(context);
     return Container(
       child: Column(
         // mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Flexible(
+          
               child: Padding(
             padding: EdgeInsets.only(
                 left: MediaQuery.of(context).size.height * 0.08 / 3,
@@ -78,43 +98,43 @@ class _DisplayLogState extends State<DisplayLog> {
                 child: Obx(
                   () {
                     return Container(
-                      // color: Colors.yellow,
+                     //color: Colors.yellow,
                       child: ListView.builder(
                           controller: _scrollController,
                           itemCount: logController.data.length,
                           itemBuilder: ((context, index) {
-                            if (logController.data.isNotEmpty) {
-                              canCancel = true;
-                            }
 
-                            if (logController.data.length > 8) {
+                            if (logController.data.length > 6) {
                               _scrollDown();
                             }
 
-                            return RichText(
-                                text: TextSpan(
-                                    text: '${logController.timeData[index]}',
-                                    style: TextStyle(
-                                        fontSize:
-                                            MediaQuery.of(context).size.height *
+                            return Container(
+
+                              child: RichText(
+                                  text: TextSpan(
+                                      text: '${logController.timeData[index]}',
+                                      style: TextStyle(
+                                          fontSize:
+                                              MediaQuery.of(context).size.height *
+                                                  0.04 /
+                                                  3,
+                                          fontFamily: "Poppins",
+                                          color: Color(0xffA1A1C1)),
+                                      children: <TextSpan>[
+                                    TextSpan(
+                                        text: '${logController.data[index]}',
+                                        style: TextStyle(
+                                            fontSize: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
                                                 0.04 /
                                                 3,
-                                        fontFamily: "Poppins",
-                                        color: Color(0xffA1A1C1)),
-                                    children: <TextSpan>[
-                                  TextSpan(
-                                      text: '${logController.data[index]}',
-                                      style: TextStyle(
-                                          fontSize: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.04 /
-                                              3,
-                                          fontFamily: "Poppins",
-                                          color: appModel.darkTheme
-                                              ? Color(0xffFFFFFF)
-                                              : Color(0xff222222)))
-                                ]));
+                                            fontFamily: "Poppins",
+                                            color: appModel.darkTheme
+                                                ? Color(0xffFFFFFF)
+                                                : Color(0xff222222)))
+                                  ])),
+                            );
                           })),
                     );
                   },
@@ -132,7 +152,7 @@ class _DisplayLogState extends State<DisplayLog> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    InkWell(
+                    GestureDetector(
                       onTap: () {
                         if (logController.data.isNotEmpty) {
                           logController.data.clear();
@@ -204,7 +224,7 @@ class _DisplayLogState extends State<DisplayLog> {
                                       color: canCancel
                                           ? Color(0xffFF3030)
                                           : Colors.grey),
-                                )
+                                ),
                               ],
                             )),
                       ),
@@ -214,12 +234,16 @@ class _DisplayLogState extends State<DisplayLog> {
                     ),
                     InkWell(
                       onTap: () {
-                        if (logController.data.isNotEmpty) {
+                        setState(() {
+                          count++;
+                        });
+                        if (logController.data.isNotEmpty && count == 1) {
                           FlutterClipboard.copy(logController.data.toString())
                               .then((value) => ScaffoldMessenger.of(context)
                                   .showSnackBar(SnackBar(
-                                      backgroundColor: Colors.black,
+                                      backgroundColor: Colors.black.withOpacity(0.50),
                                       behavior: SnackBarBehavior.floating,
+                                      duration: Duration(milliseconds: 100),
                                       width: 200,
                                       content: Text(
                                         "Copied to clipboard!",
@@ -233,6 +257,7 @@ class _DisplayLogState extends State<DisplayLog> {
 
                           print('copied');
                         }
+                          
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(3.0),
@@ -275,7 +300,7 @@ class _DisplayLogState extends State<DisplayLog> {
                               Padding(
                                   padding: const EdgeInsets.only(right: 8.0),
                                   child: SvgPicture.asset(
-                                      'assets/images/copy.svg')),
+                                      'assets/images/copy.svg' ,color:canCopy ? Color(0xff1DC021): Colors.grey ,)),
                               Text(
                                 "copy",
                                 style: TextStyle(
@@ -285,7 +310,7 @@ class _DisplayLogState extends State<DisplayLog> {
                                             0.05 /
                                             3,
                                     fontFamily: "Poppins",
-                                    color: Color(0xff1DC021)),
+                                    color:canCopy ? Color(0xff1DC021): Colors.grey),
                               )
                             ],
                           ),

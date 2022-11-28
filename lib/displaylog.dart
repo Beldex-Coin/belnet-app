@@ -87,7 +87,7 @@ setCancel(){
                 top: MediaQuery.of(context).size.height * 0.0 / 3,
                 bottom: MediaQuery.of(context).size.height * 0.03 / 3),
             child: Container(
-                padding: EdgeInsets.only(left: 10, top: 0),
+                padding: EdgeInsets.only(left: 10, top: 8, right:10),
                 // height: MediaQuery.of(context).size.height * 1 / 3,
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -100,6 +100,7 @@ setCancel(){
                     return Container(
                      //color: Colors.yellow,
                       child: ListView.builder(
+                        padding: EdgeInsets.zero,
                           controller: _scrollController,
                           itemCount: logController.data.length,
                           itemBuilder: ((context, index) {

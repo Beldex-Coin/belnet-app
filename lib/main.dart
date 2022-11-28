@@ -11,7 +11,6 @@ import 'package:belnet_mobile/src/widget/LineChartSample10.dart';
 import 'package:belnet_mobile/src/widget/aboutpage.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
 import 'package:belnet_mobile/src/widget/exit_node_list.dart';
-import 'package:belnet_mobile/src/widget/liveChart.dart';
 import 'package:belnet_mobile/src/widget/logProvider.dart';
 // import 'package:belnet_mobile/src/widget/logProvider.dart';
 import 'package:belnet_mobile/src/widget/notifications.dart';
@@ -37,39 +36,7 @@ bool isClick = false;
 bool loading = false;
 // these data just for testing purpose 
 List<double> sampleUpData = [26.6,26.6,16.2,16.2,2.0,2.0,6.0,6.0,2.0,2.0,2.0,2.0,9.8,9.8,2.0,2.0,2.0,2.0,9.8,9.8,25.1,25.1,19.5,19.5,5.0,5.0,2.0,2.0,5.0,5.0,2.0,2.0,13.7,13.7,6.0,6.0,6.0,6.0,5.0,5.0,15.4,15.4,2.0,2.0,6.0,6.0,2.0,2.0,2.0,2.0,2.0,2.0,16.1,16.1,2.0,2.0,5.0,5.0,5.0,5.0];
-List<double> sampleDownData = [5.0,2.0,2.0,2.0,2.0,5.0,5.0,15.6,15.6,22.1,22.1,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,5.0,5.0,2.0,2.0,12.1,12.1,15.7,15.7,
-  10.1,
-  10.1,
-  2.0,
-  2.0,
-  2.0,
-  2.0,
-  6.0,
-  6.0,
-  2.0,
-  2.0,
-  6.0,
-  6.0,
-  2.0,
-  2.0,
-  6.0,
-  6.0,
-  6.0,
-  6.0,
-  5.0,
-  5.0,
-  10.5,
-  10.5,
-  6.0,
-  6.0,
-  5.0,
-  5.0,
-  5.0,
-  5.0,
-  2.0,
-  2.0,
-  5.0
-];
+List<double> sampleDownData = [5.0,2.0,2.0,2.0,2.0,5.0,5.0,15.6,15.6,22.1,22.1,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,5.0,5.0,2.0,2.0,12.1,12.1,15.7,15.7,10.1,10.1,2.0,2.0,2.0,2.0,6.0,6.0,2.0,2.0,6.0,6.0,2.0,2.0,6.0,6.0,6.0,6.0,5.0,5.0,10.5,10.5,6.0,6.0,5.0,5.0,5.0,5.0,2.0,2.0,5.0];
 void main() async {
   //Load settings
   WidgetsFlutterBinding.ensureInitialized();

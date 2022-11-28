@@ -163,7 +163,9 @@ set graphData3(double value){
 
 
 
-// for data 
+
 
 }
 
+//data for the sample initial list for chart
+ 

@@ -1,4 +1,7 @@
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/widget/sampChart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +13,7 @@ class ConnectingStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appModel = Provider.of<AppModel>(context);
+
     return Column(
       // mainAxisAlignment: MainAxisAlignment.center,
       // crossAxisAlignment: CrossAxisAlignment.center,
@@ -20,18 +24,25 @@ class ConnectingStatus extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
-              child: Text(
-                isConnect! ? 'Connected' : 'Disconnected',
-                style: TextStyle(
-                    color: appModel.darkTheme
-                        ? isConnect!
-                            ? Colors.white
-                            : Color(0xffA8A8B7)
-                        : isConnect!
-                            ? Color(0xff222222)
-                            : Color(0xffA8A8B7),
-                    fontFamily: 'Poppins',
-                    fontWeight: isConnect! ? FontWeight.bold : FontWeight.w500),
+              child: GestureDetector(
+                onTap: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>FCharts()));
+                },
+                child: Text(
+                  //checking the connection for belnet
+                  isConnect! ? 'Connected' : 'Disconnected',
+                  style: TextStyle(
+                      color: appModel.darkTheme
+                          ? isConnect!
+                              ? Colors.white
+                              : Color(0xffA8A8B7)
+                          : isConnect!
+                              ? Color(0xff222222)
+                              : Color(0xffA8A8B7),
+                      fontFamily: 'Poppins',
+                      fontSize: MediaQuery.of(context).size.height*0.05/3,
+                      fontWeight: isConnect! ? FontWeight.bold : FontWeight.w500),
+                ),
               ),
             ),
             Container(

@@ -15,14 +15,15 @@ class CustDropDown<T> extends StatefulWidget {
 
   const CustDropDown(
       {required this.items,
-        required this.onChanged,
-        this.hintText = "",
-        this.borderRadius = 0,
-        this.borderWidth = 1,
-        this.maxListHeight = 100,
-        this.defaultSelectedIndex = -1,
-        Key? key,
-        this.enabled = true, required this.appModel})
+      required this.onChanged,
+      this.hintText = "",
+      this.borderRadius = 0,
+      this.borderWidth = 1,
+      this.maxListHeight = 100,
+      this.defaultSelectedIndex = -1,
+      Key? key,
+      this.enabled = true,
+      required this.appModel})
       : super(key: key);
 
   @override
@@ -37,7 +38,7 @@ class _CustDropDownState extends State<CustDropDown>
   Widget? _itemSelected;
   late Offset dropDownOffset;
   final LayerLink _layerLink = LayerLink();
-
+  final _scrollController = ScrollController(initialScrollOffset: 0.0);
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -98,71 +99,83 @@ class _CustDropDownState extends State<CustDropDown>
     return OverlayEntry(
         maintainState: false,
         builder: (context) => Align(
-          alignment: Alignment.center,
-          child: CompositedTransformFollower(
-            link: _layerLink,
-            showWhenUnlinked: false,
-            offset: dropDownOffset,
-            child: SizedBox(
-              height: widget.maxListHeight,
-              width: size.width,
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: _isReverse
-                    ? MainAxisAlignment.end
-                    : MainAxisAlignment.start,
-                children: <Widget>[
-                  // Padding(
-                  //   padding: const EdgeInsets.only(top: 10,),
-                  //   child:
-                    Container(
-                      padding: EdgeInsets.only(top:MediaQuery.of(context).size.height*0.06/3),
-                      constraints: BoxConstraints(
-                          maxHeight: widget.maxListHeight,
-                          maxWidth: size.width),
-                      decoration: BoxDecoration(
-                          //color: Colors.white,
-                          borderRadius: BorderRadius.circular(12)),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(widget.borderRadius),
-                        ),
-                        child: Material(
-                          color:widget.appModel.darkTheme ? Color(0xFF242430):Color(0xFFF9F9F9),
-                          elevation: 0,
-                          shadowColor: Colors.grey,
-                          child: ListView(
-                            padding: EdgeInsets.zero,
-                            shrinkWrap: true,
-                            children: widget.items
-                                .map((item) => GestureDetector(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: item.child,
+              alignment: Alignment.center,
+              child: CompositedTransformFollower(
+                link: _layerLink,
+                showWhenUnlinked: false,
+                offset: dropDownOffset,
+                child: SizedBox(
+                  height: widget.maxListHeight,
+                  width: size.width,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: _isReverse
+                        ? MainAxisAlignment.end
+                        : MainAxisAlignment.start,
+                    children: <Widget>[
+                      // Padding(
+                      //   padding: const EdgeInsets.only(top: 10,),
+                      //   child:
+                      Container(
+                        padding: EdgeInsets.only(
+                            top: MediaQuery.of(context).size.height * 0.06 / 3),
+                        constraints: BoxConstraints(
+                            maxHeight: widget.maxListHeight,
+                            maxWidth: size.width),
+                        decoration: BoxDecoration(
+                            //color: Colors.white,
+                            borderRadius: BorderRadius.circular(12)),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(widget.borderRadius),
+                          ),
+                          child: Material(
+                            color: widget.appModel.darkTheme
+                                ? Color(0xFF242430)
+                                : Color(0xFFF9F9F9),
+                            elevation: 0,
+                            shadowColor: Colors.grey,
+                            child: RawScrollbar(
+                              thumbColor: widget.appModel.darkTheme
+                                  ? Color(0xff4D4D64)
+                                  : Color(0xffC7C7C7),
+                              thumbVisibility: true,
+                              controller: _scrollController,
+                              thickness: 3.6,
+                              child: ListView(
+                                padding: EdgeInsets.zero,
+                                controller: _scrollController,
+                                shrinkWrap: true,
+                                children: widget.items
+                                    .map((item) => GestureDetector(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: item.child,
+                                          ),
+                                          onTap: () {
+                                            if (mounted) {
+                                              setState(() {
+                                                _isAnyItemSelected = true;
+                                                _itemSelected = item.child;
+                                                _removeOverlay();
+                                                if (widget.onChanged != null)
+                                                  widget.onChanged(item.value);
+                                              });
+                                            }
+                                          },
+                                        ))
+                                    .toList(),
                               ),
-                              onTap: () {
-                                if (mounted) {
-                                  setState(() {
-                                    _isAnyItemSelected = true;
-                                    _itemSelected = item.child;
-                                    _removeOverlay();
-                                    if (widget.onChanged != null)
-                                      widget.onChanged(item.value);
-                                  });
-                                }
-                              },
-                            ))
-                                .toList(),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                 // ),
-                ],
+                      // ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-        ));
+            ));
   }
 
   Offset getOffset() {
@@ -198,8 +211,8 @@ class _CustDropDownState extends State<CustDropDown>
       child: GestureDetector(
         onTap: widget.enabled
             ? () {
-          _isOpen ? _removeOverlay() : _addOverlay();
-        }
+                _isOpen ? _removeOverlay() : _addOverlay();
+              }
             : null,
         child: Container(
           decoration: _getDecoration(),
@@ -209,31 +222,32 @@ class _CustDropDownState extends State<CustDropDown>
             children: <Widget>[
               Expanded(
                 child: Container(
-                 // flex: 3,
+                  // flex: 3,
                   child: _isAnyItemSelected
                       ? Padding(
-                    padding: const EdgeInsets.only(left: 4.0),
-                    child: _itemSelected!,
-                  )
+                          padding: const EdgeInsets.only(left: 4.0),
+                          child: _itemSelected!,
+                        )
                       : Padding(
-                    padding:
-                    const EdgeInsets.only(left: 4.0), // change it here
-                    child: Center(
-                      child: Text(
-                        widget.hintText,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color:Color(0xff00DC00)),
-                      ),
-                    ),
-                  ),
+                          padding: const EdgeInsets.only(
+                              left: 4.0), // change it here
+                          child: Center(
+                            child: Text(
+                              widget.hintText,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: Color(0xff00DC00)),
+                            ),
+                          ),
+                        ),
                 ),
               ),
               Container(
                 //flex: 1,
                 child: Icon(
                   Icons.arrow_drop_down,
-                  color: widget.appModel.darkTheme ? Colors.white : Colors.black,
+                  color:
+                      widget.appModel.darkTheme ? Colors.white : Colors.black,
                 ),
               ),
             ],
@@ -273,24 +287,6 @@ class CustDropdownMenuItem<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return child;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

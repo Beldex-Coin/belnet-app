@@ -82,6 +82,17 @@ List<String> get basketItem {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 // provider for graph data list
 // for upload data list
 List<double> uploadList = [];
@@ -158,6 +169,27 @@ set graphData3(double value){
   _graphData3 = value;
   notifyListeners();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

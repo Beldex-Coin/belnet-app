@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../model/theme_set_provider.dart';
 
@@ -61,6 +62,8 @@ class _ChartDataState extends State<ChartData> {
     }
     if (appModel.singleDownload != "")
       appModel.downloadList.add(stringBeforeSpace(appModel.singleDownload));
+
+     
   }
 
   getAndAssignForUploadData(timer) async {

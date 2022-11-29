@@ -34,9 +34,131 @@ import 'package:shared_preferences/shared_preferences.dart';
 bool netValue = true;
 bool isClick = false;
 bool loading = false;
-// these data just for testing purpose 
-List<double> sampleUpData = [26.6,26.6,16.2,16.2,2.0,2.0,6.0,6.0,2.0,2.0,2.0,2.0,9.8,9.8,2.0,2.0,2.0,2.0,9.8,9.8,25.1,25.1,19.5,19.5,5.0,5.0,2.0,2.0,5.0,5.0,2.0,2.0,13.7,13.7,6.0,6.0,6.0,6.0,5.0,5.0,15.4,15.4,2.0,2.0,6.0,6.0,2.0,2.0,2.0,2.0,2.0,2.0,16.1,16.1,2.0,2.0,5.0,5.0,5.0,5.0];
-List<double> sampleDownData = [5.0,2.0,2.0,2.0,2.0,5.0,5.0,15.6,15.6,22.1,22.1,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,5.0,5.0,2.0,2.0,12.1,12.1,15.7,15.7,10.1,10.1,2.0,2.0,2.0,2.0,6.0,6.0,2.0,2.0,6.0,6.0,2.0,2.0,6.0,6.0,6.0,6.0,5.0,5.0,10.5,10.5,6.0,6.0,5.0,5.0,5.0,5.0,2.0,2.0,5.0];
+// these data just for testing purpose
+List<double> sampleUpData = [
+  26.6,
+  26.6,
+  16.2,
+  16.2,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  9.8,
+  9.8,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  9.8,
+  9.8,
+  25.1,
+  25.1,
+  19.5,
+  19.5,
+  5.0,
+  5.0,
+  2.0,
+  2.0,
+  5.0,
+  5.0,
+  2.0,
+  2.0,
+  13.7,
+  13.7,
+  6.0,
+  6.0,
+  6.0,
+  6.0,
+  5.0,
+  5.0,
+  15.4,
+  15.4,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  16.1,
+  16.1,
+  2.0,
+  2.0,
+  5.0,
+  5.0,
+  5.0,
+  5.0
+];
+List<double> sampleDownData = [
+  5.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  5.0,
+  5.0,
+  15.6,
+  15.6,
+  22.1,
+  22.1,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  5.0,
+  5.0,
+  2.0,
+  2.0,
+  12.1,
+  12.1,
+  15.7,
+  15.7,
+  10.1,
+  10.1,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  6.0,
+  6.0,
+  5.0,
+  5.0,
+  10.5,
+  10.5,
+  6.0,
+  6.0,
+  5.0,
+  5.0,
+  5.0,
+  5.0,
+  2.0,
+  2.0,
+  5.0
+];
 void main() async {
   //Load settings
   WidgetsFlutterBinding.ensureInitialized();
@@ -107,9 +229,12 @@ class _BelnetAppState extends State<BelnetApp> {
       exitList.forEach(
         (element) {
           myExitData.add(element.name);
+          setState(() {});
         },
       );
       if (myExitData.isNotEmpty) {
+        prefs.setStringList("ExitNodes", myExitData);
+        // exitItems = myExitData;
         exitItems = myExitData;
         setState(() {});
       } else {
@@ -166,7 +291,7 @@ class BelnetHomePageState extends State<BelnetHomePage>
 // with SingleTickerProviderStateMixin
 {
   late ConnectivityResult connectivityResult;
-
+  LogController logControllers = Get.put(LogController());
   @override
   void initState() {
     checkVersion(context);
@@ -264,10 +389,26 @@ class BelnetHomePageState extends State<BelnetHomePage>
         myExitData.add(element.name);
       },
     );
+
+    setInitialLog();
+
     print("exitdata in foreach $myExitData");
     print("exitlist from json ${exitList.length}");
     print("jsonvalue from the data ${exitList[0].country}");
     setState(() {});
+  }
+
+  setInitialLog() {
+    if (BelnetLib.isConnected) {
+      logControllers.addDataTolist(
+        " Belnet Daemon started",
+        "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
+      );
+      logControllers.addDataTolist(
+        " Connected successfully",
+        "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
+      );
+    }
   }
 
   Widget build(BuildContext context) {
@@ -296,7 +437,7 @@ class BelnetHomePageState extends State<BelnetHomePage>
               //key: key,
               resizeToAvoidBottomInset:
                   false, //Prevents overflow when keyboard is shown
-              body: MyForm(),
+              body: MyForm(appModel),
             ),
           );
   }
@@ -309,10 +450,12 @@ class BelnetHomePageState extends State<BelnetHomePage>
 dynamic downloadRate = '';
 dynamic uploadRate = '';
 String? selectedValue =
-    'iyu3gajuzumj573tdy54sjs7b94fbqpbo3o44msrba4zez1o4p3o.bdx';
+    'snoq7arak4d5mkpfsg69saj7bp1ikxyzqjkhzb96keywn6iyhc5y.bdx';
 String? hintValue = '';
 
 class MyForm extends StatefulWidget {
+  final AppModel appModel;
+  const MyForm(this.appModel);
   @override
   MyFormState createState() {
     return MyFormState();
@@ -329,7 +472,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   String displayRateTxt = '0.0';
   double displayPer = 0;
 
-
+  int flag = 0;
   late AppModel appModel;
   //late LogProvider logProvider;
 
@@ -339,7 +482,22 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
         .listen((bool isConnected) => setState(() {}));
     //callForUpdate();
+    // getConnectingData();
     //getRandomExitNodes();
+  }
+
+// function for storing the previous log data
+  List<String> lData = [];
+  List<String> lDate = [];
+  setToLogData(String value, String dateValue) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      lData.add(value);
+      lDate.add(dateValue);
+    });
+
+    prefs.setStringList("PREV_LOG_DATA", lData);
+    prefs.setStringList("Prev_TIME_DATA", lDate);
   }
 
   getRandomExitNodes() async {
@@ -404,6 +562,8 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       var myVal = selectedValue!.trim().toString();
       logController.addDataTolist(" Exit node = $myVal",
           "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+      logController.addDataTolist(" Connected to $myVal",
+          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
       preferences.setString('hintValue', myVal);
       hintValue = preferences.getString('hintValue');
       print('hint value is stored from getString $hintValue');
@@ -441,6 +601,10 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       if (BelnetLib.isConnected) {
         appModel.connecting_belnet = true;
         logController.addDataTolist(
+          " Connected successfully",
+          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
+        );
+        setToLogData(
           " Connected successfully",
           "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
         );
@@ -485,6 +649,21 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     setState(() {});
     return str;
   }
+
+// callInitialValue(AppModel appModel){
+//   if(BelnetLib.isConnected)
+//   if(flag == 0){
+//     print("printed the value if flag = 0");
+//     appModel.uploadList.clear();
+//     appModel.downloadList.clear();
+//      appModel.uploadList.addAll(sampleUpData);
+//     appModel.downloadList.addAll(sampleDownData);
+
+//   }
+//   else{
+//     print("printed the value if flag = 1");
+//   }
+// }
 
   @override
   Widget build(BuildContext context) {
@@ -548,7 +727,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                               left: MediaQuery.of(context).size.height *
                                   0.06 /
                                   3),
-                                 // color: Colors.yellow,
+                          // color: Colors.yellow,
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -902,7 +1081,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   // var textForAuth;
   // var isSet = false;
   // var color = "blue";
-  
+
 }
 
 // if there is no internet, this page only displays when there is no inter
@@ -1083,7 +1262,7 @@ class _BottomNavBarOptionsState extends State<BottomNavBarOptions> {
                   child: Container(
                     width: MediaQuery.of(context).size.height * 0.55 / 3,
                     height: MediaQuery.of(context).size.height * 0.16 / 3,
-                    color:Colors.transparent,
+                    color: Colors.transparent,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -1125,7 +1304,7 @@ class _BottomNavBarOptionsState extends State<BottomNavBarOptions> {
                   child: Container(
                     width: MediaQuery.of(context).size.height * 0.55 / 3,
                     height: MediaQuery.of(context).size.height * 0.16 / 3,
-                    color:Colors.transparent,
+                    color: Colors.transparent,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

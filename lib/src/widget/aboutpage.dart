@@ -1,3 +1,4 @@
+import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -318,10 +319,12 @@ class _MyWidgetState extends State<AboutPage> {
                     ),
                     GestureDetector(
                       onTap: () async {
+                        //FlutterClipboard.copy("http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/");
                         if (await canLaunchUrl(Uri.parse("http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/"))) {
                           await launchUrl(Uri.parse("http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/"),
-                          
+                          mode:LaunchMode.externalApplication
                           );
+                          
                         }else{
                           throw 'Could not launch http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/';
                         }

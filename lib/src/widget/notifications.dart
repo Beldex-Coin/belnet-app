@@ -4,6 +4,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_connect/http/src/request/request.dart';
 
 bool setValue = false;
 // Stream<String> myStream = Stream as Stream<String>;
@@ -96,31 +97,6 @@ class MyNotificationWorkLoad extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //getUploadDownloadDataUpdate();
-    return Container();
-  }
-}
-
-
-class StringData extends StatefulWidget {
-  const StringData({Key? key}) : super(key: key);
-
-  @override
-  State<StringData> createState() => _StringDataState();
-}
-
-class _StringDataState extends State<StringData> {
-
-
-  @override
-  void initState() {
-
-    super.initState();
-  }
-
-
-
-  @override
-  Widget build(BuildContext context) {
     return Container();
   }
 }
@@ -280,3 +256,19 @@ class _StringDataState extends State<StringData> {
 //     return Container();
 //   }
 // }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -43,7 +43,7 @@ import kotlin.math.roundToLong
 
 
 /** BelnetLibPlugin */
-class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
+open class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private var mShouldUnbind: Boolean = false
     private var mBoundService: BelnetDaemon? = null
     private var lastTimestamp = 0L
@@ -338,7 +338,25 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       return logData
 }
 
+   fun disConnectButtonCall(){
+       Log.e("call","this disconnectButtonCall")
+       var intent = VpnService.prepare(activityBinding.activity.applicationContext)
+       if (intent != null) {
+           // Not prepared yet
+           //result.success(false)
+          // return
+       }
+       val belnetIntent =
+           Intent(
+               activityBinding.activity.applicationContext,
+               BelnetDaemon::class.java
+           )
+       belnetIntent.action = BelnetDaemon.ACTION_DISCONNECT
 
+       activityBinding.activity.applicationContext.startService(belnetIntent)
+
+       doBindService()
+   }
 
 
 }

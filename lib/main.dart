@@ -166,18 +166,18 @@ void main() async {
   Paint.enableDithering = true;
   pr.Provider.debugCheckInvalidValueType = null;
 
-  AwesomeNotifications()
-      .initialize('resource://drawable/res_notification_app_icon', [
-    NotificationChannel(
-        channelKey: 'basic_channel',
-        channelDescription: '',
-        channelName: 'basic notifications',
-        defaultColor: Colors.teal,
-        enableVibration: true,
-        importance: NotificationImportance.Low,
-        locked: true,
-        defaultPrivacy: NotificationPrivacy.Public)
-  ]);
+  // AwesomeNotifications()
+  //     .initialize('resource://drawable/res_notification_app_icon', [
+  //   NotificationChannel(
+  //       channelKey: 'basic_channel',
+  //       channelDescription: '',
+  //       channelName: 'basic notifications',
+  //       defaultColor: Colors.teal,
+  //       enableVibration: true,
+  //       importance: NotificationImportance.Low,
+  //       locked: true,
+  //       defaultPrivacy: NotificationPrivacy.Public)
+  // ]);
 
   setExitStringsToSharedPrrefs();
   runApp(ProviderScope(child: BelnetApp()));
@@ -528,7 +528,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     if (BelnetLib.isConnected == false) {
       print(
           '${DateTime.now().microsecondsSinceEpoch} netvalue from disconnected --');
-      AwesomeNotifications().dismiss(3);
+     //AwesomeNotifications().dismiss(3);
       appModel.singleDownload = "";
       appModel.singleUpload = "";
     }
@@ -546,8 +546,8 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       var disConnectValue = await BelnetLib.disconnectFromBelnet();
       appModel.connecting_belnet = false;
       dismiss = true;
-      AwesomeNotifications()
-          .dismiss(3); // dismiss the notification when belnet disconnected
+      // AwesomeNotifications()
+      //     .dismiss(3); // dismiss the notification when belnet disconnected
 
       //logProvider.logata_set = "belnet disconnected";
       if (disConnectValue)
@@ -587,17 +587,17 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       }
 
       setState(() {});
-      MyNotificationWorkLoad(
-        appModel: appModel,
-        isLoading: loading,
-        function: () {
-          setState(() {});
-        },
-      ).createMyNotification(
-        dismiss,
-        uploadRate,
-        downloadRate,
-      );
+      // MyNotificationWorkLoad(
+      //   appModel: appModel,
+      //   isLoading: loading,
+      //   function: () {
+      //     setState(() {});
+      //   },
+      // ).createMyNotification(
+      //   dismiss,
+      //   uploadRate,
+      //   downloadRate,
+      // );
       if (BelnetLib.isConnected) {
         appModel.connecting_belnet = true;
         logController.addDataTolist(

@@ -11,6 +11,7 @@ import 'package:belnet_mobile/src/widget/LineChartSample10.dart';
 import 'package:belnet_mobile/src/widget/aboutpage.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
 import 'package:belnet_mobile/src/widget/exit_node_list.dart';
+import 'package:belnet_mobile/src/widget/expandablelist.dart';
 import 'package:belnet_mobile/src/widget/logProvider.dart';
 // import 'package:belnet_mobile/src/widget/logProvider.dart';
 import 'package:belnet_mobile/src/widget/notifications.dart';
@@ -822,10 +823,10 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                           left: mHeight * 0.10 / 3, top: mHeight * 0.10 / 3),
                       child: GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ChartData()));
+                          // Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //         builder: (context) => ExpandDropdownList()));
                         },
                         child: Text('Exit Node',
                             style: TextStyle(

@@ -4,7 +4,7 @@ import 'exitnodeModel.dart';
 import 'package:http/http.dart' as http;
 class DataRepo{
    Future<List<ExitnodeList>> getDataFromNet()async {
-    var response =await http.get(Uri.parse('https://deb.beldex.io/Beldex-projects/Belnet/exitlist.json'));
+    var response =await http.get(Uri.parse('https://testdeb.beldex.io/Beldex-Projects/Belnet/android/exitlist/jsonSample.json')); //https://deb.beldex.io/Beldex-projects/Belnet/exitlist.json
     //var mydata;
     try{
       if(response.statusCode == 200){

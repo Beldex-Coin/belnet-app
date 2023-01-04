@@ -358,7 +358,7 @@ public void displayUploadData(){
 //
 //  title= notifyMsg;
 
-//    Intent notificationIntent = new Intent(BelnetDaemon.this, NotifyButton.class);
+//    Intent notificationssIntent = new Intent(BelnetDaemon.this, NotifyButton.class);
 //    notificationIntent.putExtra("fromNotification", true);
 //    PendingIntent pendingIntent = PendingIntent.getActivity(BelnetDaemon.this, 0, notificationIntent,
 //            PendingIntent.FLAG_UPDATE_CURRENT);

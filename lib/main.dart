@@ -823,10 +823,10 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                           left: mHeight * 0.10 / 3, top: mHeight * 0.10 / 3),
                       child: GestureDetector(
                         onTap: () {
-                          // Navigator.push(
-                          //     context,
-                          //     MaterialPageRoute(
-                          //         builder: (context) => ExpandDropdownList()));
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ExpandDropdownList()));
                         },
                         child: Text('Exit Node',
                             style: TextStyle(
@@ -882,7 +882,8 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                           child: Padding(
                             padding: const EdgeInsets.only(
                                 left: 0.0, right: 6.0, top: 3.0, bottom: 5.0),
-                            child: CustDropDown(
+                            child:
+                            CustDropDown(
                               maxListHeight: 120,
                               items: exitItems
                                   .map((e) => CustDropdownMenuItem(

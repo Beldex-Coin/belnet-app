@@ -4,7 +4,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_mobile/displaylog.dart';
 import 'package:belnet_mobile/src/model/exitnodeModel.dart';
 import 'package:belnet_mobile/src/model/exitnodeRepo.dart';
-import 'package:belnet_mobile/src/model/one.dart' as exitNodeModel;
+import 'package:belnet_mobile/src/model/exitnodeCategoryModel.dart' as exitNodeModel;
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
@@ -853,10 +853,10 @@ String valueS ="";
                           left: mHeight * 0.10 / 3, top: mHeight * 0.10 / 3),
                       child: GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ExpandDropdownList()));
+                          // Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //         builder: (context) => ExpandDropdownList()));
                         },
                         child: Text('Exit Node',
                             style: TextStyle(
@@ -897,6 +897,11 @@ String valueS ="";
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
+                              Container(
+                              
+                               // margin:EdgeInsets.only(right:mHeight*0.03/3,),
+                                child:SvgPicture.network("https://testdeb.beldex.dev/Beldex-Projects/Belnet/android/countryicons/icons8-france.svg")
+                              ),
                               Expanded(
                                   child: Center(
                                     child: Text("$hintValue",

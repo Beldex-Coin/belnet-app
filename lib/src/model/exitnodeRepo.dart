@@ -1,4 +1,4 @@
-import 'package:belnet_mobile/src/model/one.dart';
+import 'package:belnet_mobile/src/model/exitnodeCategoryModel.dart';
 import 'package:get/get_connect/http/src/_http/interface/request_base.dart';
 
 import 'exitnodeModel.dart';

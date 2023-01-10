@@ -417,17 +417,17 @@ class _MyWidgetState extends State<AboutPage> {
                       onTap: () async {
                         //FlutterClipboard.copy("http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/");
                         if (await canLaunchUrl(Uri.parse(
-                            "http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/"))) {
+                            "http://675wmqqbzg6nqs688e1n3bti6ter4kt5q4u5bs1c4quutpnyxsxy.bdx/"))) {
                           await launchUrl(
                               Uri.parse(
-                                  "http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/"),
+                                  "http://675wmqqbzg6nqs688e1n3bti6ter4kt5q4u5bs1c4quutpnyxsxy.bdx/"),
                               mode: LaunchMode.externalApplication);
                         } else {
-                          throw 'Could not launch http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/';
+                          throw 'Could not launch http://675wmqqbzg6nqs688e1n3bti6ter4kt5q4u5bs1c4quutpnyxsxy.bdx/';
                         }
                       },
                       child: Text(
-                        """http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/""",
+                        """http://675wmqqbzg6nqs688e1n3bti6ter4kt5q4u5bs1c4quutpnyxsxy.bdx/""",
                         style: TextStyle(
                             decoration: TextDecoration.underline,
                             fontSize: mHeight * 0.060 / 3,

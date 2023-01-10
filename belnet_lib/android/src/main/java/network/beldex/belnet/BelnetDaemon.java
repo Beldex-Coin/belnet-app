@@ -134,6 +134,7 @@ public class BelnetDaemon extends VpnService{
       mUpdateIsConnectedTimer = null;
     }
     disconnect();
+    clearNotifications();
     super.onDestroy();
 
   }
@@ -284,7 +285,7 @@ public void displayUploadData(){
     Log.d("MyStringForTX", String.valueOf(txRate));
     jstUpdate(sValue);
   } catch (JSONException e) {
-    e.printStackTrace();
+    Log.e(LOG_TAG,e.toString());
   }
 
 }
@@ -571,7 +572,9 @@ public void jstUpdate(String data){
       }
 
       Log.e(LOG_TAG, "Using " + exitNode + " as exit-node.");
+
       configVals.add(new ConfigValue("network", "exit-node", exitNode));
+
 
       if (upstreamDNS == null || upstreamDNS.isEmpty()) {
         upstreamDNS = DEFAULT_UPSTREAM_DNS;

@@ -4,6 +4,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_mobile/displaylog.dart';
 import 'package:belnet_mobile/src/model/exitnodeModel.dart';
 import 'package:belnet_mobile/src/model/exitnodeRepo.dart';
+import 'package:belnet_mobile/src/model/one.dart' as exitNodeModel;
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
@@ -26,7 +27,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:native_updater/native_updater.dart';
-
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart' as pr;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -485,6 +486,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     //callForUpdate();
     // getConnectingData();
     //getRandomExitNodes();
+    saveData();
   }
 
 // function for storing the previous log data
@@ -666,6 +668,34 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 //   }
 // }
 
+ List<exitNodeModel.ExitNodeDataList> exitData = [];
+ bool canShow = false;
+
+String valueS ="";
+  
+  saveData() async {
+    var res = await DataRepo().getListData();
+    exitData.addAll(res);
+    setState(() {});
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   @override
   Widget build(BuildContext context) {
     appModel = pr.Provider.of<AppModel>(context);
@@ -840,76 +870,186 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                     ),
                   ],
                 ),
-                Padding(
-                  padding: EdgeInsets.only(
-                      left: mHeight * 0.08 / 3,
-                      right: mHeight * 0.10 / 3,
-                      top: mHeight * 0.03 / 3),
-                  child: BelnetLib.isConnected
-                      ? Container(
-                          height: mHeight * 0.16 / 3,
-                          decoration: BoxDecoration(
-                              color: color,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(5))),
-                          child: Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                      child: Center(
-                                    child: Text('$hintValue',
+                Container(
+                  color: Colors.transparent,
+                  child: Stack(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(
+                    left: MediaQuery.of(context).size.height * 0.08 / 3,
+                    right: MediaQuery.of(context).size.height * 0.10 / 3,
+                    top:MediaQuery.of(context).size.height * 0.03 / 3),
+              child:GestureDetector(
+                  onTap: (){
+                    setState(() {
+                      canShow = canShow ? false : true;
+                    });
+                  },
+                  child: Container(
+                      height: MediaQuery.of(context).size.height * 0.16 / 3,
+                      decoration: BoxDecoration(
+                          color: Color(0xff292937),
+                          borderRadius:
+                          BorderRadius.all(Radius.circular(5))),
+                      child: Padding(
+                          padding: const EdgeInsets.only(
+                              left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                  child: Center(
+                                    child: Text("$hintValue",
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 1,
                                         style: TextStyle(
                                             color: Color(0xff00DC00))),
                                   )),
-                                  Container(
-                                      child: Icon(
+                              Container(
+                                  child: Icon(
                                     Icons.arrow_drop_down,
                                     color: Colors.grey,
                                   ))
-                                ],
-                              )))
-                      : Container(
-                          height: mHeight * 0.16 / 3,
-                          decoration: BoxDecoration(
-                              color: color,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(5))),
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                                left: 0.0, right: 6.0, top: 3.0, bottom: 5.0),
-                            child:
-                            CustDropDown(
-                              maxListHeight: 120,
-                              items: exitItems
-                                  .map((e) => CustDropdownMenuItem(
-                                      value: e,
-                                      child: Center(
-                                          child: Text(
-                                        '$e',
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
-                                        style:
-                                            TextStyle(color: Color(0xff00DC00)),
-                                      ))))
-                                  .toList(),
-                              hintText: "$selectedValue",
-                              borderRadius: 5,
-                              onChanged: (val) {
-                                print(val);
-                                setState(() {
-                                  selectedValue = val;
-                                });
-                              },
-                              appModel: appModel,
-                            ),
+                            ],
+                          ))),
+              )
+
+            ),
+          canShow ?  Padding(
+          padding: EdgeInsets.only(
+          left: MediaQuery.of(context).size.height * 0.08 / 3,
+          right: MediaQuery.of(context).size.height * 0.10 / 3,
+          top:MediaQuery.of(context).size.height * 0.03 / 3
+          ),
+            child: Container(
+                  height:MediaQuery.of(context).size.height*0.70/3,
+                  width:MediaQuery.of(context).size.width*2.7/3,
+             color: appModel.darkTheme ? Color(0xff292937) : Colors.white,
+              child:  
+              ListView.builder(
+                  padding: EdgeInsets.zero,
+                  shrinkWrap: true,
+                    itemCount: exitData.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      print("data inside listview ${exitData[index]}");
+                      return Padding(
+                        padding: const EdgeInsets.only(top:0.0,bottom:0.0),
+                        child: ExpansionTile(
+                          title: Text(
+                            exitData[index].type,
+                            style: TextStyle(
+                                color: index == 0 ? Color(0xff1CBE20) : Color(0xff1994FC),
+                                fontSize: MediaQuery.of(context).size.height * 0.06 / 3,
+                                fontWeight: FontWeight.bold),
                           ),
+                          iconColor: index == 0 ? Color(0xff1CBE20) : Color(0xff1994FC),
+                          collapsedIconColor:
+                              index == 0 ? Color(0xff1CBE20) : Color(0xff1994FC),
+                          subtitle: Text(
+                            "${exitData[index].node.length} Nodes",
+                            style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: MediaQuery.of(context).size.height * 0.04 / 3),
+                          ),
+                          children: <Widget>[
+                            Column(
+                              children: _buildExpandableContent(exitData[index].node),
+                            ),
+                          ],
                         ),
+                      );
+                    }
+                    // _buildList(exitData[index]),
+                    ),
+            ),
+          ) :SizedBox.shrink()
+          ],
+        ),
                 ),
+                // Padding(
+                //   padding: EdgeInsets.only(
+                //       left: mHeight * 0.08 / 3,
+                //       right: mHeight * 0.10 / 3,
+                //       top: mHeight * 0.03 / 3),
+                //   child: BelnetLib.isConnected
+                //       ? Container(
+                //           height: mHeight * 0.16 / 3,
+                //           decoration: BoxDecoration(
+                //               color: color,
+                //               borderRadius:
+                //                   BorderRadius.all(Radius.circular(5))),
+                //           child: Padding(
+                //               padding: const EdgeInsets.only(
+                //                   left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
+                //               child: Row(
+                //                 crossAxisAlignment: CrossAxisAlignment.center,
+                //                 children: [
+                //                   Expanded(
+                //                       child: Center(
+                //                     child: Text('$hintValue',
+                //                         overflow: TextOverflow.ellipsis,
+                //                         maxLines: 1,
+                //                         style: TextStyle(
+                //                             color: Color(0xff00DC00))),
+                //                   )),
+                //                   Container(
+                //                       child: Icon(
+                //                     Icons.arrow_drop_down,
+                //                     color: Colors.grey,
+                //                   ))
+                //                 ],
+                //               )))
+                //       : 
+                //       Container(
+                //           height: mHeight * 0.16 / 3,
+                //           decoration: BoxDecoration(
+                //               color: color,
+                //               borderRadius:
+                //                   BorderRadius.all(Radius.circular(5))),
+                //           child: Padding(
+                //             padding: const EdgeInsets.only(
+                //                 left: 0.0, right: 6.0, top: 3.0, bottom: 5.0),
+                //             child:
+                //             CustDropDown(
+                //               maxListHeight: 120,
+                //               items: exitItems
+                //                   .map((e) => CustDropdownMenuItem(
+                //                       value: e,
+                //                       child: Center(
+                //                           child: Text(
+                //                         '$e',
+                //                         overflow: TextOverflow.ellipsis,
+                //                         maxLines: 1,
+                //                         style:
+                //                             TextStyle(color: Color(0xff00DC00)),
+                //                       ))))
+                //                   .toList(),
+                //               hintText: "$selectedValue",
+                //               borderRadius: 5,
+                //               onChanged: (val) {
+                //                 print(val);
+                //                 setState(() {
+                //                   selectedValue = val;
+                //                 });
+                //               },
+                //               appModel: appModel,
+                //             ),
+                //           ),
+                //         ),
+                // ),
+
+
+
+
+
+
+
+
+
+
+
+
+
                 // Padding(
                 //     padding: EdgeInsets.only(
                 //         left: mHeight * 0.08 / 3,
@@ -1072,6 +1212,65 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     //);
     //);
   }
+
+
+
+
+
+
+_buildExpandableContent(List<exitNodeModel.Node> vnode) {
+    List<Widget> columnContent = [];
+    for (int i = 0; i < vnode.length; i++) {
+      columnContent.add(ListTile(
+        
+        onTap: () {
+          setState(() {
+            valueS = vnode[i].name;
+            selectedValue = vnode[i].name;
+          });
+          print("$i th index value $valueS ");
+          canShow = false;
+        },
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              vnode[i].name,
+              style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.height * 0.05 / 3),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+            Text(
+              vnode[i].country,
+              style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: MediaQuery.of(context).size.height * 0.04 / 3),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ],
+        ),
+        leading: SvgPicture.network(
+          vnode[i].icon,
+          height: MediaQuery.of(context).size.height * 0.10 / 3,
+          width: MediaQuery.of(context).size.height * 0.15 / 3,
+        ),
+        trailing: Container(
+          height: 5.0,
+          width: 5.0,
+          decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: vnode[i].isActive == "true" ? Colors.green : Colors.red),
+        ),
+      ));
+    }
+    return columnContent;
+  }
+
+
+
+
 
   // var invalidExit = "";
   // var invalidAuth = "";

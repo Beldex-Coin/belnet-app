@@ -271,7 +271,14 @@ open class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 // //             Log.d("Dis data",myD)
 //                 result.success(datas)
 //             }
+             "disconnectForNotification" -> {
+                 if(mBoundService != null){
 
+                     result.success(true)
+                 }else{
+                     result.success(false)
+                 }
+             }
             else -> result.notImplemented()
         }
     }

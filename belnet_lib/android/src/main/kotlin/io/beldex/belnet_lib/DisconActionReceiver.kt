@@ -12,8 +12,8 @@ class DisconActionReceiver : BroadcastReceiver() {
 
         when(p1?.action){
             DISCONNECT_ACTION -> {
-                //mDaemon?.disconnectNotificationButton()
-                bPlug!!.disConnectButtonCall();
+                mDaemon?.disconnectNotificationButton()
+               // bPlug!!.disConnectButtonCall();
             }
         }
     }

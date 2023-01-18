@@ -111,4 +111,13 @@ class BelnetLib {
     if (status.isNotEmpty) return jsonDecode(status);
     return null;
   }
+
+
+static Future<bool> isDisconnectForBelnetNotification() async {
+    final bool disconnect = await _methodChannel.invokeMethod('disconnectForNotification');
+
+    return disconnect;
+  }
+
+
 }

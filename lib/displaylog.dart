@@ -217,7 +217,7 @@ class _DisplayLogState extends State<DisplayLog> {
                                   //child: Icon(Icons.close,size:MediaQuery.of(context).size.height*0.07/3 ,color: Color(0xffFF3030),),
                                 ),
                                 Text(
-                                  "cancel",
+                                  "clear",
                                   style: TextStyle(
                                       fontWeight: FontWeight.w900,
                                       fontSize:

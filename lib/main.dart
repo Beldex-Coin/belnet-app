@@ -355,6 +355,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     super.dispose();
     _isConnectedEventSubscription?.cancel();
     AwesomeNotifications().dispose();
+    overlayEntry!.remove();
   }
 
   late bool con;
@@ -515,7 +516,9 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     // if(BelnetLib.isConnected){
     //     getUploadAndDownload();
     // }
-
+     if(netValue == false && isOpen){
+      overlayEntry!.remove();
+    }
     return
         // SingleChildScrollView(
         // child:
@@ -665,11 +668,11 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                             left: mHeight * 0.10 / 3, top: mHeight * 0.10 / 3),
                         child: GestureDetector(
                           onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        ExpandDropdownList()));
+                            // Navigator.push(
+                            //     context,
+                            //     MaterialPageRoute(
+                            //         builder: (context) =>
+                            //             ExpandDropdownList()));
                           },
                           child: Text('Exit Node',
                               style: TextStyle(
@@ -789,17 +792,19 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                                             Container(
                                                 margin: EdgeInsets.all(8.0),
                                                 // margin:EdgeInsets.only(right:mHeight*0.03/3,),
-                                                child: Image.network(
+                                                child:
+                                                hintCountryIcon != ""?
+                                                 Image.network(
                                                   "$hintCountryIcon",
                                                   errorBuilder: (context, error,
                                                       stackTrace) {
                                                     return Icon(
-                                                      Icons
-                                                          .info_outline_rounded,
-                                                      color: Colors.pink,
+                                                      Icons.more_horiz,
+                                                      color: Colors.grey,
                                                     );
                                                   },
-                                                )),
+                                                ):Icon(Icons
+                                                          .more_horiz,color: Colors.grey,)),
                                             Expanded(
                                                 child: Center(
                                               child: Text("$hintValue",
@@ -875,7 +880,8 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                                                   margin: EdgeInsets.all(8),
                                                   //height:mHeight*0.15/3,width: mHeight*0.20/3,
                                                   // margin:EdgeInsets.only(right:mHeight*0.03/3,),
-                                                  child: selectedConIcon != ""
+                                                  child: 
+                                                  selectedConIcon != ""
                                                       ? Image.network(
                                                         //"$hintCountryIcon",
                                                          "$selectedConIcon",
@@ -884,13 +890,14 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                                                                   stackTrace) {
                                                             return Icon(
                                                                 Icons
-                                                                    .info_outline_rounded,
+                                                                    .more_horiz,
                                                                 color: Colors
-                                                                    .yellow);
+                                                                    .grey);
                                                           },
                                                         )
-                                                      : Icon(Icons
-                                                          .info_outline_rounded)),
+                                                      : 
+                                                      Icon(Icons
+                                                          .more_horiz,color: Colors.grey,)),
                                               Expanded(
                                                   child: Center(
                                                 child: Text("$selectedValue",
@@ -1225,6 +1232,8 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildExitnodeListView(double mHeight) {
+
+   
     return Material(
       color: Colors.transparent,
       child: GestureDetector(
@@ -1414,6 +1423,9 @@ _buildExpandableContent(List<exitNodeModel.Node> vnode) {
                   child: vnode[i].icon.isNotEmpty
                       ? Image.network(
                           vnode[i].icon,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(Icons.more_horiz,color: Colors.grey,size: 0.4,);
+                          },
                           // height: MediaQuery.of(context).size.height * 0.10 / 3,
                           // width: MediaQuery.of(context).size.height * 0.15 / 3,
                           fit: BoxFit.fill,

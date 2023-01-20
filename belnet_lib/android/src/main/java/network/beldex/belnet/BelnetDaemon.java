@@ -152,8 +152,8 @@ public class BelnetDaemon extends VpnService{
 
   private void clearNotifications() {
     if (mNotificationManager != null)
-      mNotificationManager.cancelAll();
-
+     // mNotificationManager.cancelAll();   // i changed 1
+      mNotificationManager.cancel(NOTIFY_ID);
   }
 
 

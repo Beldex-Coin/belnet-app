@@ -337,14 +337,14 @@ class _MyWidgetState extends State<AboutPage> {
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = (() async {
                                       if (await canLaunchUrl(Uri.parse(
-                                          "https://docs.beldex.io/advanced/belnet/exit-node-setup-guide"))) {
+                                          "https://docs.beldex.io/belnet/exit-node-setup-guide"))) {
                                         await launchUrl(
                                             Uri.parse(
-                                                "https://docs.beldex.io/advanced/belnet/exit-node-setup-guide"),
+                                                "https://docs.beldex.io/belnet/exit-node-setup-guide"),
                                             mode:
                                                 LaunchMode.externalApplication);
                                       } else {
-                                        throw 'Could not launch https://docs.beldex.io/advanced/belnet/exit-node-setup-guide';
+                                        throw 'Could not launch https://docs.beldex.io/belnet/exit-node-setup-guide';
                                       }
                                     }),
                                   style: TextStyle(

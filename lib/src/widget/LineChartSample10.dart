@@ -309,7 +309,7 @@ class Charts extends StatelessWidget {
                   Positioned(
                     bottom: 0.0, right: 5.0,
                     left: MediaQuery.of(context).size.height * 0.05 / 3,
-                    top: MediaQuery.of(context).size.height * 0.52 / 3,
+                    top: MediaQuery.of(context).size.height * 0.54 / 3,
                     //width: double.infinity,
                     child: Container(
                       //color: Colors.black,
@@ -522,7 +522,7 @@ class Charts extends StatelessWidget {
                   Positioned(
                     bottom: 0.0, right: 5.0,
                     left: MediaQuery.of(context).size.height * 0.05 / 3,
-                    top: MediaQuery.of(context).size.height * 0.52 / 3,
+                    top: MediaQuery.of(context).size.height * 0.54 / 3,
                     //width: double.infinity,
                     child: Container(
                       //color: Colors.black,

@@ -99,7 +99,12 @@ class _DisplayLogState extends State<DisplayLog> {
                     borderRadius: BorderRadius.circular(9.0),
                     color:
                         appModel.darkTheme ? Color(0xff252532) : Colors.white),
-                child: Obx(
+                child: logController.data.isEmpty ? Center(
+                  child: Container(
+                    child:Text('No logs yet', style: TextStyle(color: Color(0xffA1A1C1)),)
+                  ),
+                ) :
+               Obx(
                   () {
                     return Container(
                       //color: Colors.yellow,

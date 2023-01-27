@@ -31,6 +31,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:native_updater/native_updater.dart';
 import 'package:provider/provider.dart' as pr;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -170,7 +171,7 @@ class BelnetHomePageState extends State<BelnetHomePage>
   LogController logControllers = Get.put(LogController());
   @override
   void initState() {
-    UpdateApp().checkVersion(context);
+    checkVersion(context);
     Timer.periodic(Duration(seconds: 5), (timer) {
       myNetwork();
     });
@@ -178,6 +179,54 @@ class BelnetHomePageState extends State<BelnetHomePage>
     //  getExitnodeListDataFromAPI();
     super.initState();
   }
+
+
+Future<void> checkVersion(BuildContext context) async {
+    /// For example: You got status code of 412 from the
+    /// response of HTTP request.
+    /// Let's say the statusCode 412 requires you to force update
+    final statusCode = 412;
+
+    /// This could be kept in our local
+    // final localVersion = 9;
+
+    /// This could get from the API
+    //final serverLatestVersion = 10;
+
+    Future.delayed(Duration.zero, () {
+      if (statusCode == 412) {
+        NativeUpdater.displayUpdateAlert(
+          context,
+          forceUpdate: true,
+          appStoreUrl: '',
+          playStoreUrl:
+              'https://play.google.com/store/apps/details?id=io.beldex.belnet',
+          iOSDescription:
+              'A new version of the Belnet application is available. Update to continue using it.',
+          iOSUpdateButtonLabel: 'Upgrade',
+          iOSCloseButtonLabel: 'Exit',
+          iOSAlertTitle: 'Mandatory Update',
+        );
+      } /* else if (serverLatestVersion > localVersion) {
+        NativeUpdater.displayUpdateAlert(
+          context,
+          forceUpdate: true,
+          appStoreUrl: 'https://apps.apple.com/in/app/beldex-official-wallet/id1603063369',
+          playStoreUrl: 'https://play.google.com/store/apps/details?id=io.beldex.wallet',
+          iOSDescription: 'Your App requires that you update to the latest version. You cannot use this app until it is updated.',
+          iOSUpdateButtonLabel: 'Upgrade',
+          iOSCloseButtonLabel: 'Exit',
+        );*/
+    });
+  }
+
+
+
+
+
+
+
+
 
   myNetwork() async {
     connectivityResult = await Connectivity().checkConnectivity();
@@ -211,6 +260,27 @@ class BelnetHomePageState extends State<BelnetHomePage>
         break;
     }
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   @override
   void dispose() {
@@ -837,7 +907,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                                     setState(() {
                                       isOpen = isOpen ? false : true;
                                     });
-                                    if (isOpen && exitData.isEmpty) {
+                                    if (isOpen && (exitData.isEmpty || exitData == [])) {
                                       // exitData.clear();
                                       saveData();
                                     }
@@ -1281,6 +1351,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                     //padding: const EdgeInsets.only(top:0.0,bottom:0.0),
                     child: ExpansionTile(
                       // backgroundColor: Colors.yellow,
+                      //initiallyExpanded: true,
                       tilePadding: EdgeInsets.only(
                           left: mHeight * 0.08 / 3, right: mHeight * 0.08 / 3),
                       title: Text(
@@ -1365,7 +1436,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   //         leading: Container(
   //           //color:Colors.yellow,
   //           height: MediaQuery.of(context).size.height * 0.050 / 3,
-  //           width: MediaQuery.of(context).size.height * 0.060 / 3,
+  //           width: MedtrueiaQuery.of(context).size.height * 0.060 / 3,
   //           child: vnode[i].icon.isNotEmpty
   //               ? Image.network(
   //                   vnode[i].icon,

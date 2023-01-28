@@ -11,13 +11,10 @@ import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
 import 'package:belnet_mobile/src/widget/LineChartSample10.dart';
 import 'package:belnet_mobile/src/widget/aboutpage.dart';
-import 'package:belnet_mobile/src/widget/appUpdate.dart';
-import 'package:belnet_mobile/src/widget/bottomnavbaroptions.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
 import 'package:belnet_mobile/src/widget/exit_node_list.dart';
 import 'package:belnet_mobile/src/widget/expandablelist.dart';
 import 'package:belnet_mobile/src/widget/logProvider.dart';
-import 'package:belnet_mobile/src/widget/nointernet_connection.dart';
 // import 'package:belnet_mobile/src/widget/logProvider.dart';
 import 'package:belnet_mobile/src/widget/notifications.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -30,8 +27,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:native_updater/native_updater.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart' as pr;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -40,9 +37,131 @@ import 'package:shared_preferences/shared_preferences.dart';
 bool netValue = true;
 bool isClick = false;
 bool loading = false;
-bool isOpen = false;
 // these data just for testing purpose
-
+List<double> sampleUpData = [
+  26.6,
+  26.6,
+  16.2,
+  16.2,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  9.8,
+  9.8,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  9.8,
+  9.8,
+  25.1,
+  25.1,
+  19.5,
+  19.5,
+  5.0,
+  5.0,
+  2.0,
+  2.0,
+  5.0,
+  5.0,
+  2.0,
+  2.0,
+  13.7,
+  13.7,
+  6.0,
+  6.0,
+  6.0,
+  6.0,
+  5.0,
+  5.0,
+  15.4,
+  15.4,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  16.1,
+  16.1,
+  2.0,
+  2.0,
+  5.0,
+  5.0,
+  5.0,
+  5.0
+];
+List<double> sampleDownData = [
+  5.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  5.0,
+  5.0,
+  15.6,
+  15.6,
+  22.1,
+  22.1,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  5.0,
+  5.0,
+  2.0,
+  2.0,
+  12.1,
+  12.1,
+  15.7,
+  15.7,
+  10.1,
+  10.1,
+  2.0,
+  2.0,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  2.0,
+  2.0,
+  6.0,
+  6.0,
+  6.0,
+  6.0,
+  5.0,
+  5.0,
+  10.5,
+  10.5,
+  6.0,
+  6.0,
+  5.0,
+  5.0,
+  5.0,
+  5.0,
+  2.0,
+  2.0,
+  5.0
+];
 void main() async {
   //Load settings
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,14 +169,50 @@ void main() async {
   Paint.enableDithering = true;
   pr.Provider.debugCheckInvalidValueType = null;
 
+  // AwesomeNotifications()
+  //     .initialize('resource://drawable/res_notification_app_icon', [
+  //   NotificationChannel(
+  //       channelKey: 'basic_channel',
+  //       channelDescription: '',
+  //       channelName: 'basic notifications',
+  //       defaultColor: Colors.teal,
+  //       enableVibration: true,
+  //       importance: NotificationImportance.Low,
+  //       locked: true,
+  //       defaultPrivacy: NotificationPrivacy.Public)
+  // ]);
+
+  setExitStringsToSharedPrrefs();
   runApp(ProviderScope(child: BelnetApp()));
 }
 
-List<exitNodeModel.ExitNodeDataList> ranExitData = [];
+setExitStringsToSharedPrrefs() async {
+  List<String> exitNodes = [
+    'iyu3gajuzumj573tdy54sjs7b94fbqpbo3o44msrba4zez1o4p3o.bdx',
+    'a6iiyy3c4qsp8kdt49ao79dqxskd81eejidhq9j36d8oodznibqy.bdx',
+    'snoq7arak4d5mkpfsg69saj7bp1ikxyzqjkhzb96keywn6iyhc5y.bdx',
+  ];
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setStringList("ExitNodes", exitNodes);
+}
+
+
+
+
+
+
+
+
+List<exitNodeModel.ExitNodeDataList> ranExitData=[];
 List ids = [];
 var selectedId;
-var exitName = "", exitIcon = "";
-List<exitNodeModel.ExitNodeDataList> exitData = [];
+var exitName="", exitIcon="";
+ List<exitNodeModel.ExitNodeDataList> exitData = [];
+
+
+
+
+
 
 class BelnetApp extends StatefulWidget {
   @override
@@ -83,56 +238,109 @@ class _BelnetAppState extends State<BelnetApp> {
 
     // SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack, overlays: [SystemUiOverlay.top]);
     getRandomExitData();
+   // setvalueToExitNode();
+    // getExitnodeListDataFromAPI();
     _initAppTheme();
   }
 
+
 //////////////////////////////////////////////////////////////////////////////
 
-  getRandomExitData() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    if (BelnetLib.isConnected == false) {
-      print(
-          "inside getRandomExitData function the belnetlib is false ${BelnetLib.isConnected}");
-      var responses = await DataRepo().getListData();
-      exitData.addAll(responses);
-      setState(() {
-        exitData.forEach((element) {
-          element.node.forEach((elements) {
-            ids.add(elements.id);
-          });
-        });
 
-        final random = Random();
-        selectedId = ids[random.nextInt(ids.length)];
-      });
+getRandomExitData()async{
+  SharedPreferences preferences = await SharedPreferences.getInstance();
 
-      setState(() {
-        exitData.forEach((element) {
-          element.node.forEach((element) {
-            if (selectedId == element.id) {
-              selectedValue = element.name;
-              selectedConIcon = element.icon;
-              print("icon id value $selectedId");
-              print("selected exitnode value $selectedValue");
-              print("icon image url : ${element.icon}");
-            }
-          });
-        });
+  var responses = await DataRepo().getListData();
+  exitData.addAll(responses);
+setState(() {
+  exitData.forEach((element) {
+  element.node.forEach((elements) {
+    ids.add(elements.id);
+  });
+ });
 
-        // if(BelnetLib.isConnected == false){
-        // preferences.setString('hintValue',selectedValue!);
-        // preferences.setString('hintContryicon',selectedConIcon!);
-        // }
-      });
+
+final random = Random();
+      selectedId = ids[random.nextInt(ids.length)];
+
+});
+ 
+
+ exitData.forEach((element) {
+  element.node.forEach((element) {
+    if(selectedId == element.id){
+       selectedValue = element.name;
+       selectedConIcon = element.icon;
+       print("icon image url : $selectedConIcon");
     }
-    setState(() {
-      hintValue = preferences.getString('hintValue');
-      hintCountryIcon = preferences.getString('hintCountryicon');
-      print('print hintvalue $hintValue and hintCountryIcon $hintCountryIcon');
-    });
-  }
+  });
+ });
+  setState(() {
+    
+  });
+
+
+  hintValue = preferences.getString('hintvalue');
+  hintCountryIcon = preferences.getString('hintContryicon');
+
+}
+
+
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  setvalueToExitNode() async {
+    List<String> myExitData = [];
+    final prefs = await SharedPreferences.getInstance();
+    List<ExitnodeList> exitList = await DataRepo().getDataFromNet();
+    if (exitList.isNotEmpty) {
+      exitList.forEach(
+        (element) {
+          myExitData.add(element.name);
+          setState(() {});
+        },
+      );
+      if (myExitData.isNotEmpty) {
+        prefs.setStringList("ExitNodes", myExitData);
+        // exitItems = myExitData;
+        exitItems = myExitData;
+        setState(() {});
+      } else {
+        exitItems = prefs.getStringList("ExitNodes")!;
+      }
+    }
+
+    getRandomExitNodes();
+  }
+
+  getRandomExitNodes() async {
+    SharedPreferences preference = await SharedPreferences.getInstance();
+    hintValue = preference.getString('hintValue');
+    if (BelnetLib.isConnected == false) {
+      print(
+          "is connected value from getRandomExitNodes ${BelnetLib.isConnected}");
+      final random = Random();
+      selectedValue = exitItems[random.nextInt(exitItems.length)];
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -176,12 +384,11 @@ class BelnetHomePageState extends State<BelnetHomePage>
       myNetwork();
     });
     setState(() {});
-    //  getExitnodeListDataFromAPI();
+    getExitnodeListDataFromAPI();
     super.initState();
   }
 
-
-Future<void> checkVersion(BuildContext context) async {
+  Future<void> checkVersion(BuildContext context) async {
     /// For example: You got status code of 412 from the
     /// response of HTTP request.
     /// Let's say the statusCode 412 requires you to force update
@@ -220,14 +427,6 @@ Future<void> checkVersion(BuildContext context) async {
     });
   }
 
-
-
-
-
-
-
-
-
   myNetwork() async {
     connectivityResult = await Connectivity().checkConnectivity();
     switch (connectivityResult) {
@@ -260,27 +459,6 @@ Future<void> checkVersion(BuildContext context) async {
         break;
     }
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   @override
   void dispose() {
@@ -358,11 +536,10 @@ dynamic downloadRate = '';
 dynamic uploadRate = '';
 String? selectedValue =
     'snoq7arak4d5mkpfsg69saj7bp1ikxyzqjkhzb96keywn6iyhc5y.bdx';
-String? selectedConIcon =
-    "https://deb.beldex.io/Beldex-projects/Belnet/countryflag/icons8-france.png";
+String? selectedConIcon = "";//"https://testdeb.beldex.dev/Beldex-Projects/Belnet/android/countryicons/icons8-france.svg";
 String? hintValue = '';
 String? hintCountryIcon = '';
-
+bool canShow = false;
 class MyForm extends StatefulWidget {
   final AppModel appModel;
   const MyForm(this.appModel);
@@ -393,7 +570,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
         .listen((bool isConnected) => setState(() {}));
     //callForUpdate();
     // getConnectingData();
-    getRandomExitNodes();
+    //getRandomExitNodes();
     saveData();
   }
 
@@ -411,13 +588,32 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     prefs.setStringList("Prev_TIME_DATA", lDate);
   }
 
+
+
+   
+  
+   
+
+
+
+   
+   
+
+
+
+
+
+
   getRandomExitNodes() async {
     SharedPreferences preference = await SharedPreferences.getInstance();
     hintValue = preference.getString('hintValue');
-    hintCountryIcon = preference.getString('hintCountryicon');
-    setState(() {
-      
-    });
+    if (BelnetLib.isConnected == false) {
+      print(
+          "is connected value from getRandomExitNodes ${BelnetLib.isConnected}");
+      final random = Random();
+      selectedValue = exitItems[random.nextInt(exitItems.length)];
+      setState(() {});
+    }
   }
 
   @override
@@ -425,15 +621,14 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     super.dispose();
     _isConnectedEventSubscription?.cancel();
     AwesomeNotifications().dispose();
-    overlayEntry!.remove();
   }
 
   late bool con;
 
   Future toggleBelnet() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    appModel.uploadList.addAll(SpeedMapData().sampleUpData);
-    appModel.downloadList.addAll(SpeedMapData().sampleDownData);
+    appModel.uploadList.addAll(sampleUpData);
+    appModel.downloadList.addAll(sampleDownData);
     if (BelnetLib.isConnected == false) {
       print(
           '${DateTime.now().microsecondsSinceEpoch} netvalue from disconnected --');
@@ -468,20 +663,16 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       //Save the exit node and upstream dns
       final Settings settings = Settings.getInstance()!;
       settings.exitNode = selectedValue!.trim().toString();
-      var myVal = selectedValue!.trim().toString();
-      logController.addDataTolist(" Exit node = $myVal",
+      var enode = selectedValue!.trim().toString();
+      var eIcon = selectedConIcon.toString();
+      logController.addDataTolist(" Exit node = $enode",
           "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
-      preferences.setString('hintValue', myVal);
+      logController.addDataTolist(" Connected to $enode",
+          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+      preferences.setString('hintValue', enode);
+      preferences.setString('hintContryicon',eIcon);
       hintValue = preferences.getString('hintValue');
-     
-      setState(() {});
-      var eIcon = selectedConIcon!.trim().toString();
-      preferences.setString('hintCountryicon', eIcon);
-      hintCountryIcon = preferences.getString('hintCountryicon');
-       print('hint value is stored from getString $hintValue and the hintCountryicon is $hintCountryIcon');
-      logController.addDataTolist(" Connected to $myVal",
-          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
-
+      hintCountryIcon = preferences.getString('hintContryicon');
       print('hint value is stored from getString $hintValue');
       setState(() {});
       settings.upstreamDNS = '';
@@ -567,11 +758,11 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   }
 
   List<exitNodeModel.ExitNodeDataList> exitData = [];
+  
 
   String valueS = "";
 
   saveData() async {
-    exitData = [];
     var res = await DataRepo().getListData();
     exitData.addAll(res);
     setState(() {});
@@ -586,20 +777,18 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     // if(BelnetLib.isConnected){
     //     getUploadAndDownload();
     // }
-     if(netValue == false && isOpen){
-      overlayEntry!.remove();
-    }
+
     return
         // SingleChildScrollView(
         // child:
         // Scaffold(
         // resizeToAvoidBottomInset: true,
         GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
           Stack(
             children: [
               Column(
@@ -738,11 +927,10 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                             left: mHeight * 0.10 / 3, top: mHeight * 0.10 / 3),
                         child: GestureDetector(
                           onTap: () {
-                            // Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //         builder: (context) =>
-                            //             ExpandDropdownList()));
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ExpandDropdownList()));
                           },
                           child: Text('Exit Node',
                               style: TextStyle(
@@ -757,238 +945,238 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                     ],
                   ),
 
-                  // Container(
-                  //     color: Colors.transparent,
-                  //     child: Stack(
-                  //       children: [
-                  //         Padding(
-                  //             padding: EdgeInsets.only(
-                  //                 left:
-                  //                     MediaQuery.of(context).size.height * 0.08 / 3,
-                  //                 right:
-                  //                     MediaQuery.of(context).size.height * 0.10 / 3,
-                  //                 top: MediaQuery.of(context).size.height *
-                  //                     0.03 /
-                  //                     3),
-                  //             child: GestureDetector(
-                  //               onTap: () {
-                  //                 setState(() {
-                  //                   canShow = canShow ? false : true;
-                  //                 });
-                  //               },
-                  //               child: Container(
-                  //                   height: MediaQuery.of(context).size.height *
-                  //                       0.16 /
-                  //                       3,
-                  //                   decoration: BoxDecoration(
-                  //                       color: appModel.darkTheme
-                  //                           ? Color(0xff292937)
-                  //                           : Color(0xffFFFFFF),
-                  //                       borderRadius:
-                  //                           BorderRadius.all(Radius.circular(5))),
-                  //                   child: Padding(
-                  //                       padding: const EdgeInsets.only(
-                  //                           left: 4.0,
-                  //                           right: 6.0,
-                  //                           top: 3.0,
-                  //                           bottom: 5.0),
-                  //                       child: Row(
-                  //                         crossAxisAlignment:
-                  //                             CrossAxisAlignment.center,
-                  //                         children: [
-                  //                           Container(
 
-                  //                               // margin:EdgeInsets.only(right:mHeight*0.03/3,),
-                  //                               child: SvgPicture.network(
-                  //                                   "https://testdeb.beldex.dev/Beldex-Projects/Belnet/android/countryicons/icons8-france.svg")),
-                  //                           Expanded(
-                  //                               child: Center(
-                  //                             child: Text("$hintValue",
-                  //                                 overflow: TextOverflow.ellipsis,
-                  //                                 maxLines: 1,
-                  //                                 style: TextStyle(
-                  //                                     color: Color(0xff00DC00))),
-                  //                           )),
-                  //                           Container(
-                  //                               child: Icon(
-                  //                             Icons.arrow_drop_down,
-                  //                             color: Colors.grey,
-                  //                           ))
-                  //                         ],
-                  //                       ))),
-                  //             )),
+                // Container(
+                //     color: Colors.transparent,
+                //     child: Stack(
+                //       children: [
+                //         Padding(
+                //             padding: EdgeInsets.only(
+                //                 left:
+                //                     MediaQuery.of(context).size.height * 0.08 / 3,
+                //                 right:
+                //                     MediaQuery.of(context).size.height * 0.10 / 3,
+                //                 top: MediaQuery.of(context).size.height *
+                //                     0.03 /
+                //                     3),
+                //             child: GestureDetector(
+                //               onTap: () {
+                //                 setState(() {
+                //                   canShow = canShow ? false : true;
+                //                 });
+                //               },
+                //               child: Container(
+                //                   height: MediaQuery.of(context).size.height *
+                //                       0.16 /
+                //                       3,
+                //                   decoration: BoxDecoration(
+                //                       color: appModel.darkTheme
+                //                           ? Color(0xff292937)
+                //                           : Color(0xffFFFFFF),
+                //                       borderRadius:
+                //                           BorderRadius.all(Radius.circular(5))),
+                //                   child: Padding(
+                //                       padding: const EdgeInsets.only(
+                //                           left: 4.0,
+                //                           right: 6.0,
+                //                           top: 3.0,
+                //                           bottom: 5.0),
+                //                       child: Row(
+                //                         crossAxisAlignment:
+                //                             CrossAxisAlignment.center,
+                //                         children: [
+                //                           Container(
 
-                  //       ],
-                  //     ),
-                  //   ),
+                //                               // margin:EdgeInsets.only(right:mHeight*0.03/3,),
+                //                               child: SvgPicture.network(
+                //                                   "https://testdeb.beldex.dev/Beldex-Projects/Belnet/android/countryicons/icons8-france.svg")),
+                //                           Expanded(
+                //                               child: Center(
+                //                             child: Text("$hintValue",
+                //                                 overflow: TextOverflow.ellipsis,
+                //                                 maxLines: 1,
+                //                                 style: TextStyle(
+                //                                     color: Color(0xff00DC00))),
+                //                           )),
+                //                           Container(
+                //                               child: Icon(
+                //                             Icons.arrow_drop_down,
+                //                             color: Colors.grey,
+                //                           ))
+                //                         ],
+                //                       ))),
+                //             )),
+                     
+                //       ],
+                //     ),
+                //   ),
+
+
+
+
+
 
                   Container(
                     color: Colors.transparent,
                     child: Stack(
                       children: [
-                        BelnetLib.isConnected
-                            ? Padding(
-                                padding: EdgeInsets.only(
-                                    left: MediaQuery.of(context).size.height *
-                                        0.08 /
-                                        3,
-                                    right: MediaQuery.of(context).size.height *
-                                        0.10 /
-                                        3,
-                                    top: MediaQuery.of(context).size.height *
-                                        0.03 /
-                                        3),
-                                child: Container(
-                                    height: MediaQuery.of(context).size.height *
-                                        0.16 /
-                                        3,
-                                    decoration: BoxDecoration(
-                                      
+                        Padding(
+                            padding: EdgeInsets.only(
+                                left:
+                                    MediaQuery.of(context).size.height * 0.08 / 3,
+                                right:
+                                    MediaQuery.of(context).size.height * 0.10 / 3,
+                                top: MediaQuery.of(context).size.height *
+                                    0.03 /
+                                    3),
+                            child: GestureDetector(
+                              onTap: () {
+                                // setState(() {
+                                //   canShow = canShow ? false : true;
+                                // });
+
+                              OverlayState? overlayState = Overlay.of(context);
+                               overlayEntry = OverlayEntry(builder: (context) {
+                                 return 
+
+                                 Material(
+                                  color: Colors.transparent,
+                                   child: Container(
+                                          height: 200.0,
+                                          margin: EdgeInsets.only(top:mHeight*2.010/3,bottom:MediaQuery.of(context).size.height*0.30/3,left:mHeight*0.09/3,right:mHeight*0.09/3),
+                                     child: 
+                                    /// Padding(
+                                      // padding: EdgeInsets.only(
+                                      //     left: MediaQuery.of(context).size.height *
+                                      //         0.08 /
+                                      //         3,
+                                      //     right: MediaQuery.of(context).size.height *
+                                      //         0.10 /
+                                      //         3,
+                                      //     top: MediaQuery.of(context).size.height *
+                                      //         0.03 /
+                                      //         3),
+                                      // child: 
+                                      Container(
+                                        height: MediaQuery.of(context).size.height *
+                                            0.70 /
+                                            3,
+                                        width:
+                                            MediaQuery.of(context).size.width * 2.7 / 3,
                                         color: appModel.darkTheme
                                             ? Color(0xff292937)
-                                            : Color(0xffFFFFFF),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(5))),
-                                    child: Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 4.0,
-                                            right: 6.0,
-                                            top: 3.0,
-                                            bottom: 5.0),
-                                        child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            Container(
-                                                margin: EdgeInsets.all(8.0),
-                                                // margin:EdgeInsets.only(right:mHeight*0.03/3,),
-                                                child:
-                                                hintCountryIcon != ""?
-                                                 Image.network(
-                                                  "$hintCountryIcon",
-                                                  errorBuilder: (context, error,
-                                                      stackTrace) {
-                                                    return Icon(
-                                                      Icons.more_horiz,
-                                                      color: Colors.grey,
-                                                    );
-                                                  },
-                                                ):Icon(Icons
-                                                          .more_horiz,color: Colors.grey,)),
-                                            Expanded(
-                                                child: Center(
-                                              child: Text("$hintValue",
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  maxLines: 1,
-                                                  style: TextStyle(
-                                                      color:
-                                                          Color(0xff00DC00))),
-                                            )),
-                                            Container(
-                                                child: Icon(
-                                              Icons.arrow_drop_down,
-                                              color: Colors.grey,
-                                            ))
-                                          ],
-                                        ))))
-                            : Padding(
-                                padding: EdgeInsets.only(
-                                    left: MediaQuery.of(context).size.height *
-                                        0.08 /
-                                        3,
-                                    right: MediaQuery.of(context).size.height * 0.10 / 3,
-                                    top: MediaQuery.of(context).size.height * 0.03 / 3),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    // setState(() {
-                                    //   canShow = canShow ? false : true;
-                                    // });
-                                    setState(() {
-                                      isOpen = isOpen ? false : true;
-                                    });
-                                    if (isOpen && (exitData.isEmpty || exitData == [])) {
-                                      // exitData.clear();
-                                      saveData();
-                                    }
-                                    print("the value of the isOpen $isOpen");
-
-                                    OverlayState? overlayState =
-                                        Overlay.of(context);
-                                    overlayEntry = OverlayEntry(
-                                      builder: (context) {
-                                        return _buildExitnodeListView(mHeight);
-                                      },
-                                    );
-
-                                    overlayState?.insert(overlayEntry!);
-                                    // if(isOpen == false)
-                                    //   overlayEntry?.remove();
-                                  },
-                                  child: Container(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              0.16 /
-                                              3,
-                                      decoration: BoxDecoration(
-                                          color: appModel.darkTheme
-                                              ? Color(0xff292937)
-                                              : Color(0xffFFFFFF),
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(5))),
-                                      child: Padding(
-                                          padding: const EdgeInsets.only(
-                                              left: 4.0,
-                                              right: 6.0,
-                                              top: 3.0,
-                                              bottom: 5.0),
-                                          child: Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              Container(
-                                                  margin: EdgeInsets.all(8),
-                                                  //height:mHeight*0.15/3,width: mHeight*0.20/3,
-                                                  // margin:EdgeInsets.only(right:mHeight*0.03/3,),
-                                                  child: 
-                                                  selectedConIcon != ""
-                                                      ? Image.network(
-                                                        //"$hintCountryIcon",
-                                                         "$selectedConIcon",
-                                                          errorBuilder:
-                                                              (context, error,
-                                                                  stackTrace) {
-                                                            return Icon(
-                                                                Icons
-                                                                    .more_horiz,
-                                                                color: Colors
-                                                                    .grey);
-                                                          },
-                                                        )
-                                                      : 
-                                                      Icon(Icons
-                                                          .more_horiz,color: Colors.grey,)),
-                                              Expanded(
-                                                  child: Center(
-                                                child: Text("$selectedValue",
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    maxLines: 1,
+                                            : Colors.white,
+                                        child: 
+                                        ListView.builder(
+                                            padding: EdgeInsets.zero,
+                                            shrinkWrap: true,
+                                            itemCount: exitData.length,
+                                            itemBuilder:
+                                                (BuildContext context, int index) {
+                                              // print("data inside listview ${exitData[index]}");
+                                              return Container(
+                                                margin: EdgeInsets.all(0),
+                                                //padding: const EdgeInsets.only(top:0.0,bottom:0.0),
+                                                child: ExpansionTile(
+                                                  // backgroundColor: Colors.yellow,
+                                                  tilePadding: EdgeInsets.only(
+                                                      left: mHeight * 0.08 / 3,
+                                                      right: mHeight * 0.08 / 3),
+                                                  title: Text(
+                                                    exitData[index].type,
                                                     style: TextStyle(
-                                                        color:
-                                                            Color(0xff00DC00))),
-                                              )),
-                                              Container(
-                                                  child: Icon(
-                                                Icons.arrow_drop_down,
-                                                color: Colors.grey,
-                                              ))
-                                            ],
-                                          ))),
-                                )),
+                                                        color: index == 0
+                                                            ? Color(0xff1CBE20)
+                                                            : Color(0xff1994FC),
+                                                        fontSize: MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.06 /
+                                                            3,
+                                                        fontWeight: FontWeight.bold),
+                                                  ),
+                                                  iconColor: index == 0
+                                                      ? Color(0xff1CBE20)
+                                                      : Color(0xff1994FC),
+                                                  collapsedIconColor: index == 0
+                                                      ? Color(0xff1CBE20)
+                                                      : Color(0xff1994FC),
+                                                  subtitle: Text(
+                                                    "${exitData[index].node.length} Nodes",
+                                                    style: TextStyle(
+                                                        color: Colors.grey,
+                                                        fontSize: MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.04 /
+                                                            3),
+                                                  ),
+                                                  children: <Widget>[
+                                                    Column(
+                                                      children: _buildExpandableContent(
+                                                          exitData[index].node),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            }
+                                            // _buildList(exitData[index]),
+                                            ),
+                                      ),
+                               // ),
+                                   ),
+                                 );
+                              },);
+
+
+
+                            overlayState?.insert(overlayEntry!);
+
+
+                              },
+                              child: Container(
+                                  height: MediaQuery.of(context).size.height *
+                                      0.16 /
+                                      3,
+                                  decoration: BoxDecoration(
+                                      color: appModel.darkTheme
+                                          ? Color(0xff292937)
+                                          : Color(0xffFFFFFF),
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(5))),
+                                  child: Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 4.0,
+                                          right: 6.0,
+                                          top: 3.0,
+                                          bottom: 5.0),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Container(
+
+                                              // margin:EdgeInsets.only(right:mHeight*0.03/3,),
+                                              child: SvgPicture.network(hintCountryIcon == '' || hintCountryIcon == null ? "$selectedConIcon" : "$hintCountryIcon")),
+                                          Expanded(
+                                              child: Center(
+                                            child: Text( hintValue == '' || hintValue == null ? "$selectedValue" : "$hintValue",
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                                style: TextStyle(
+                                                    color: Color(0xff00DC00))),
+                                          )),
+                                          Container(
+                                              child: Icon(
+                                            Icons.arrow_drop_down,
+                                            color: Colors.grey,
+                                          ))
+                                        ],
+                                      ))),
+                            )),
                         // canShow ? Positioned(
                         //      // top:mHeight*0.02/3,
-                        //       child:
+                        //       child: 
                         //       Padding(
                         //           padding: EdgeInsets.only(
                         //               left: MediaQuery.of(context).size.height *
@@ -1009,7 +1197,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                         //             color: appModel.darkTheme
                         //                 ? Color(0xff292937)
                         //                 : Colors.white,
-                        //             child:
+                        //             child: 
                         //             ListView.builder(
                         //                 padding: EdgeInsets.zero,
                         //                 shrinkWrap: true,
@@ -1072,6 +1260,14 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                       ],
                     ),
                   ),
+
+
+
+
+
+
+
+
 
                   // Padding(
                   //   padding: EdgeInsets.only(
@@ -1286,288 +1482,93 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                       ],
                     )),
               ),
+           
+             
             ],
           ),
+
           Flexible(
             child: Container(
                 width: double.infinity,
                 // color: Colors.orange,
                 child: BottomNavBarOptions()),
           )
-        ],
-      ),
-    );
+          // Container(
+          //     height: mHeight * 0.20 / 3,
+          //     child: Center(
+          //         child: Text(
+          //       'v0.0.1',
+          //       style: TextStyle(color: Color(0xffA8A8B7)),
+          //     ))),
+      ],
+    ),
+        );
     //);
     //);
   }
 
-  Widget _buildExitnodeListView(double mHeight) {
 
-   
-    return Material(
-      color: Colors.transparent,
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () {
-          overlayEntry!.remove();
-        },
-        child: Container(
-          height: 200.0,
-          margin: EdgeInsets.only(
-              top: mHeight * 2.010 / 3,
-              bottom: MediaQuery.of(context).size.height * 0.30 / 3,
-              left: mHeight * 0.09 / 3,
-              right: mHeight * 0.09 / 3),
-          child:
-
-              /// Padding(
-              // padding: EdgeInsets.only(
-              //     left: MediaQuery.of(context).size.height *
-              //         0.08 /
-              //         3,
-              //     right: MediaQuery.of(context).size.height *
-              //         0.10 /
-              //         3,
-              //     top: MediaQuery.of(context).size.height *
-              //         0.03 /
-              //         3),
-              // child:
-              Container(
-            height: MediaQuery.of(context).size.height * 0.70 / 3,
-            width: MediaQuery.of(context).size.width * 2.7 / 3,
-            decoration: BoxDecoration(
-              borderRadius:BorderRadius.circular(4.0),
-              color: appModel.darkTheme ? Color(0xff292937) : Colors.white,
-            ),
-            
-            child: ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: exitData.length,
-                itemBuilder: (BuildContext context, int index) {
-                  // print("data inside listview ${exitData[index]}");
-                  return Container(
-                    margin: EdgeInsets.all(0),
-                    //padding: const EdgeInsets.only(top:0.0,bottom:0.0),
-                    child: ExpansionTile(
-                      // backgroundColor: Colors.yellow,
-                      //initiallyExpanded: true,
-                      tilePadding: EdgeInsets.only(
-                          left: mHeight * 0.08 / 3, right: mHeight * 0.08 / 3),
-                      title: Text(
-                        exitData[index].type,
-                        style: TextStyle(
-                            color: index == 0
-                                ? Color(0xff1CBE20)
-                                : Color(0xff1994FC),
-                            fontSize:
-                                MediaQuery.of(context).size.height * 0.06 / 3,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      iconColor:
-                          index == 0 ? Color(0xff1CBE20) : Color(0xff1994FC),
-                      collapsedIconColor:
-                          index == 0 ? Color(0xff1CBE20) : Color(0xff1994FC),
-                      subtitle: Text(
-                        "${exitData[index].node.length} Nodes",
-                        style: TextStyle(
-                            color: Colors.grey,
-                            fontSize:
-                                MediaQuery.of(context).size.height * 0.04 / 3),
-                      ),
-                      children: <Widget>[
-                        Column(
-                          children:
-                              _buildExpandableContent(exitData[index].node),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                // _buildList(exitData[index]),
-                ),
-          ),
-          // ),
-        ),
-      ),
-    );
-  }
-
-  // _buildExpandableContent(List<exitNodeModel.Node> vnode) {
-  //   List<Widget> columnContent = [];
-  //   for (int i = 0; i < vnode.length; i++) {
-  //     columnContent.add(Container(
-  //       height: MediaQuery.of(context).size.height * 0.15 / 3,
-  //       child: ListTile(
-  //         onTap: () async {
-  //           setState(() {
-  //             valueS = vnode[i].name;
-  //             selectedValue = vnode[i].name;
-  //             selectedConIcon = vnode[i].icon;
-  //           });
-  //           overlayEntry?.remove();
-  //           SharedPreferences preferences =
-  //               await SharedPreferences.getInstance();
-  //           preferences.setString('hintValue', selectedValue.toString());
-  //           preferences.setString('hintContryicon', selectedConIcon.toString());
-  //           print("$i th index value $valueS ");
-  //         },
-  //         title: Column(
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             Text(
-  //               vnode[i].name,
-  //               style: TextStyle(
-  //                   color: appModel.darkTheme ? Colors.white : Colors.black,
-  //                   fontSize: MediaQuery.of(context).size.height * 0.05 / 3),
-  //               overflow: TextOverflow.ellipsis,
-  //               maxLines: 1,
-  //             ),
-  //             Text(
-  //               vnode[i].country,
-  //               style: TextStyle(
-  //                   color: Colors.grey,
-  //                   fontSize: MediaQuery.of(context).size.height * 0.04 / 3),
-  //               overflow: TextOverflow.ellipsis,
-  //               maxLines: 1,
-  //             ),
-  //           ],
-  //         ),
-  //         leading: Container(
-  //           //color:Colors.yellow,
-  //           height: MediaQuery.of(context).size.height * 0.050 / 3,
-  //           width: MedtrueiaQuery.of(context).size.height * 0.060 / 3,
-  //           child: vnode[i].icon.isNotEmpty
-  //               ? Image.network(
-  //                   vnode[i].icon,
-  //                   // height: MediaQuery.of(context).size.height * 0.10 / 3,
-  //                   // width: MediaQuery.of(context).size.height * 0.15 / 3,
-  //                   fit: BoxFit.fill,
-  //                 )
-  //               : Icon(Icons.info_outline_rounded),
-  //         ),
-  //         trailing: Container(
-  //           height: 5.0,
-  //           width: 5.0,
-  //           decoration: BoxDecoration(
-  //               shape: BoxShape.circle,
-  //               color: vnode[i].isActive == "true" ? Colors.green : Colors.red),
-  //         ),
-  //       ),
-  //     ));
-  //   }
-  //   return columnContent;
-  // }
-
-
-
-_buildExpandableContent(List<exitNodeModel.Node> vnode) {
+  _buildExpandableContent(List<exitNodeModel.Node> vnode) {
     List<Widget> columnContent = [];
     for (int i = 0; i < vnode.length; i++) {
-      columnContent.add(
-        
-        Container(
-          padding: EdgeInsets.only(left:MediaQuery.of(context).size.height*0.06/3,right:MediaQuery.of(context).size.height*0.06/3,
-          top:MediaQuery.of(context).size.height*0.02/3,bottom: MediaQuery.of(context).size.height*0.02/3),
-        height: MediaQuery.of(context).size.height * 0.19 / 3,
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(width:0.5,color: Color(0xff56566F).withOpacity(0.2)))
-        ),
-        child: 
-        GestureDetector(
-          onTap: () async {
-              setState(() {
-                valueS = vnode[i].name;
-                selectedValue = vnode[i].name;
-                selectedConIcon = vnode[i].icon;
-              });
-              overlayEntry?.remove();
-              SharedPreferences preferences =
-                  await SharedPreferences.getInstance();
-              preferences.setString('hintValue', selectedValue.toString());
-              preferences.setString('hintContryicon', selectedConIcon.toString());
-              print("$i th index value $valueS ");
-            },
-          child: Row(
+      columnContent.add(Container(
+        height: MediaQuery.of(context).size.height * 0.15 / 3,
+        child: ListTile(
+          onTap: ()async {
+            setState(() {
+              valueS = vnode[i].name;
+              selectedValue = vnode[i].name;
+              selectedConIcon = vnode[i].icon;
+
+            });
+            overlayEntry?.remove();
+            SharedPreferences preferences = await SharedPreferences.getInstance();
+            preferences.setString('hintValue',selectedValue.toString());
+            preferences.setString('hintContryicon',selectedConIcon.toString());
+            print("$i th index value $valueS ");
+            canShow = false;
+          },
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-               Container(
-                  //color:Colors.yellow,
-                  height: MediaQuery.of(context).size.height * 0.050 / 3,
-                  width: MediaQuery.of(context).size.height * 0.060 / 3,
-                  child: vnode[i].icon.isNotEmpty
-                      ? Image.network(
-                          vnode[i].icon,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(Icons.more_horiz,color: Colors.grey,size: 0.4,);
-                          },
-                          // height: MediaQuery.of(context).size.height * 0.10 / 3,
-                          // width: MediaQuery.of(context).size.height * 0.15 / 3,
-                          fit: BoxFit.fill,
-                        )
-                      : Icon(Icons.info_outline_rounded),
-                ),
-           
-             Expanded(
-               child: Container(
-                padding: EdgeInsets.only(left:MediaQuery.of(context).size.height*0.05/3,right:MediaQuery.of(context).size.height*0.05/3),
-                 child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            vnode[i].name,
-                            style: TextStyle(
-                                color: appModel.darkTheme ? Colors.white : Colors.black,
-                                fontSize: MediaQuery.of(context).size.height * 0.05 / 3),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ),
-                        Text(
-                          vnode[i].country,
-                          style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: MediaQuery.of(context).size.height * 0.04 / 3),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ],
-                    ),
-               ),
-             ),
-               Container(
-                  height: 5.0,
-                  width: 5.0,
-                  padding: EdgeInsets.only(right:MediaQuery.of(context).size.height*0.05/3),
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: vnode[i].isActive == "true" ? Colors.green : Colors.red),
-                ),
-              
+              Text(
+                vnode[i].name,
+                style: TextStyle(
+                    color: appModel.darkTheme ? Colors.white : Colors.black,
+                    fontSize: MediaQuery.of(context).size.height * 0.05 / 3),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+              Text(
+                vnode[i].country,
+                style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: MediaQuery.of(context).size.height * 0.04 / 3),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             ],
+          ),
+          leading: Container(
+            child: SvgPicture.network(
+              vnode[i].icon,
+              height: MediaQuery.of(context).size.height * 0.10 / 3,
+              width: MediaQuery.of(context).size.height * 0.15 / 3,
+              fit: BoxFit.cover,
+            ),
+          ),
+          trailing: Container(
+            height: 5.0,
+            width: 5.0,
+            decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: vnode[i].isActive == "true" ? Colors.green : Colors.red),
           ),
         ),
       ));
     }
     return columnContent;
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   // var invalidExit = "";
   // var invalidAuth = "";
@@ -1583,3 +1584,285 @@ _buildExpandableContent(List<exitNodeModel.Node> vnode) {
 }
 
 // if there is no internet, this page only displays when there is no inter
+class NoInternetConnection extends StatelessWidget {
+  const NoInternetConnection({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final appModel = pr.Provider.of<AppModel>(context);
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: appModel.darkTheme
+              ? [
+                  Color(0xFF242430),
+                  Color(0xFF1C1C26),
+                ]
+              : [
+                  Color(0xFFF9F9F9),
+                  Color(0xFFEBEBEB),
+                ],
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Container(
+            padding: EdgeInsets.only(
+                top: MediaQuery.of(context).size.height * 0.40 / 3),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                    height: MediaQuery.of(context).size.height * 1 / 3,
+                    width: MediaQuery.of(context).size.width * 1.3 / 3,
+                    child: SvgPicture.asset(
+                        'assets/images/icons8-wi-fi_disconnected (1).svg',
+                        color: appModel.darkTheme
+                            ? Color(0xff4D4D64)
+                            : Color(0xffC7C7C7),
+                        height: MediaQuery.of(context).size.height * 0.20 / 3)),
+                Container(
+                  padding: EdgeInsets.only(
+                    left: 15.0,
+                    right: 15.0,
+                  ),
+                  child: Center(
+                    child: Text(
+                      'No internet connection.',
+                      style: TextStyle(
+                          color: appModel.darkTheme
+                              ? Color(0xffA1A1C1)
+                              : Color(0xff56566F),
+                          fontWeight: FontWeight.w900,
+                          fontSize:
+                              MediaQuery.of(context).size.height * 0.08 / 3,
+                          fontFamily: 'Poppins'),
+                    ),
+                  ),
+                ),
+                Container(
+                    //color: Colors.green,
+                    padding: EdgeInsets.only(
+                        left: MediaQuery.of(context).size.height * 0.14 / 3,
+                        right: MediaQuery.of(context).size.height * 0.14 / 3,
+                        top: 5.0),
+                    child: Center(
+                        child: Text(
+                            'You are not connected to the internet. Make sure WiFi/Mobile data is on.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: appModel.darkTheme
+                                    ? Color(0xffA1A1C1)
+                                    : Color(0xff56566F),
+                                fontFamily: 'Poppins')))),
+                Spacer(),
+                Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).size.height * 0.35 / 3),
+                  child: Container(
+                      height: MediaQuery.of(context).size.height * 0.20 / 3,
+                      width: MediaQuery.of(context).size.height * 0.70 / 3,
+                      decoration: BoxDecoration(
+                          color: Color(0xff00DC00),
+                          borderRadius: BorderRadius.all(Radius.circular(18.0)),
+                          border:
+                              Border.all(color: Color(0xff00DC00), width: 2)),
+                      child: TextButton(
+                        child: Text(
+                          'Retry',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'Poppins',
+                            fontSize:
+                                MediaQuery.of(context).size.height * 0.07 / 3,
+                            // fontWeight: FontWeight.w900
+                          ),
+                        ),
+                        onPressed: () {},
+                      )),
+                )
+              ],
+            )),
+      ),
+    );
+  }
+}
+
+var pageIndex = 0;
+
+class BottomNavBarOptions extends StatefulWidget {
+  const BottomNavBarOptions({Key? key}) : super(key: key);
+
+  @override
+  State<BottomNavBarOptions> createState() => _BottomNavBarOptionsState();
+}
+
+class _BottomNavBarOptionsState extends State<BottomNavBarOptions> {
+  Widget getBody() {
+    List<Widget> pages = [
+      ChartData(),
+      // LiveChart(
+      //   upData: uploadRate,
+      //   downData: downloadRate,
+      // ),
+      DisplayLog()
+    ];
+    return IndexedStack(
+      index: pageIndex,
+      children: pages,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appModel = pr.Provider.of<AppModel>(context);
+    return Scaffold(
+        backgroundColor:
+            appModel.darkTheme ? Color(0xFF1C1C26) : Color(0xFFEBEBEB),
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: appModel.darkTheme
+                  ? [
+                      Color(0xFF242430),
+                      Color(0xFF1C1C26),
+                    ]
+                  : [
+                      Color(0xFFF9F9F9),
+                      Color(0xFFEBEBEB),
+                    ],
+            ),
+          ),
+          child: getBody(),
+        ),
+        bottomNavigationBar: Container(
+            height: MediaQuery.of(context).size.height * 0.18 / 3,
+            decoration: BoxDecoration(
+              color: appModel.darkTheme ? Color(0xff272734) : Color(0xffF8F8F8),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      pageIndex = 0;
+                      canShow = false;
+                    });
+                  },
+                  child: Container(
+                    width: MediaQuery.of(context).size.height * 0.55 / 3,
+                    height: MediaQuery.of(context).size.height * 0.16 / 3,
+                    color: Colors.transparent,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: SvgPicture.asset(
+                            'assets/images/chart (1).svg',
+                            color: pageIndex == 0
+                                ? Color(0xff1DC021)
+                                : Color(0xffA1A1C1),
+                            height:
+                                MediaQuery.of(context).size.height * 0.06 / 3,
+                          ),
+                        ),
+                        Text(
+                          'Chart',
+                          style: TextStyle(
+                              color: pageIndex == 0
+                                  ? Color(0xff1DC021)
+                                  : Color(0xffA1A1C1),
+                              fontWeight: pageIndex == 0
+                                  ? FontWeight.w900
+                                  : FontWeight.normal,
+                              fontFamily: "poppins"),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+                VerticalDivider(
+                  color: appModel.darkTheme ? Colors.black : Color(0xffA1A1C1),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      pageIndex = 1;
+                      canShow = false;
+                    });
+                  },
+                  child: Container(
+                    width: MediaQuery.of(context).size.height * 0.55 / 3,
+                    height: MediaQuery.of(context).size.height * 0.16 / 3,
+                    color: Colors.transparent,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: SvgPicture.asset(
+                            'assets/images/Log.svg',
+                            color: pageIndex == 1
+                                ? Color(0xff1DC021)
+                                : Color(0xffA1A1C1),
+                            height:
+                                MediaQuery.of(context).size.height * 0.05 / 3,
+                          ),
+                        ),
+                        Text(
+                          'Log',
+                          style: TextStyle(
+                              color: pageIndex == 1
+                                  ? Color(0xff1DC021)
+                                  : Color(0xffA1A1C1),
+                              fontWeight: pageIndex == 1
+                                  ? FontWeight.w900
+                                  : FontWeight.normal,
+                              fontFamily: "poppins"),
+                        )
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            ))
+
+        //  BottomNavigationBar(items: [
+        //   BottomNavigationBarItem(
+        //     label: "",
+        //     icon: Row(
+        //       mainAxisAlignment: MainAxisAlignment.center,
+        //       children: [
+        //       SvgPicture.asset('assets/images/chart (1).svg',height: MediaQuery.of(context).,),
+        //       Text('Chart')
+        //     ],)
+        //     ),
+
+        //     BottomNavigationBarItem(
+        //       label: "",
+        //     icon: Row(
+        //       mainAxisAlignment: MainAxisAlignment.center,
+        //       children: [
+        //      // SvgPicture.asset('assets/images/chart (1).svg'),
+        //       Text('Log')
+        //     ],)
+        //     )
+        //  ])
+        //  Container(
+        //   color: Colors.white,
+        //   width:double.infinity,
+        //   height:45),
+        );
+  }
+}

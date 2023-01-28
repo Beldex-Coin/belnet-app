@@ -15,10 +15,20 @@
     <!-- normal perm -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Provide required visibility configuration for API level 30 and above -->
+<queries>
+  <!-- If your app checks for HTTPS support -->
+  <intent>
+    <action android:name="android.intent.action.VIEW" />
+    <data android:scheme="https" />
+  </intent>
+</queries>
     <application
         android:name="${applicationName}"
         android:label="Belnet"
-        android:icon="@mipmap/ic_launcher_round">
+        android:icon="@mipmap/ic_launcher_round"
+        android:networkSecurityConfig="@xml/network_security_config"
+        >
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
@@ -54,6 +64,5 @@
                 <action android:name="android.net.VpnService"/>
             </intent-filter>
         </service>
-
     </application>
 </manifest>

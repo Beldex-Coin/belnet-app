@@ -359,7 +359,7 @@ dynamic uploadRate = '';
 String? selectedValue =
     'snoq7arak4d5mkpfsg69saj7bp1ikxyzqjkhzb96keywn6iyhc5y.bdx';
 String? selectedConIcon =
-    "https://testdeb.beldex.dev/Beldex-Projects/Belnet/android/countryicons/icons8-france.png";
+    "https://deb.beldex.io/Beldex-projects/Belnet/countryflag/icons8-france.png";
 String? hintValue = '';
 String? hintCountryIcon = '';
 

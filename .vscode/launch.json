@@ -1,0 +1,45 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "belnet-app",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "belnet-app (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "belnet-app (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "belnet_lib",
+            "cwd": "belnet_lib",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "belnet_lib (profile mode)",
+            "cwd": "belnet_lib",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "belnet_lib (release mode)",
+            "cwd": "belnet_lib",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

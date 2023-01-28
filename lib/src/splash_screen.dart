@@ -2,6 +2,7 @@ import 'package:belnet_mobile/main.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
+
 class SplashScreens extends StatefulWidget {
   const SplashScreens({Key? key}) : super(key: key);
 
@@ -19,20 +20,21 @@ class _SplashScreensState extends State<SplashScreens>
     super.initState();
   }
 
-// @override
-//   void dispose() {
-//     _controller.dispose();
-//     super.dispose();
-//   }
+@override
+  void dispose() {
+    _controller!.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-   
 
-    return Scaffold(
+    return
+      Scaffold(
+      backgroundColor: Color(0xff1C1C26),
         body: Center(
       child: Container(
-        child: Lottie.asset('assets/images/belnet_splash.json',
+        child: Lottie.asset('assets/images/Splash_belnet_1 (1).json',    //belnet_splash.json
             controller: _controller, onLoaded: (composition) {
           _controller!
             ..duration = composition.duration

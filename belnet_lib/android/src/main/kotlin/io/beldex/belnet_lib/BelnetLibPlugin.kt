@@ -1,16 +1,32 @@
 package io.beldex.belnet_lib
 
+
+//import android.R.attr.name
+
+//import android.R.attr.name
+
+
+//import android.content.Context
+
+import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.net.TrafficStats
 import android.net.VpnService
+
 import android.os.IBinder
+import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.NonNull
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -22,27 +38,42 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.PluginRegistry
 import network.beldex.belnet.BelnetDaemon
+import network.beldex.belnet.ConnectionTools
+import kotlin.math.roundToLong
+
 
 /** BelnetLibPlugin */
 class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private var mShouldUnbind: Boolean = false
     private var mBoundService: BelnetDaemon? = null
-
+    private var lastTimestamp = 0L
     private lateinit var activityBinding: ActivityPluginBinding
-
+    private var sessionDownloaded = 0L
+    private var sessionUploaded = 0L
+    private var lastTotalDownload = 0L
+    private var lastTotalUpload = 0L
+    private var sessionStart = 0L
+    private var logData:String = ""
+    lateinit var notificationManager: NotificationManager
+    lateinit var notificationChannel: NotificationChannel
+    lateinit var builder: Notification.Builder
+    lateinit var  myD:String
+    var mutableString : MutableLiveData<String> = MutableLiveData()
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
     private lateinit var mMethodChannel: MethodChannel
     private lateinit var mIsConnectedEventChannel: EventChannel
-    private var mEventSink: EventChannel.EventSink? = null
 
+    private var mEventSink: EventChannel.EventSink? = null
     private var mIsConnectedObserver =
             Observer<Boolean> { newIsConnected ->
                 // Propagate to the dart package.
                 mEventSink?.success(newIsConnected)
             }
+
+
 
     private var mLifecycleOwner =
             object : LifecycleOwner {
@@ -71,13 +102,16 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     }
                 }
         )
+
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         mMethodChannel.setMethodCallHandler(null)
+
         doUnbindService()
     }
 
+    @SuppressLint("NewApi")
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
         when (call.method) {
             "prepare" -> {
@@ -127,19 +161,26 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
                 activityBinding.activity.applicationContext.startService(belnetIntent)
                 doBindService()
-
                 result.success(true)
             }
             "disconnect" -> {
+                var intent = VpnService.prepare(activityBinding.activity.applicationContext)
+                if (intent != null) {
+                    // Not prepared yet
+                    result.success(false)
+                    return
+                }
                 val belnetIntent =
                         Intent(
                                 activityBinding.activity.applicationContext,
                                 BelnetDaemon::class.java
                         )
-                belnetIntent.action = BelnetDaemon.ACTION_DISCONNECT
+               belnetIntent.action = BelnetDaemon.ACTION_DISCONNECT
 
                 activityBinding.activity.applicationContext.startService(belnetIntent)
-                doBindService()
+
+            doBindService()
+                Log.d("Test","inside disconnect function")
 
                 result.success(true)
             }
@@ -153,10 +194,84 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             "getStatus" -> {
                 if (mBoundService != null) {
                     result.success(mBoundService!!.DumpStatus())
+                    Log.d("Test","mBoundService is " + mBoundService)
                 } else {
                     result.success(false)
                 }
             }
+             "getUploadSpeed" -> {
+                     val timestamp = SystemClock.elapsedRealtime()
+                     val elapsedMillis = timestamp - lastTimestamp
+                     val elapsedSeconds = elapsedMillis / 1000f
+
+                     // Speeds need to be divided by two due to TrafficStats calculating both phone and VPN
+                     // interfaces which leads to doubled data. NetworkStatsManager may have solved this
+                     // problem but is only available from marshmallow.
+                     val totalUpload = TrafficStats.getTotalTxBytes()
+                     val uploaded = (totalUpload - lastTotalUpload).coerceAtLeast(0) / 2
+
+                     val uploadSpeed = (uploaded / elapsedSeconds).roundToLong()
+
+                     sessionUploaded += uploaded
+                     val sessionTimeSeconds = (timestamp - sessionStart).toInt() / 1000
+                 var sessionUploadString = ConnectionTools.bytesToSize(sessionUploaded)
+                 var uploadSpeedString = ConnectionTools.bytesToSize(uploadSpeed) +"ps"
+              //  UpdateNetwork(true).callfunctionContinuesly(uploadSpeedString)
+
+                 val uploadString = ConnectionTools.bytesToSize(uploadSpeed) +"ps"
+                 result.success(uploadString)
+
+                // callFunction(uploadString);
+                     lastTotalUpload = totalUpload
+                     lastTimestamp = timestamp
+
+             }
+            "getDownloadSpeed" -> {
+                val timestamp = SystemClock.elapsedRealtime()
+                val elapsedMillis = timestamp - lastTimestamp
+                val elapsedSeconds = elapsedMillis / 1000f
+
+                // Speeds need to be divided by two due to TrafficStats calculating both phone and VPN
+                // interfaces which leads to doubled data. NetworkStatsManager may have solved this
+                // problem but is only available from marshmallow.
+                val totalDownload = TrafficStats.getTotalRxBytes()
+                val totalUpload = TrafficStats.getTotalTxBytes()
+                val downloaded = (totalDownload - lastTotalDownload).coerceAtLeast(0) / 2
+                val uploaded = (totalUpload - lastTotalUpload).coerceAtLeast(0) / 2
+                val downloadSpeed = (downloaded / elapsedSeconds).roundToLong()
+                val uploadSpeed = (uploaded / elapsedSeconds).roundToLong()
+
+                sessionDownloaded += downloaded
+                sessionUploaded += uploaded
+
+                val sessionTimeSeconds = (timestamp - sessionStart).toInt() / 1000
+                val downloadString = ConnectionTools.bytesToSize(downloadSpeed) + "ps"
+                Log.d("TagDownload", "This is downloadString$downloadString")
+                result.success(downloadString)
+
+
+                lastTotalDownload = totalDownload
+                lastTotalUpload = totalUpload
+                lastTimestamp = timestamp
+            }
+            "getDataStatus"->{
+                if (mBoundService != null) {
+                    result.success(mBoundService!!.GetStatus())
+                    Log.d("Test","mBoundService is " + mBoundService!!.GetStatus())
+                } else {
+                    result.success(false)
+                }
+            }
+//             "logData" ->{
+
+//                 Log.d("Testings","")
+//                var datas = logDataToFrontend("")
+
+// //             myD = LogDisplayForUi("").displayData()
+// //             Log.d("Dis data",myD)
+//                 result.success(datas)
+//             }
+
             else -> result.notImplemented()
         }
     }
@@ -166,7 +281,8 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         doBindService()
     }
 
-    override fun onDetachedFromActivity() {}
+    override fun onDetachedFromActivity() {
+    }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
         activityBinding = binding
@@ -185,6 +301,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
                 override fun onServiceDisconnected(className: ComponentName) {
                     mBoundService = null
+
                 }
             }
 
@@ -213,4 +330,17 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             mShouldUnbind = false
         }
     }
+
+
+    fun logDataToFrontend(sampleData : String):String{
+     logData = sampleData
+     Log.d("backtracking",logData)
+      return logData
 }
+
+
+
+
+}
+
+

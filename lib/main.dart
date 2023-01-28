@@ -1469,7 +1469,10 @@ _buildExpandableContent(List<exitNodeModel.Node> vnode) {
         Container(
           padding: EdgeInsets.only(left:MediaQuery.of(context).size.height*0.06/3,right:MediaQuery.of(context).size.height*0.06/3,
           top:MediaQuery.of(context).size.height*0.02/3,bottom: MediaQuery.of(context).size.height*0.02/3),
-        height: MediaQuery.of(context).size.height * 0.15 / 3,
+        height: MediaQuery.of(context).size.height * 0.19 / 3,
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(width:0.5,color: Color(0xff56566F).withOpacity(0.2)))
+        ),
         child: 
         GestureDetector(
           onTap: () async {

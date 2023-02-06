@@ -3,10 +3,10 @@
 
 // import 'package:belnet_lib/belnet_lib.dart';
 
+import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/widget/logProvider.dart';
 import 'package:clipboard/clipboard.dart';
-
 
 import 'package:flutter/material.dart';
 // import 'package:flutter/rendering.dart';
@@ -15,7 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DisplayLog extends StatefulWidget {
   const DisplayLog({Key? key}) : super(key: key);
@@ -37,7 +37,18 @@ class _DisplayLogState extends State<DisplayLog> {
   void initState() {
     // continueslyCall();
     //_scrollController.initialScrollOffset.isInfinite
+    getCorrectData();
     super.initState();
+  }
+
+  getCorrectData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (BelnetLib.isConnected) {
+      print(
+          "data from sharedpreferences PREV_LOG_DATA ${prefs.getStringList("PREV_LOG_DATA")}");
+      logController.data.add(prefs.getStringList("PREV_LOG_DATA"));
+      logController.timeData.add(prefs.getStringList("Prev_TIME_DATA"));
+    }
   }
 
   void _scrollDown() {
@@ -46,22 +57,16 @@ class _DisplayLogState extends State<DisplayLog> {
     );
   }
 
-
-setCancel(){
-     if (logController.data.isNotEmpty) {
-                              canCancel = true;
-                              canCopy = true;
-      }else{
-        canCancel = false;
-        canCopy = false;
-        count =0;
-      }
-  
-}
-
-
-
-
+  setCancel() {
+    if (logController.data.isNotEmpty) {
+      canCancel = true;
+      canCopy = true;
+    } else {
+      canCancel = false;
+      canCopy = false;
+      count = 0;
+    }
+  }
 
   @override
   void dispose() {
@@ -79,7 +84,6 @@ setCancel(){
         // mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Flexible(
-          
               child: Padding(
             padding: EdgeInsets.only(
                 left: MediaQuery.of(context).size.height * 0.08 / 3,
@@ -87,7 +91,7 @@ setCancel(){
                 top: MediaQuery.of(context).size.height * 0.0 / 3,
                 bottom: MediaQuery.of(context).size.height * 0.03 / 3),
             child: Container(
-                padding: EdgeInsets.only(left: 10, top: 8, right:10),
+                padding: EdgeInsets.only(left: 10, top: 8, right: 10),
                 // height: MediaQuery.of(context).size.height * 1 / 3,
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -95,30 +99,34 @@ setCancel(){
                     borderRadius: BorderRadius.circular(9.0),
                     color:
                         appModel.darkTheme ? Color(0xff252532) : Colors.white),
-                child: Obx(
+                child: logController.data.isEmpty ? Center(
+                  child: Container(
+                    child:Text('No logs yet', style: TextStyle(color: Color(0xffA1A1C1)),)
+                  ),
+                ) :
+               Obx(
                   () {
                     return Container(
-                     //color: Colors.yellow,
+                      //color: Colors.yellow,
                       child: ListView.builder(
-                        padding: EdgeInsets.zero,
+                          padding: EdgeInsets.zero,
                           controller: _scrollController,
                           itemCount: logController.data.length,
                           itemBuilder: ((context, index) {
-
                             if (logController.data.length > 6) {
                               _scrollDown();
                             }
 
                             return Container(
-
                               child: RichText(
                                   text: TextSpan(
                                       text: '${logController.timeData[index]}',
                                       style: TextStyle(
-                                          fontSize:
-                                              MediaQuery.of(context).size.height *
-                                                  0.04 /
-                                                  3,
+                                          fontSize: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.04 /
+                                              3,
                                           fontFamily: "Poppins",
                                           color: Color(0xffA1A1C1)),
                                       children: <TextSpan>[
@@ -214,7 +222,7 @@ setCancel(){
                                   //child: Icon(Icons.close,size:MediaQuery.of(context).size.height*0.07/3 ,color: Color(0xffFF3030),),
                                 ),
                                 Text(
-                                  "cancel",
+                                  "clear",
                                   style: TextStyle(
                                       fontWeight: FontWeight.w900,
                                       fontSize:
@@ -242,13 +250,18 @@ setCancel(){
                           FlutterClipboard.copy(logController.data.toString())
                               .then((value) => ScaffoldMessenger.of(context)
                                   .showSnackBar(SnackBar(
-                                      backgroundColor: Colors.black.withOpacity(0.50),
+                                      backgroundColor: appModel.darkTheme
+                                          ? Colors.black.withOpacity(0.50)
+                                          : Colors.white,
                                       behavior: SnackBarBehavior.floating,
-                                      duration: Duration(milliseconds: 100),
+                                      duration: Duration(milliseconds: 200),
                                       width: 200,
                                       content: Text(
                                         "Copied to clipboard!",
-                                        style: TextStyle(color: Colors.white),
+                                        style: TextStyle(
+                                            color: appModel.darkTheme
+                                                ? Colors.white
+                                                : Colors.black),
                                         textAlign: TextAlign.center,
                                       )
                                       //content: Text("Sending Message"),
@@ -258,7 +271,6 @@ setCancel(){
 
                           print('copied');
                         }
-                          
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(3.0),
@@ -301,7 +313,11 @@ setCancel(){
                               Padding(
                                   padding: const EdgeInsets.only(right: 8.0),
                                   child: SvgPicture.asset(
-                                      'assets/images/copy.svg' ,color:canCopy ? Color(0xff1DC021): Colors.grey ,)),
+                                    'assets/images/copy.svg',
+                                    color: canCopy
+                                        ? Color(0xff1DC021)
+                                        : Colors.grey,
+                                  )),
                               Text(
                                 "copy",
                                 style: TextStyle(
@@ -311,7 +327,9 @@ setCancel(){
                                             0.05 /
                                             3,
                                     fontFamily: "Poppins",
-                                    color:canCopy ? Color(0xff1DC021): Colors.grey),
+                                    color: canCopy
+                                        ? Color(0xff1DC021)
+                                        : Colors.grey),
                               )
                             ],
                           ),

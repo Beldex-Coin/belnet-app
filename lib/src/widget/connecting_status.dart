@@ -24,25 +24,20 @@ class ConnectingStatus extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
-              child: GestureDetector(
-                onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>FCharts()));
-                },
-                child: Text(
-                  //checking the connection for belnet
-                  isConnect! ? 'Connected' : 'Disconnected',
-                  style: TextStyle(
-                      color: appModel.darkTheme
-                          ? isConnect!
-                              ? Colors.white
-                              : Color(0xffA8A8B7)
-                          : isConnect!
-                              ? Color(0xff222222)
-                              : Color(0xffA8A8B7),
-                      fontFamily: 'Poppins',
-                      fontSize: MediaQuery.of(context).size.height*0.05/3,
-                      fontWeight: isConnect! ? FontWeight.bold : FontWeight.w500),
-                ),
+              child: Text(
+                //checking the connection for belnet
+                isConnect! ? 'Connected' : 'Disconnected',
+                style: TextStyle(
+                    color: appModel.darkTheme
+                        ? isConnect!
+                            ? Colors.white
+                            : Color(0xffA8A8B7)
+                        : isConnect!
+                            ? Color(0xff222222)
+                            : Color(0xffA8A8B7),
+                    fontFamily: 'Poppins',
+                    fontSize: MediaQuery.of(context).size.height*0.05/3,
+                    fontWeight: isConnect! ? FontWeight.bold : FontWeight.w500),
               ),
             ),
             Container(

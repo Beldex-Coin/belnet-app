@@ -1,3 +1,5 @@
+import 'package:clipboard/clipboard.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -82,7 +84,6 @@ class _MyWidgetState extends State<AboutPage> {
                           Navigator.pop(context);
                         }),
                         child: Container(
-                          
                           child: SvgPicture.asset(
                               appModel.darkTheme
                                   ? 'assets/images/About_Close_dark.svg'
@@ -289,15 +290,111 @@ class _MyWidgetState extends State<AboutPage> {
                           color:
                               appModel.darkTheme ? Colors.white : Colors.black),
                     ),
-                    Text(
-                      """Yes, anyone can set up an exit node. Check the BelNet website for complete documentation on how to set up an exit node.Exit node contributors will be rewarded and their node will be added to the BelNet app.""",
-                      style: TextStyle(
-                          fontSize: mHeight * 0.060 / 3,
-                          fontFamily: "Poppins",
-                          color: appModel.darkTheme
-                              ? Color(0xffA1A1C1)
-                              : Color(0xff56566F)),
-                    ),
+                    RichText(
+                        text: TextSpan(
+                            text:
+                                """Yes, anyone can set up an exit node. Check the """,
+                            style: TextStyle(
+                                fontSize: mHeight * 0.060 / 3,
+                                //fontWeight: FontWeight.w600,
+                                fontFamily: 'Poppins',
+                                color: appModel.darkTheme
+                                    ? Color(0xffA1A1C1)
+                                    : Color(0xff56566F)),
+                            children: [
+                              TextSpan(
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = (() async {
+                                      if (await canLaunchUrl(Uri.parse(
+                                          "https://belnet.beldex.io/"))) {
+                                        await launchUrl(
+                                            Uri.parse(
+                                                "https://belnet.beldex.io/"),
+                                            mode:
+                                                LaunchMode.externalApplication);
+                                      } else {
+                                        throw 'Could not launch https://belnet.beldex.io/';
+                                      }
+                                    }),
+                                  text: """Belnet""",
+                                  style: TextStyle(
+                                      decoration: TextDecoration.underline,
+                                      fontSize: mHeight * 0.060 / 3,
+                                      fontFamily: "Poppins",
+                                      color: Colors.blue)),
+                              TextSpan(
+                                text:
+                                    """ website for complete documentation on how to set up an exit node.\nYou can also find the setup guide under """,
+                                style: TextStyle(
+                                    fontSize: mHeight * 0.060 / 3,
+                                    fontFamily: "Poppins",
+                                    color: appModel.darkTheme
+                                        ? Color(0xffA1A1C1)
+                                        : Color(0xff56566F)),
+                              ),
+                              TextSpan(
+                                  text: """Beldex docs""",
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = (() async {
+                                      if (await canLaunchUrl(Uri.parse(
+                                          "https://docs.beldex.io/belnet/exit-node-setup-guide"))) {
+                                        await launchUrl(
+                                            Uri.parse(
+                                                "https://docs.beldex.io/belnet/exit-node-setup-guide"),
+                                            mode:
+                                                LaunchMode.externalApplication);
+                                      } else {
+                                        throw 'Could not launch https://docs.beldex.io/belnet/exit-node-setup-guide';
+                                      }
+                                    }),
+                                  style: TextStyle(
+                                      decoration: TextDecoration.underline,
+                                      fontSize: mHeight * 0.060 / 3,
+                                      fontFamily: "Poppins",
+                                      color: Colors.blue)),
+                              TextSpan(
+                                text:
+                                    """. Exit node contributors will be rewarded and their node will be added to the BelNet app. To To add your exit node to the BelNet app, reach out to """,
+                                style: TextStyle(
+                                    fontSize: mHeight * 0.060 / 3,
+                                    fontFamily: "Poppins",
+                                    color: appModel.darkTheme
+                                        ? Color(0xffA1A1C1)
+                                        : Color(0xff56566F)),
+                              ),
+                             TextSpan(
+                                text: """outreach@beldex.io""",
+                                recognizer: TapGestureRecognizer()..onTap = (() {
+                                   FlutterClipboard.copy("outreach@beldex.io")
+                              .then((value) => ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                      backgroundColor: appModel.darkTheme
+                                          ? Colors.black.withOpacity(0.50)
+                                          : Colors.white,
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: Duration(milliseconds: 200),
+                                      width: 200,
+                                      content: Text(
+                                        "Copied to clipboard!",
+                                        style: TextStyle(
+                                            color: appModel.darkTheme
+                                                ? Colors.white
+                                                : Colors.black),
+                                        textAlign: TextAlign.center,
+                                      )
+                                      //content: Text("Sending Message"),
+                                      )));
+
+                                }),
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                      fontSize: mHeight * 0.060 / 3,
+                                      fontFamily: "Poppins",
+                                      color: Colors.blue
+                                )
+                             )
+  
+                            ])),
                     Text(
                       "\nWhat are MN Apps? ",
                       style: TextStyle(
@@ -318,16 +415,19 @@ class _MyWidgetState extends State<AboutPage> {
                     ),
                     GestureDetector(
                       onTap: () async {
-                        if (await canLaunchUrl(Uri.parse("http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/"))) {
-                          await launchUrl(Uri.parse("http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/"),
-                          
-                          );
-                        }else{
-                          throw 'Could not launch http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/';
+                        //FlutterClipboard.copy("http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/");
+                        if (await canLaunchUrl(Uri.parse(
+                            "http://675wmqqbzg6nqs688e1n3bti6ter4kt5q4u5bs1c4quutpnyxsxy.bdx/"))) {
+                          await launchUrl(
+                              Uri.parse(
+                                  "http://675wmqqbzg6nqs688e1n3bti6ter4kt5q4u5bs1c4quutpnyxsxy.bdx/"),
+                              mode: LaunchMode.externalApplication);
+                        } else {
+                          throw 'Could not launch http://675wmqqbzg6nqs688e1n3bti6ter4kt5q4u5bs1c4quutpnyxsxy.bdx/';
                         }
                       },
                       child: Text(
-                        """http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/""",
+                        """http://675wmqqbzg6nqs688e1n3bti6ter4kt5q4u5bs1c4quutpnyxsxy.bdx/""",
                         style: TextStyle(
                             decoration: TextDecoration.underline,
                             fontSize: mHeight * 0.060 / 3,
@@ -384,9 +484,5 @@ BNS names end with the top level domain .bdx
             ),
           )),
         ));
-  }
-
-  String getMnappUrl(String data) {
-    return "http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/";
   }
 }

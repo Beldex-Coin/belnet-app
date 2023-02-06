@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/styles.dart';
 
@@ -20,6 +21,15 @@ addDataTolist(String dats, String time){
   timeData.add(time);
 //data.obs;
 }
+
+
+// getData()async{
+//   SharedPreferences prefs= await SharedPreferences.getInstance();
+// }
+
+
+
+
 
 }
 

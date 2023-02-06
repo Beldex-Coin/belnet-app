@@ -1,8 +1,12 @@
-import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/widget/exit_node_list.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/container.dart';
+import 'package:flutter/src/widgets/framework.dart';
 
-class CustDropDown<T> extends StatefulWidget {
+import '../model/theme_set_provider.dart';
+
+class OverlayExpansionDropdownList extends StatefulWidget {
   final List<CustDropdownMenuItem> items;
   final Function onChanged;
   final String hintText;
@@ -12,34 +16,23 @@ class CustDropDown<T> extends StatefulWidget {
   final int defaultSelectedIndex;
   final bool enabled;
   final AppModel appModel;
-
-  const CustDropDown(
-      {required this.items,
-      required this.onChanged,
-      this.hintText = "",
-      this.borderRadius = 0,
-      this.borderWidth = 1,
-      this.maxListHeight = 100,
-      this.defaultSelectedIndex = -1,
-      Key? key,
-      this.enabled = true,
-      required this.appModel})
-      : super(key: key);
+  const OverlayExpansionDropdownList({Key? key, required this.items, required this.onChanged, required this.hintText, required this.borderRadius, required this.maxListHeight, required this.borderWidth, required this.defaultSelectedIndex, required this.enabled, required this.appModel}) : super(key: key);
 
   @override
-  _CustDropDownState createState() => _CustDropDownState();
+  State<OverlayExpansionDropdownList> createState() => _OverlayExpansionDropdownListState();
 }
 
-class _CustDropDownState extends State<CustDropDown>
-    with WidgetsBindingObserver {
-  bool _isOpen = false, _isAnyItemSelected = false, _isReverse = false;
+class _OverlayExpansionDropdownListState extends State<OverlayExpansionDropdownList> with WidgetsBindingObserver{
+bool _isOpen = false, _isAnyItemSelected = false, _isReverse = false;
   late OverlayEntry _overlayEntry;
   late RenderBox? _renderBox;
   Widget? _itemSelected;
   late Offset dropDownOffset;
   final LayerLink _layerLink = LayerLink();
   final _scrollController = ScrollController(initialScrollOffset: 0.0);
-  @override
+
+
+ @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -63,7 +56,8 @@ class _CustDropDownState extends State<CustDropDown>
     super.initState();
   }
 
-  void _addOverlay() {
+
+void _addOverlay() {
     if (mounted) {
       setState(() {
         _isOpen = true;
@@ -74,7 +68,10 @@ class _CustDropDownState extends State<CustDropDown>
     Overlay.of(context)!.insert(_overlayEntry);
   }
 
-  void _removeOverlay() {
+
+
+
+ void _removeOverlay() {
     if (mounted) {
       setState(() {
         _isOpen = false;
@@ -83,26 +80,24 @@ class _CustDropDownState extends State<CustDropDown>
     }
   }
 
-  @override
-  dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
 
-  OverlayEntry _createOverlayEntry() {
-    _renderBox = context.findRenderObject() as RenderBox?;
+
+
+
+
+OverlayEntry _createOverlayEntry() {
+  _renderBox = context.findRenderObject() as RenderBox?;
 
     var size = _renderBox!.size;
 
     dropDownOffset = getOffset();
 
-    return OverlayEntry(
-        maintainState: false,
-        builder: (context) => Align(
-              alignment: Alignment.center,
-              child: CompositedTransformFollower(
-                link: _layerLink,
-                showWhenUnlinked: false,
+   return OverlayEntry(
+    builder: (context)=> Align(   
+            alignment: Alignment.center,
+            child:CompositedTransformFollower(
+              link: _layerLink,
+               showWhenUnlinked: false,
                 offset: dropDownOffset,
                 child: SizedBox(
                   height: widget.maxListHeight,
@@ -142,30 +137,8 @@ class _CustDropDownState extends State<CustDropDown>
                               thumbVisibility: true,
                               controller: _scrollController,
                               thickness: 3.6,
-                              child: ListView(
-                                padding: EdgeInsets.zero,
-                                controller: _scrollController,
-                                shrinkWrap: true,
-                                children: widget.items
-                                    .map((item) => GestureDetector(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: item.child,
-                                          ),
-                                          onTap: () {
-                                            if (mounted) {
-                                              setState(() {
-                                                _isAnyItemSelected = true;
-                                                _itemSelected = item.child;
-                                                _removeOverlay();
-                                                if (widget.onChanged != null)
-                                                  widget.onChanged(item.value);
-                                              });
-                                            }
-                                          },
-                                        ))
-                                    .toList(),
-                              ),
+                              child: Container()
+                              
                             ),
                           ),
                         ),
@@ -173,36 +146,42 @@ class _CustDropDownState extends State<CustDropDown>
                       // ),
                     ],
                   ),
-                ),
-              ),
-            ));
-  }
+                ), 
+              
+            )
+    )
+    
+    );
 
-  Offset getOffset() {
-    RenderBox? renderBox = context.findRenderObject() as RenderBox?;
-    double y = renderBox!.localToGlobal(Offset.zero).dy;
-    double spaceAvailable = _getAvailableSpace(y + renderBox.size.height);
-    if (spaceAvailable > widget.maxListHeight) {
-      _isReverse = false;
-      return Offset(0, renderBox.size.height);
-    } else {
-      _isReverse = true;
-      return Offset(
-          0,
-          renderBox.size.height -
-              (widget.maxListHeight + renderBox.size.height));
-    }
-  }
+}
 
-  double _getAvailableSpace(double offsetY) {
-    double safePaddingTop = MediaQuery.of(context).padding.top;
-    double safePaddingBottom = MediaQuery.of(context).padding.bottom;
 
-    double screenHeight =
-        MediaQuery.of(context).size.height - safePaddingBottom - safePaddingTop;
 
-    return screenHeight - offsetY;
-  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -257,6 +236,36 @@ class _CustDropDownState extends State<CustDropDown>
     );
   }
 
+
+  Offset getOffset() {
+    RenderBox? renderBox = context.findRenderObject() as RenderBox?;
+    double y = renderBox!.localToGlobal(Offset.zero).dy;
+    double spaceAvailable = _getAvailableSpace(y + renderBox.size.height);
+    if (spaceAvailable > widget.maxListHeight) {
+      _isReverse = false;
+      return Offset(0, renderBox.size.height);
+    } else {
+      _isReverse = true;
+      return Offset(
+          0,
+          renderBox.size.height -
+              (widget.maxListHeight + renderBox.size.height));
+    }
+  }
+
+
+
+  double _getAvailableSpace(double offsetY) {
+    double safePaddingTop = MediaQuery.of(context).padding.top;
+    double safePaddingBottom = MediaQuery.of(context).padding.bottom;
+
+    double screenHeight =
+        MediaQuery.of(context).size.height - safePaddingBottom - safePaddingTop;
+
+    return screenHeight - offsetY;
+  }
+
+
   Decoration? _getDecoration() {
     if (_isOpen && !_isReverse) {
       return BoxDecoration(
@@ -277,18 +286,9 @@ class _CustDropDownState extends State<CustDropDown>
           borderRadius: BorderRadius.all(Radius.circular(widget.borderRadius)));
     }
   }
+
+
+
+
+
 }
-
-class CustDropdownMenuItem<T> extends StatelessWidget {
-  final String value;
-  final Widget child;
-
-  const CustDropdownMenuItem({required this.value, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return child;
-  }
-}
-
-

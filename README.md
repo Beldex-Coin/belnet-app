@@ -1,8 +1,10 @@
-# Belnet on the Go
+## BelNet
 
-An app to interact with Belnet as a vpn tunnel for android
+[BelNet](https://belnet.beldex.io/) is a decentralized VPN service built on top of the [Beldex](https://beldex.io/) Network. The BelNet dVPN utilizes Beldex masternodes to route your connection. A unique onion routing protocol is used to encrypt and route your data. 
+An app to interact with Belnet as a vpn tunnel for android.
 
-[![Build Status](https://ci.beldex.rocks/api/badges/beldex-io/belnet-flutter-app/status.svg)](https://ci.beldex.rocks/beldex-io/belnet-flutter-app)
+[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" alt="Get it on Google Play" height="80"/>](https://play.google.com/store/apps/details?id=io.beldex.belnet)
+
 
 
 ## building
@@ -45,3 +47,9 @@ if succesful it will produce an apk at `build/app/outputs/flutter-apk/app-debug.
 to make the workspace pristine use:
 
     $ ./contrib/clean.sh
+
+
+## Credits
+
+ * Copyright © 2018-2023 The Beldex Project
+ * Copyright © 2018-2023 Lokinet

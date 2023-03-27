@@ -107,7 +107,7 @@ class BelnetLib {
   }
 
   static Future<dynamic> get getSpeedStatus async {
-    var status = await _methodChannel.invokeMethod('getDataStatus');
+    var status = await _methodChannel.invokeMethod('getDataStatus') as String;
     if (status.isNotEmpty) return jsonDecode(status);
     return null;
   }

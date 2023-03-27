@@ -87,7 +87,7 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
       child: GestureDetector(
         onTap: widget.onPressed,
         child:appModel.darkTheme ?
-            BelnetLib.isConnected
+            BelnetLib.isConnected && widget.isLoading == false
                 ? powerOnDark
                 : Stack(
               children: [
@@ -98,7 +98,7 @@ class _BelnetPowerButtonState extends State<BelnetPowerButton>
               ],
             )
             :
-            BelnetLib.isConnected
+            BelnetLib.isConnected && widget.isLoading == false
            ? powerOnWhite
                 : Stack(
               children:[

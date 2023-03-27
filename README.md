@@ -52,4 +52,4 @@ to make the workspace pristine use:
 ## Credits
 
  * Copyright © 2018-2023 The Beldex Project
- * Copyright © 2018-2023 Lokinet
+ * Portions Copyright © 2018-2021 Lokinet

@@ -829,6 +829,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                             child: Container(
                               padding: EdgeInsets.only(
                                   left: MediaQuery.of(context).size.height *
+                                  
                                       0.06 /
                                       3),
                               // color: Colors.yellow,
@@ -930,23 +931,14 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                           padding: EdgeInsets.only(
                               left: mHeight * 0.10 / 3,
                               top: mHeight * 0.03 / 3),
-                          child: GestureDetector(
-                            onTap: () {
-                              // Navigator.push(
-                              //     context,
-                              //     MaterialPageRoute(
-                              //         builder: (context) =>
-                              //             ExpandDropdownList()));
-                            },
-                            child: Text('Exit Node',
-                                style: TextStyle(
-                                    color: appModel.darkTheme
-                                        ? Colors.white
-                                        : Colors.black,
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: mHeight * 0.05 / 3)),
-                          ),
+                          child: Text('Exit Node',
+                              style: TextStyle(
+                                  color: appModel.darkTheme
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: mHeight * 0.05 / 3)),
                         ),
                       ],
                     ),
@@ -1904,7 +1896,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                   color: appModel.darkTheme ? Color(0xff292937) : Colors.white,
                   borderRadius: BorderRadius.circular(5.0)),
               child: isAuthCode
-                  ? TextFormField(
+                  ? TextField(
                     keyboardType: TextInputType.numberWithOptions(
                       decimal: true
                     ),
@@ -1914,11 +1906,17 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                       controller: _cusAuthCode,
                       style: TextStyle(color: Color(0xff1994FC)),
                       decoration: InputDecoration(border: InputBorder.none),
-                      validator: (value) {
-                       
-                      },
+
                     )
-                  : Container(),
+                  : Container(
+                    width:double.infinity,
+                    child: Row(
+
+                      children: [
+                        Text("1.1.1.1",style: TextStyle(color: Color(0xff90909A)),),
+                      ],
+                    ),
+                  ),
             ),
             Container(
                 height: MediaQuery.of(dcontext).size.height * 0.10 / 3,
@@ -1949,6 +1947,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                     onTap: () {
                       setState(() {
                         isAuthCode = isAuthCode ? false : true;
+                        _cusAuthCode.text = "1.1.1.1";
                         print("this is for authcode$isAuthCode");
                       });
                     },

@@ -22,6 +22,7 @@ class Welcome {
         required this.txRate,
         required this.uptime,
         required this.version,
+        required this.isConnected,
     });
 
     dynamic authCodes;
@@ -36,6 +37,7 @@ class Welcome {
     dynamic txRate;
     int uptime;
     String version;
+    bool isConnected;
 
     factory Welcome.fromJson(Map<String, dynamic> json) => Welcome(
         authCodes: json["authCodes"],
@@ -50,6 +52,7 @@ class Welcome {
         txRate: json["txRate"] == null ? null : json["txRate"],
         uptime: json["uptime"] == null ? null : json["uptime"],
         version: json["version"] == null ? null : json["version"],
+        isConnected: json["isConnected"],
     );
 
     Map<String, dynamic> toJson() => {
@@ -65,6 +68,7 @@ class Welcome {
         "txRate": txRate == null ? null : txRate,
         "uptime": uptime == null ? null : uptime,
         "version": version == null ? null : version,
+        "isConnected": isConnected == null ? null : isConnected,
     };
 }
 

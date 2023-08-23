@@ -65,7 +65,7 @@ void _addOverlay() {
     }
 
     _overlayEntry = _createOverlayEntry();
-    Overlay.of(context)!.insert(_overlayEntry);
+    Overlay.of(context).insert(_overlayEntry);
   }
 
 

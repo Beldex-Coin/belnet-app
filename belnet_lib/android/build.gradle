@@ -49,7 +49,7 @@ spotless {
 }
 
 android {
-	compileSdkVersion 31
+	compileSdkVersion 33
 
 	ndkVersion '21.3.6528147'
 	sourceSets {
@@ -58,7 +58,7 @@ android {
 		main.jniLibs.srcDirs += "src/main/jniLibs"
 	}
 	defaultConfig {
-		minSdkVersion 16
+		minSdkVersion 21
 	}
 	lintOptions {
 		disable "InvalidPackage"

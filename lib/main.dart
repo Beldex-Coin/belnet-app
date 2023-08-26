@@ -743,16 +743,16 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     return str;
   }
 
-  List<exitNodeModel.ExitNodeDataList> exitData = [];
+  List<exitNodeModel.ExitNodeDataList> exitData1 = [];
 
   String valueS = "";
 
 //  List<String> customExitAdd = [];
   bool eligibleCust = false;
   saveData() async {
-    exitData = [];
+    exitData1 = [];
     var res = await DataRepo().getListData();
-    exitData.addAll(res);
+    exitData1.addAll(res);
 
     // if(eligibleCust){
 
@@ -1095,9 +1095,10 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                                         isOpen = isOpen ? false : true;
                                       });
                                       if (isOpen &&
-                                          (exitData.isEmpty ||
-                                              exitData == [])) {
-                                        // exitData.clear();
+                                          (exitData1.isEmpty ||
+                                              exitData1 == [])) {
+                                        //exitData.clear();
+                                        print('cleared the data ${exitData1.length}');
                                         saveData();
                                         //saveCustomForUse();   //hide for version 1.2.0
                                       }
@@ -1112,7 +1113,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                                         },
                                       );
 
-                                      overlayState?.insert(overlayEntry!);
+                                      overlayState.insert(overlayEntry!);
                                       // if(isOpen == false)
                                       //   overlayEntry?.remove();
                                     },
@@ -1960,203 +1961,6 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                             : 'assets/images/Rectangle 10 (1).svg')),
               ],
             ),
-            // GestureDetector(
-            //   onTap: () {
-            //     // print('test button clicked');
-            //     // if (_cusExitNode.text == null || _cusExitNode.text == "") {
-            //     //   setState(() {
-            //     //     textForExit = "ExitNode should not be empty";
-            //     //     color = "red";
-            //     //   });
-            //     // } else if (_cusExitNode.text.length != 56) {
-            //     //   setState(
-            //     //     () {
-            //     //       textForExit = "Invalid range of exit node";
-            //     //     },
-            //     //   );
-            //     // } else if (_cusExitNode.text.isNotEmpty &&
-            //     //     !_cusExitNode.text.contains(".bdx")) {
-            //     //   setState(() {
-            //     //     textForExit = "Please enter a valid Exit Node";
-            //     //     print(
-            //     //         "is contain method call ${!_cusExitNode.text.contains(".bdx")}");
-            //     //     color = "red";
-            //     //   });
-            //     // } else {
-            //     //   //check number of characters
-            //     //   if (_cusExitNode.text.contains(
-            //     //       RegExp(r"^(?=.*[a-zA-Z])(?=.*[0-9])[A-Za-z0-9]+$"))) {
-            //     //     //if(_cusExitNode.text.contains(".bdx")){
-            //     //     setState(() {
-            //     //       textForExit = null;
-            //     //       isSet = true;
-            //     //       color = "green";
-            //     //     });
-            //     //     //}
-            //     //   }
-            //     // }
-
-            //     // print("isSet value $isSet");
-            //     // if(_cusAuthCode.text.isNotEmpty)
-            //   },
-            //   child: Padding(
-            //     padding: const EdgeInsets.only(top: 8.0),
-            //     child: Container(
-            //         padding: EdgeInsets.all(8.0),
-            //         decoration: BoxDecoration(
-            //             borderRadius: BorderRadius.circular(12.0),
-            //             color: Colors.grey,
-            //             gradient: color == "blue"
-            //                 ? LinearGradient(
-            //                     colors: [Color(0xff007ED1), Color(0xff0093FF)])
-            //                 : color == "red"
-            //                     ? LinearGradient(colors: [
-            //                         Color(0xffE50012),
-            //                         Color(0xffFF1A23)
-            //                       ])
-            //                     : color == "green"
-            //                         ? LinearGradient(colors: [
-            //                             Color(0xff00B504),
-            //                             Color(0xff23DC27)
-            //                           ])
-            //                         : LinearGradient(colors: []),
-            //             boxShadow: appModel.darkTheme
-            //                 ? [
-            //                     // BoxShadow(
-            //                     //     color: Colors.black12,
-            //                     //     offset: Offset(-10, -10),
-            //                     //     spreadRadius: 0,
-            //                     //     blurRadius: 10),
-            //                     BoxShadow(
-            //                         color: Colors.black,
-            //                         offset: Offset(0, 1),
-            //                         blurRadius: 2.0)
-            //                   ]
-            //                 : [
-            //                     BoxShadow(
-            //                         color: Color(0xff6E6E6E),
-            //                         offset: Offset(0, 1),
-            //                         blurRadius: 2.0)
-            //                   ]),
-            //         height: MediaQuery.of(dcontext).size.height * 0.18 / 3,
-            //         width: double.infinity,
-            //         child: Row(
-            //           mainAxisAlignment: MainAxisAlignment.center,
-            //           children: [
-            //             color == "red"
-            //                 ? SvgPicture.asset(
-            //                     'assets/images/icons8-error.svg',
-            //                     height: MediaQuery.of(dcontext).size.height *
-            //                         0.05 /
-            //                         3,
-            //                   )
-            //                 : color == "green"
-            //                     ? SvgPicture.asset(
-            //                         'assets/images/icons8-error.svg',
-            //                         height:
-            //                             MediaQuery.of(dcontext).size.height *
-            //                                 0.05 /
-            //                                 3,
-            //                       )
-            //                     : Container(),
-            //             Padding(
-            //               padding: const EdgeInsets.only(left: 5.0),
-            //               child: Text( // print('test button clicked');
-            //       // if (_cusExitNode.text == null || _cusExitNode.text == "") {
-            //       //   setState(() {
-            //       //     textForExit = "ExitNode should not be empty";
-            //       //     color = "red";
-            //       //   });
-            //       // } else if (_cusExitNode.text.length != 56) {
-            //       //   setState(
-            //       //     () {
-            //       //       textForExit = "Invalid range of exit node";
-            //       //     },
-            //       //   );
-            //       // } else if (_cusExitNode.text.isNotEmpty &&
-            //       //     !_cusExitNode.text.contains(".bdx")) {
-            //       //   setState(() {
-            //       //     textForExit = "Please enter a valid Exit Node";
-            //       //     print(
-            //       //         "is contain method call ${!_cusExitNode.text.contains(".bdx")}");
-            //       //     color = "red";
-            //       //   });
-            //       // } else {
-            //       //   //check number of characters
-            //       //   if (_cusExitNode.text.contains(
-            //       //       RegExp(r"^(?=.*[a-zA-Z])(?=.*[0-9])[A-Za-z0-9]+$"))) {
-            //       //     //if(_cusExitNode.text.contains(".bdx")){
-            //       //     setState(() {
-            //       //       textForExit = null;
-            //       //       isSet = true;
-            //       //       color = "green";
-            //       //     });
-            //       //     //}
-
-            //       //     var isOk = false;
-            //       //     setState(
-            //       //       () {
-            //       //         isOk = isOk ? false : true;
-            //       //       },
-            //       //     );
-            //       //     if (isOk) {
-            //       //       var flag = false;
-
-            //       //       con = await BelnetLib.connectToBelnet(
-            //       //           exitNode: _cusExitNode.text, upstreamDNS: "");
-
-            //       //       try {
-            //       //         Future.delayed(const Duration(milliseconds: 1000),
-            //       //             (() async {
-            //       //           final result = await InternetAddress.lookup(
-            //       //               'https://stackoverflow.com/');
-            //       //           if (result.isNotEmpty &&
-            //       //               result[0].rawAddress.isNotEmpty) {
-            //       //             print('verified exit! ');
-            //       //             print("what is inside the result $result");
-            //       //           } else {
-            //       //             print("invalid exits");
-            //       //           }
-            //       //         }));
-            //       //       } catch (e) {
-            //       //         print(e);
-            //       //       }
-
-            //       //       //   Timer _timer;
-            //       //       //     con = await BelnetLib.connectToBelnet(
-            //       //       // exitNode: _cusExitNode.text, upstreamDNS: "");
-
-            //       //       //   Future.delayed(const Duration(milliseconds: 7000),(() {
-            //       //       //      setState(() {
-            //       //       //         flag = true;
-            //       //       //      },);
-            //       //       //   }));
-            //       //       //     while(!flag){
-            //       //       //        _timer = Timer.periodic(Duration(seconds: 1), (timer) async{
-            //       //       //         getValidExitNode();
-            //       //       //         print("the exit node is $checkExitVal");
-            //       //       //     });
-            //       //       //     }
-            //       //       //     if(checkExitVal == true){
-            //       //       //       Navigator.pop(context);
-            //       //       //     }else{
-            //       //       //       print("no valid exit");
-            //       //       //     }
-
-            //       //     } else {
-            //       //       await BelnetLib.disconnectFromBelnet();
-            //       //     }
-            //       //   }
-            //                 "Test",
-            //                 style: TextStyle(
-            //                     fontFamily: "Poppins",
-            //                     fontWeight: FontWeight.w900),
-            //               ),
-            //             ),
-            //           ],
-            //         )),
-            //   ),
-            // ),
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: GestureDetector(
@@ -2208,181 +2012,14 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                    
                   }
                 }, //basicValidation, //customExitConnection,
-
-                //{
-
-                // if (_cusExitNode.text == null || _cusExitNode.text == "") {
-                //   setState(() {
-                //     textForExit = "ExitNode should not be empty";
-                //     color = "red";
-                //   });
-                // } else if (_cusExitNode.text.length != 56) {
-                //   setState(
-                //     () {
-                //       textForExit = "Invalid range of exit node";
-                //     },
-                //   );
-                // } else if (_cusExitNode.text.isNotEmpty &&
-                //     !_cusExitNode.text.contains(".bdx")) {
-                //   setState(() {
-                //     textForExit = "Please enter a valid Exit Node";
-                //     print(
-                //         "is contain method call ${!_cusExitNode.text.contains(".bdx")}");
-                //     color = "red";
-                //   });
-                // } else {
-                //   //check number of characters
-                //   if (_cusExitNode.text.contains(
-                //       RegExp(r"^(?=.*[a-zA-Z])(?=.*[0-9])[A-Za-z0-9]+$"))) {
-                //     //if(_cusExitNode.text.contains(".bdx")){
-                //     setState(() {
-                //       textForExit = null;
-                //       isSet = true;
-                //       color = "green";
-                //     });
-                //     //}
-
-                // }
-
-                //}
-
-                // print('test button clicked');
-                // if (_cusExitNode.text == null || _cusExitNode.text == "") {
-                //   setState(() {
-                //     textForExit = "ExitNode should not be empty";
-                //     color = "red";
-                //   });
-                // } else if (_cusExitNode.text.length != 56) {
-                //   setState(
-                //     () {
-                //       textForExit = "Invalid range of exit node";
-                //     },
-                //   );
-                // } else if (_cusExitNode.text.isNotEmpty &&
-                //     !_cusExitNode.text.contains(".bdx")) {
-                //   setState(() {
-                //     textForExit = "Please enter a valid Exit Node";
-                //     print(
-                //         "is contain method call ${!_cusExitNode.text.contains(".bdx")}");
-                //     color = "red";
-                //   });
-                // } else {
-                //   //check number of characters
-                //   if (_cusExitNode.text.contains(
-                //       RegExp(r"^(?=.*[a-zA-Z])(?=.*[0-9])[A-Za-z0-9]+$"))) {
-                //     //if(_cusExitNode.text.contains(".bdx")){
-                //     setState(() {
-                //       textForExit = null;
-                //       isSet = true;
-                //       color = "green";
-                //     });
-                //     //}
-
-                //     var isOk = false;
-                //     setState(
-                //       () {
-                //         isOk = isOk ? false : true;
-                //       },
-                //     );
-                //     if (isOk) {
-                //       var flag = false;
-
-                //       con = await BelnetLib.connectToBelnet(
-                //           exitNode: _cusExitNode.text, upstreamDNS: "");
-
-                //       try {
-                //         Future.delayed(const Duration(milliseconds: 1000),
-                //             (() async {
-                //           final result = await InternetAddress.lookup(
-                //               'https://stackoverflow.com/');
-                //           if (result.isNotEmpty &&
-                //               result[0].rawAddress.isNotEmpty) {
-                //             print('verified exit! ');
-                //             print("what is inside the result $result");
-                //           } else {
-                //             print("invalid exits");
-                //           }
-                //         }));
-                //       } catch (e) {
-                //         print(e);
-                //       }
-
-                //       //   Timer _timer;
-                //       //     con = await BelnetLib.connectToBelnet(
-                //       // exitNode: _cusExitNode.text, upstreamDNS: "");
-
-                //       //   Future.delayed(const Duration(milliseconds: 7000),(() {
-                //       //      setState(() {
-                //       //         flag = true;
-                //       //      },);
-                //       //   }));
-                //       //     while(!flag){
-                //       //        _timer = Timer.periodic(Duration(seconds: 1), (timer) async{
-                //       //         getValidExitNode();
-                //       //         print("the exit node is $checkExitVal");
-                //       //     });
-                //       //     }
-                //       //     if(checkExitVal == true){
-                //       //       Navigator.pop(context);
-                //       //     }else{
-                //       //       print("no valid exit");
-                //       //     }
-
-                //     } else {
-                //       await BelnetLib.disconnectFromBelnet();
-                //     }
-                //  }
-                // }
-
-                //_timer.cancel();
-
-                // if (isSet) {
-                //   setState(() {
-                //     print("Simply clicked");
-
-                //     exitItems.insert(0, _cusExitNode.text);
-
-                //     invalidExit = "";
-                //     invalidAuth = "";
-
-                //     // _cusExitNode.dispose();
-                //     // _cusAuthCode.dispose();
-
-                //     textForExit = null;
-                //     //textForAuth = null;
-                //     isSet = false;
-                //     color = "blue";
-                //   });
-                //   Navigator.pop(dcontext);
-                // }
-                //  },
                 child: Container(
                     //padding: EdgeInsets.all(8.0),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12.0),
                         color: Colors.grey,
                         gradient:
-                            // appModel.darkTheme
-                            //     ?
-                            // isSet
-                            //     ?
                             LinearGradient(
                                 colors: [Color(0xff007ED1), Color(0xff0093FF)]),
-                        // : LinearGradient(colors: [
-                        //     Color(0xff20202B),
-                        //     Color(0xff2C2C39)
-                        //   ])
-                        // :
-                        // // isSet
-                        // //     ?
-                        // //     LinearGradient(colors: [
-                        // //         Color(0xff007ED1),
-                        // //         Color(0xff0093FF)
-                        // //       ])
-                        // //     :
-                        // LinearGradient(
-                        //     colors: [Color(0xffF2F0F0), Color(0xffFAFAFA)]),
-                        // border: Border.all(color:Color(0xff56566F)),
                         boxShadow: [
                           appModel.darkTheme
                               ? BoxShadow(
@@ -2447,7 +2084,8 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () {
-          overlayEntry!.remove();
+          overlayEntry?.remove();
+          
         },
         child: Container(
           height: 200.0,
@@ -2457,19 +2095,6 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
               left: mHeight * 0.09 / 3,
               right: mHeight * 0.09 / 3),
           child:
-
-              /// Padding(
-              // padding: EdgeInsets.only(
-              //     left: MediaQuery.of(context).size.height *
-              //         0.08 /
-              //         3,
-              //     right: MediaQuery.of(context).size.height *
-              //         0.10 /
-              //         3,
-              //     top: MediaQuery.of(context).size.height *
-              //         0.03 /
-              //         3),
-              // child:
               Container(
             height: MediaQuery.of(context).size.height * 0.70 / 3,
             width: MediaQuery.of(context).size.width * 2.7 / 3,
@@ -2480,7 +2105,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
             child: ListView.builder(
                 padding: EdgeInsets.zero,
                 shrinkWrap: true,
-                itemCount: exitData.length,
+                itemCount: exitData1.length,
                 itemBuilder: (BuildContext context, int index) {
                   // print("data inside listview ${exitData[index]}");
                   return Container(
@@ -2509,7 +2134,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                         // exitData[index].type == "Custom Exit Node" &&
                         //         customExitAdd.isNotEmpty
                         //     ? "${customExitAdd.length} Nodes":
-                        "${exitData[index].node.length} Nodes",
+                        "${exitData1[index].node.length} Nodes",
                         style: TextStyle(
                             color: Colors.grey,
                             fontSize:
@@ -2518,7 +2143,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                       children: <Widget>[
                         Column(
                           children: _buildExpandableContent(
-                              exitData[index].node, exitData[index].type),
+                              exitData1[index].node, exitData1[index].type),
                         ),
                       ],
                     ),
@@ -2804,18 +2429,6 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
 
     return columnContent;
   }
-
-  // var invalidExit = "";
-  // var invalidAuth = "";
-
-  // TextEditingController _cusExitNode = TextEditingController();
-  // TextEditingController _cusAuthCode = TextEditingController();
-
-  // var textForExit;
-  // var textForAuth;
-  // var isSet = false;
-  // var color = "blue";
-
 }
 
 // if there is no internet, this page only displays when there is no inter

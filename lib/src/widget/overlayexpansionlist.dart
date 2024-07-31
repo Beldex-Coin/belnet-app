@@ -16,14 +16,27 @@ class OverlayExpansionDropdownList extends StatefulWidget {
   final int defaultSelectedIndex;
   final bool enabled;
   final AppModel appModel;
-  const OverlayExpansionDropdownList({Key? key, required this.items, required this.onChanged, required this.hintText, required this.borderRadius, required this.maxListHeight, required this.borderWidth, required this.defaultSelectedIndex, required this.enabled, required this.appModel}) : super(key: key);
+  const OverlayExpansionDropdownList(
+      {Key? key,
+      required this.items,
+      required this.onChanged,
+      required this.hintText,
+      required this.borderRadius,
+      required this.maxListHeight,
+      required this.borderWidth,
+      required this.defaultSelectedIndex,
+      required this.enabled,
+      required this.appModel})
+      : super(key: key);
 
   @override
-  State<OverlayExpansionDropdownList> createState() => _OverlayExpansionDropdownListState();
+  State<OverlayExpansionDropdownList> createState() =>
+      _OverlayExpansionDropdownListState();
 }
 
-class _OverlayExpansionDropdownListState extends State<OverlayExpansionDropdownList> with WidgetsBindingObserver{
-bool _isOpen = false, _isAnyItemSelected = false, _isReverse = false;
+class _OverlayExpansionDropdownListState
+    extends State<OverlayExpansionDropdownList> with WidgetsBindingObserver {
+  bool _isOpen = false, _isAnyItemSelected = false, _isReverse = false;
   late OverlayEntry _overlayEntry;
   late RenderBox? _renderBox;
   Widget? _itemSelected;
@@ -31,8 +44,7 @@ bool _isOpen = false, _isAnyItemSelected = false, _isReverse = false;
   final LayerLink _layerLink = LayerLink();
   final _scrollController = ScrollController(initialScrollOffset: 0.0);
 
-
- @override
+  @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -56,8 +68,7 @@ bool _isOpen = false, _isAnyItemSelected = false, _isReverse = false;
     super.initState();
   }
 
-
-void _addOverlay() {
+  void _addOverlay() {
     if (mounted) {
       setState(() {
         _isOpen = true;
@@ -68,10 +79,7 @@ void _addOverlay() {
     Overlay.of(context).insert(_overlayEntry);
   }
 
-
-
-
- void _removeOverlay() {
+  void _removeOverlay() {
     if (mounted) {
       setState(() {
         _isOpen = false;
@@ -80,108 +88,68 @@ void _addOverlay() {
     }
   }
 
-
-
-
-
-
-OverlayEntry _createOverlayEntry() {
-  _renderBox = context.findRenderObject() as RenderBox?;
+  OverlayEntry _createOverlayEntry() {
+    _renderBox = context.findRenderObject() as RenderBox?;
 
     var size = _renderBox!.size;
 
     dropDownOffset = getOffset();
 
-   return OverlayEntry(
-    builder: (context)=> Align(   
+    return OverlayEntry(
+        builder: (context) => Align(
             alignment: Alignment.center,
-            child:CompositedTransformFollower(
+            child: CompositedTransformFollower(
               link: _layerLink,
-               showWhenUnlinked: false,
-                offset: dropDownOffset,
-                child: SizedBox(
-                  height: widget.maxListHeight,
-                  width: size.width,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: _isReverse
-                        ? MainAxisAlignment.end
-                        : MainAxisAlignment.start,
-                    children: <Widget>[
-                      // Padding(
-                      //   padding: const EdgeInsets.only(top: 10,),
-                      //   child:
-                      Container(
-                        padding: EdgeInsets.only(
-                            top: MediaQuery.of(context).size.height * 0.06 / 3),
-                        constraints: BoxConstraints(
-                            maxHeight: widget.maxListHeight,
-                            maxWidth: size.width),
-                        decoration: BoxDecoration(
-                            //color: Colors.white,
-                            borderRadius: BorderRadius.circular(12)),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(widget.borderRadius),
-                          ),
-                          child: Material(
-                            color: widget.appModel.darkTheme
-                                ? Color(0xFF242430)
-                                : Color(0xFFF9F9F9),
-                            elevation: 0,
-                            shadowColor: Colors.grey,
-                            child: RawScrollbar(
+              showWhenUnlinked: false,
+              offset: dropDownOffset,
+              child: SizedBox(
+                height: widget.maxListHeight,
+                width: size.width,
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: _isReverse
+                      ? MainAxisAlignment.end
+                      : MainAxisAlignment.start,
+                  children: <Widget>[
+                    // Padding(
+                    //   padding: const EdgeInsets.only(top: 10,),
+                    //   child:
+                    Container(
+                      padding: EdgeInsets.only(
+                          top: MediaQuery.of(context).size.height * 0.06 / 3),
+                      constraints: BoxConstraints(
+                          maxHeight: widget.maxListHeight,
+                          maxWidth: size.width),
+                      decoration: BoxDecoration(
+                          //color: Colors.white,
+                          borderRadius: BorderRadius.circular(12)),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(widget.borderRadius),
+                        ),
+                        child: Material(
+                          color: widget.appModel.darkTheme
+                              ? Color(0xFF242430)
+                              : Color(0xFFF9F9F9),
+                          elevation: 0,
+                          shadowColor: Colors.grey,
+                          child: RawScrollbar(
                               thumbColor: widget.appModel.darkTheme
                                   ? Color(0xff4D4D64)
                                   : Color(0xffC7C7C7),
                               thumbVisibility: true,
                               controller: _scrollController,
                               thickness: 3.6,
-                              child: Container()
-                              
-                            ),
-                          ),
+                              child: Container()),
                         ),
                       ),
-                      // ),
-                    ],
-                  ),
-                ), 
-              
-            )
-    )
-    
-    );
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                    ),
+                    // ),
+                  ],
+                ),
+              ),
+            )));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +204,6 @@ OverlayEntry _createOverlayEntry() {
     );
   }
 
-
   Offset getOffset() {
     RenderBox? renderBox = context.findRenderObject() as RenderBox?;
     double y = renderBox!.localToGlobal(Offset.zero).dy;
@@ -253,8 +220,6 @@ OverlayEntry _createOverlayEntry() {
     }
   }
 
-
-
   double _getAvailableSpace(double offsetY) {
     double safePaddingTop = MediaQuery.of(context).padding.top;
     double safePaddingBottom = MediaQuery.of(context).padding.bottom;
@@ -264,7 +229,6 @@ OverlayEntry _createOverlayEntry() {
 
     return screenHeight - offsetY;
   }
-
 
   Decoration? _getDecoration() {
     if (_isOpen && !_isReverse) {
@@ -286,9 +250,4 @@ OverlayEntry _createOverlayEntry() {
           borderRadius: BorderRadius.all(Radius.circular(widget.borderRadius)));
     }
   }
-
-
-
-
-
 }

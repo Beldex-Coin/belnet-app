@@ -2,7 +2,7 @@
 //
 //     final exitNodeDataList = exitNodeDataListFromJson(jsonString);
 
-import 'package:meta/meta.dart';
+//import 'package:meta/meta.dart';
 import 'dart:convert';
 
 List<ExitNodeDataList> exitNodeDataListFromJson(String str) => List<ExitNodeDataList>.from(json.decode(str).map((x) => ExitNodeDataList.fromJson(x)));

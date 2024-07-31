@@ -1,7 +1,4 @@
-import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
-import 'package:belnet_mobile/src/widget/sampChart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -20,7 +17,7 @@ class _ConnectingStatusState extends State<ConnectingStatus> {
   @override
   Widget build(BuildContext context) {
     final appModel = Provider.of<AppModel>(context);
-
+    final mHeight = MediaQuery.of(context).size.height;
     return Column(
       // mainAxisAlignment: MainAxisAlignment.center,
       // crossAxisAlignment: CrossAxisAlignment.center,
@@ -38,12 +35,12 @@ class _ConnectingStatusState extends State<ConnectingStatus> {
                     color: appModel.darkTheme
                         ? widget.isConnect!
                             ? Colors.white
-                            : Color(0xffA8A8B7)
+                            : const Color(0xffA8A8B7)
                         : widget.isConnect!
-                            ? Color(0xff222222)
-                            : Color(0xffA8A8B7),
+                            ?const Color(0xff222222)
+                            :const Color(0xffA8A8B7),
                     fontFamily: 'Poppins',
-                    fontSize: MediaQuery.of(context).size.height*0.05/3,
+                    fontSize: mHeight*0.05/3,
                     fontWeight: widget.isConnect! ? FontWeight.bold : FontWeight.w500),
               ),
             ),
@@ -74,7 +71,7 @@ class _ConnectingStatusState extends State<ConnectingStatus> {
                             ? Color(0xff222222)
                             : Color(0xffA8A8B7),
                     fontFamily: 'Poppins',
-                    fontSize: MediaQuery.of(context).size.height*0.05/3,
+                    fontSize: mHeight*0.05/3,
                     fontWeight: widget.isConnect! ? FontWeight.bold : FontWeight.w500),
               ),
             ),
@@ -83,13 +80,13 @@ class _ConnectingStatusState extends State<ConnectingStatus> {
               width: 10,
               decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: widget.isConnect! ? Color(0xff00C000) : Color(0xffFF3030)),
+                  color: widget.isConnect! ?const Color(0xff00C000) :const Color(0xffFF3030)),
             )
           ],
         ),
        widget.connecting ? 
        Padding(
-          padding: EdgeInsets.only(top: 5.0,left:MediaQuery.of(context).size.height*0.45/3,right:MediaQuery.of(context).size.height*0.45/3),
+          padding: EdgeInsets.only(top: 5.0,left:mHeight*0.45/3,right:mHeight*0.45/3),
           child: LinearPercentIndicator(  
             lineHeight: 2.0,
             animation: true,

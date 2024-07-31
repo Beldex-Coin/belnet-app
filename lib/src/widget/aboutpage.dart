@@ -22,8 +22,8 @@ class _MyWidgetState extends State<AboutPage> {
   @override
   Widget build(BuildContext context) {
     final appModel = Provider.of<AppModel>(context);
-    var mHeight = MediaQuery.of(context).size.height;
-    var mWidth = MediaQuery.of(context).size.width;
+    final mHeight = MediaQuery.of(context).size.height;
+    final mWidth = MediaQuery.of(context).size.width;
     return Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -31,12 +31,12 @@ class _MyWidgetState extends State<AboutPage> {
             end: Alignment.bottomCenter,
             colors: appModel.darkTheme
                 ? [
-                    Color(0xFF242430),
-                    Color(0xFF1C1C26),
+                   const  Color(0xFF242430),
+                    const Color(0xFF1C1C26),
                   ]
                 : [
-                    Color(0xFFF9F9F9),
-                    Color(0xFFEBEBEB),
+                   const Color(0xFFF9F9F9),
+                   const Color(0xFFEBEBEB),
                   ],
           ),
         ),
@@ -44,13 +44,13 @@ class _MyWidgetState extends State<AboutPage> {
           backgroundColor: Colors.transparent,
           appBar: PreferredSize(
               preferredSize: Size.fromHeight(
-                  MediaQuery.of(context).size.height * 0.80 / 3),
+                  mHeight * 0.80 / 3),
               child: Container(
                   height: mHeight * 0.45 / 3,
                   padding: EdgeInsets.only(
-                      left: MediaQuery.of(context).size.height * 0.08 / 3,
-                      right: MediaQuery.of(context).size.height * 0.08 / 3,
-                      top: MediaQuery.of(context).size.height * 0.13 / 3),
+                      left:mHeight * 0.08 / 3,
+                      right: mHeight * 0.08 / 3,
+                      top: mHeight * 0.13 / 3),
                   decoration: BoxDecoration(color: Colors.transparent),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -59,7 +59,7 @@ class _MyWidgetState extends State<AboutPage> {
                           text: TextSpan(
                               text: 'About',
                               style: TextStyle(
-                                  fontSize: MediaQuery.of(context).size.height *
+                                  fontSize: mHeight *
                                       0.09 /
                                       3,
                                   fontWeight: FontWeight.w900,
@@ -72,12 +72,12 @@ class _MyWidgetState extends State<AboutPage> {
                                 text: ' Belnet',
                                 style: TextStyle(
                                     fontSize:
-                                        MediaQuery.of(context).size.height *
+                                        mHeight *
                                             0.09 /
                                             3,
                                     fontWeight: FontWeight.w900,
                                     fontFamily: 'Poppins',
-                                    color: Color(0xff23DC27)))
+                                    color:const Color(0xff23DC27)))
                           ])),
                       GestureDetector(
                         onTap: (() {
@@ -100,13 +100,13 @@ class _MyWidgetState extends State<AboutPage> {
               // padding: EdgeInsets.only(right:mHeight*0.05/3),
               child: RawScrollbar(
             thumbColor:
-                appModel.darkTheme ? Color(0xff4D4D64) : Color(0xffC7C7C7),
+                appModel.darkTheme ? const Color(0xff4D4D64) :const Color(0xffC7C7C7),
             //controller: scrollController,
             thumbVisibility: true,
             thickness: 8,
             radius: Radius.circular(10),
             child: Container(
-              color: appModel.darkTheme ? Color(0xff111117) : Color(0xffE3E3E3),
+              color: appModel.darkTheme ?const Color(0xff111117) :const Color(0xffE3E3E3),
               padding: EdgeInsets.only(right: 10.0),
               child: SingleChildScrollView(
                   child: Container(
@@ -116,12 +116,12 @@ class _MyWidgetState extends State<AboutPage> {
                     end: Alignment.bottomCenter,
                     colors: appModel.darkTheme
                         ? [
-                            Color(0xFF242430),
-                            Color(0xFF1C1C26),
+                           const Color(0xFF242430),
+                           const Color(0xFF1C1C26),
                           ]
                         : [
-                            Color(0xFFF9F9F9),
-                            Color(0xFFEBEBEB),
+                           const Color(0xFFF9F9F9),
+                           const Color(0xFFEBEBEB),
                           ],
                   ),
                 ),

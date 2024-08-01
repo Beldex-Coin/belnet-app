@@ -1,5 +1,5 @@
 import 'package:belnet_mobile/src/model/exitnodeCategoryModel.dart';
-import 'package:get/get_connect/http/src/_http/interface/request_base.dart';
+//import 'package:get/get_connect/http/src/_http/interface/request_base.dart';
 
 import 'exitnodeModel.dart';
 import 'package:http/http.dart' as http;
@@ -20,8 +20,10 @@ class DataRepo{
 
 
 Future<List<ExitNodeDataList>> getListData() async {
-    var response = await http.get(Uri.parse(
-        'https://deb.beldex.io/Beldex-projects/Belnet/exitnodelist.json')); //  https://deb.beldex.io/Beldex-projects/Belnet/modeljson.json
+    var response = await http.get(Uri.parse('https://belnet-exitnode.s3.ap-south-1.amazonaws.com/exitnode-bns-list/exitnode-bns-list.json'
+      //'https://testdeb.beldex.dev/Beldex-Projects/Belnet/android/exitlist/testdeb-exinode-bns-list.json'
+        //'https://deb.beldex.io/Beldex-projects/Belnet/exitnodelist.json'
+        )); //  https://deb.beldex.io/Beldex-projects/Belnet/modeljson.json
      //https://deb.beldex.io/Beldex-projects/Belnet/exitlist.json
     //var mydata;
     try {

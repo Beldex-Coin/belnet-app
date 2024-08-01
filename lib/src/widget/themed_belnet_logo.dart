@@ -1,6 +1,5 @@
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:belnet_mobile/src/utils/is_darkmode.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 

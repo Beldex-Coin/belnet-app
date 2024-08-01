@@ -2,7 +2,7 @@ group "io.beldex.belnet_lib"
 version "1.0-SNAPSHOT"
 
 buildscript {
-	ext.kotlin_version = "1.6.10"
+	ext.kotlin_version = "1.7.10"
 	repositories {
 		google()
 		jcenter()
@@ -12,7 +12,7 @@ buildscript {
 	}
 
 	dependencies {
-		classpath "com.android.tools.build:gradle:7.0.0"
+		classpath "com.android.tools.build:gradle:7.4.2"
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 		classpath "com.diffplug.spotless:spotless-plugin-gradle:5.14.0"
 	}
@@ -49,7 +49,7 @@ spotless {
 }
 
 android {
-	compileSdkVersion 33
+	compileSdkVersion 34
 
 	ndkVersion '21.3.6528147'
 	sourceSets {

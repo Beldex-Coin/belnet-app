@@ -23,8 +23,10 @@ class BelnetLib {
   static Stream<bool> get isConnectedEventStream => _isConnectedEventStream;
 
   static Future bootstrapBelnet() async {
-    final request = await HttpClient().getUrl(Uri.parse(
-        'https://deb.beldex.io/Beldex-projects/Belnet/bootstrap-files/bootstrap.signed'));
+    try{
+      final request = await HttpClient().getUrl(Uri.parse('https://belnet-exitnode.s3.ap-south-1.amazonaws.com/bootstrap-files/bootstrap.signed'
+        //'https://deb.beldex.io/Beldex-projects/Belnet/bootstrap-files/bootstrap.signed'
+      ));
     final response = await request.close();
     var path = await getApplicationDocumentsDirectory();
     await response
@@ -35,6 +37,10 @@ class BelnetLib {
       print("Bootstrapping went wrong!");
       print(Directory('${path.parent.path}/files/').listSync().toString());
     }
+    }catch(e){
+      print('Exception $e');
+    }
+   
   }
 
   static Future<bool> prepareConnection() async {
@@ -47,8 +53,8 @@ class BelnetLib {
   static Future<bool> connectToBelnet(
       //"9.9.9.9"
       {String exitNode =
-          "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx",
-      String upstreamDNS = "1.1.1.1"}) async {
+          "exit.bdx",
+      String upstreamDNS = "9.9.9.9"}) async {
     final bool connect = await _methodChannel.invokeMethod(
         'connect', {"exit_node": exitNode, "upstream_dns": upstreamDNS});
 
@@ -83,6 +89,12 @@ class BelnetLib {
   static Future<dynamic> get status async {
     var status = await _methodChannel.invokeMethod('getStatus') as String;
     if (status.isNotEmpty) return jsonDecode(status);
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> getStatus() async {
+    var status = await _methodChannel.invokeMethod('getStatus') as String?;
+    if (status != null && status.isNotEmpty) return jsonDecode(status);
     return null;
   }
 

@@ -17,11 +17,13 @@ import 'package:belnet_mobile/src/widget/bottomnavbaroptions.dart';
 import 'package:belnet_mobile/src/widget/connecting_status.dart';
 import 'package:belnet_mobile/src/widget/exit_node_list.dart';
 import 'package:belnet_mobile/src/widget/expandablelist.dart';
+import 'package:belnet_mobile/src/widget/local_notifications.dart';
 import 'package:belnet_mobile/src/widget/logProvider.dart';
 import 'package:belnet_mobile/src/widget/modelResponse.dart';
 import 'package:belnet_mobile/src/widget/nointernet_connection.dart';
 // import 'package:belnet_mobile/src/widget/logProvider.dart';
 import 'package:belnet_mobile/src/widget/notifications.dart';
+import 'package:belnet_mobile/src/widget/notifications_controller.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:belnet_lib/belnet_lib.dart';
@@ -33,10 +35,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:native_updater/native_updater.dart';
+//import 'package:in_app_update/in_app_update.dart';
+// import 'package:native_updater/native_updater.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:provider/provider.dart' as pr;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:upgrader/upgrader.dart';
 
 //Global variables
 
@@ -53,6 +57,27 @@ void main() async {
   //Load settings
   WidgetsFlutterBinding.ensureInitialized();
   await Settings.getInstance()!.initialize();
+
+  // await LocalNotificationService.initializedNotification();
+  await AwesomeNotifications()
+      .initialize("resource://drawable/res_notification_app_icon", [
+    NotificationChannel(
+        channelGroupKey: "basic_channel_group",
+        channelKey: "belnets_channel",
+        channelName: "Belnet notification",
+        channelDescription: "Belnet notification channel",
+        //icon: "assets/images/belnet_ic.png",
+        locked: true,
+        importance: NotificationImportance.Low)
+  ], channelGroups: [
+    NotificationChannelGroup(
+        channelGroupKey: "basic_channel_group", channelGroupName: "Basic group")
+  ]);
+  bool isNotificationAllowed =
+      await AwesomeNotifications().isNotificationAllowed();
+  if (!isNotificationAllowed) {
+    AwesomeNotifications().requestPermissionToSendNotifications();
+  }
   Paint.enableDithering = true;
   pr.Provider.debugCheckInvalidValueType = null;
 
@@ -86,7 +111,14 @@ class _BelnetAppState extends State<BelnetApp> {
       statusBarColor: Colors.transparent,
       systemNavigationBarColor: Colors.transparent,
     ));
-
+    // AwesomeNotifications().setListeners(
+    //     onActionReceivedMethod: NotificationController.onActionReceivedMethod,
+    //     onDismissActionReceivedMethod:
+    //         NotificationController.onDismissActionReceivedMethod,
+    //     onNotificationDisplayedMethod:
+    //         NotificationController.onNotificationDisplayedMethod,
+    //     onNotificationCreatedMethod:
+    //         NotificationController.onNotificationCreatedMethod);
     // SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack, overlays: [SystemUiOverlay.top]);
     getRandomExitData();
     _initAppTheme();
@@ -99,7 +131,7 @@ class _BelnetAppState extends State<BelnetApp> {
 
     // setState(() {
     //   customExitAdd = preferences.getStringList("customData")!; //for custom exit node save
-     
+
     // });
     if (BelnetLib.isConnected == false) {
       print(
@@ -143,6 +175,15 @@ class _BelnetAppState extends State<BelnetApp> {
     });
   }
 
+
+
+
+@override
+  void dispose() {
+   // AwesomeNotifications().requestPermissionToSendNotifications()
+    super.dispose();
+  }
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
   @override
@@ -155,12 +196,15 @@ class _BelnetAppState extends State<BelnetApp> {
     return pr.ChangeNotifierProvider<AppModel>.value(
       value: appModel,
       child: pr.Consumer<AppModel>(builder: (context, value, child) {
-        return GetMaterialApp(
-            title: 'Belnet App',
-            debugShowCheckedModeBanner: false,
-            theme: appModel.darkTheme ? buildDarkTheme() : buildLightTheme(),
-            home: SplashScreens() //BelnetHomePage(),
-            );
+        return pr.ChangeNotifierProvider(
+          create: (context) => NotificationProvider(),
+          child: GetMaterialApp(
+              title: 'Belnet App',
+              debugShowCheckedModeBanner: false,
+              theme: appModel.darkTheme ? buildDarkTheme() : buildLightTheme(),
+              home: SplashScreens() //BelnetHomePage(),
+              ),
+        );
       }),
     );
   }
@@ -175,15 +219,15 @@ class BelnetHomePage extends StatefulWidget {
   BelnetHomePageState createState() => BelnetHomePageState();
 }
 
-class BelnetHomePageState extends State<BelnetHomePage>
-// with SingleTickerProviderStateMixin
-{
-  late ConnectivityResult connectivityResult;
+class BelnetHomePageState extends State<BelnetHomePage> {
+  late List<ConnectivityResult> connectivityResult;
   LogController logControllers = Get.put(LogController());
+ // AppUpdateInfo? updateInfo;
+  late Timer timer;
   @override
   void initState() {
-    checkVersion(context);
-    Timer.periodic(Duration(seconds: 5), (timer) {
+     
+   timer = Timer.periodic(Duration(seconds: 5), (timer) {
       myNetwork();
     });
     setState(() {});
@@ -191,87 +235,83 @@ class BelnetHomePageState extends State<BelnetHomePage>
     super.initState();
   }
 
-  Future<void> checkVersion(BuildContext context) async {
-    /// For example: You got status code of 412 from the
-    /// response of HTTP request.
-    /// Let's say the statusCode 412 requires you to force update
-    final statusCode = 412;
+// Future<void> _checkForAppUpdate(BuildContext context)async{
+//     UpgradeAlert(
+//       upgrader: Upgrader(
+//       ),
+//       child: ,
+//     );
+// }
 
-    /// This could be kept in our local
-    // final localVersion = 9;
+ 
+  // Future<void> checkVersion(BuildContext context) async {
+  //   /// For example: You got status code of 412 from the
+  //   /// response of HTTP request.
+  //   /// Let's say the statusCode 412 requires you to force update
+  //   final statusCode = 412;
 
-    /// This could get from the API
-    //final serverLatestVersion = 10;
+  //   /// This could be kept in our local
+  //   // final localVersion = 9;
 
-    Future.delayed(Duration.zero, () {
-      if (statusCode == 412) {
-        NativeUpdater.displayUpdateAlert(
-          context,
-          forceUpdate: true,
-          appStoreUrl: '',
-          playStoreUrl:
-              'https://play.google.com/store/apps/details?id=io.beldex.belnet',
-          iOSDescription:
-              'A new version of the Belnet application is available. Update to continue using it.',
-          iOSUpdateButtonLabel: 'Upgrade',
-          iOSCloseButtonLabel: 'Exit',
-          iOSAlertTitle: 'Mandatory Update',
-        );
-      } /* else if (serverLatestVersion > localVersion) {
-        NativeUpdater.displayUpdateAlert(
-          context,
-          forceUpdate: true,
-          appStoreUrl: 'https://apps.apple.com/in/app/beldex-official-wallet/id1603063369',
-          playStoreUrl: 'https://play.google.com/store/apps/details?id=io.beldex.wallet',
-          iOSDescription: 'Your App requires that you update to the latest version. You cannot use this app until it is updated.',
-          iOSUpdateButtonLabel: 'Upgrade',
-          iOSCloseButtonLabel: 'Exit',
-        );*/
-    });
-  }
+  //   /// This could get from the API
+  //   //final serverLatestVersion = 10;
+
+  //   Future.delayed(Duration.zero, () {
+  //     if (statusCode == 412) {
+  //       NativeUpdater.displayUpdateAlert(
+  //         context,
+  //         forceUpdate: true,
+  //         appStoreUrl: '',
+  //         playStoreUrl:
+  //             'https://play.google.com/store/apps/details?id=io.beldex.belnet',
+  //         iOSDescription:
+  //             'A new version of the Belnet application is available. Update to continue using it.',
+  //         iOSUpdateButtonLabel: 'Upgrade',
+  //         iOSCloseButtonLabel: 'Exit',
+  //         iOSAlertTitle: 'Mandatory Update',
+  //       );
+  //     } /* else if (serverLatestVersion > localVersion) {
+  //       NativeUpdater.displayUpdateAlert(
+  //         context,
+  //         forceUpdate: true,
+  //         appStoreUrl: 'https://apps.apple.com/in/app/beldex-official-wallet/id1603063369',
+  //         playStoreUrl: 'https://play.google.com/store/apps/details?id=io.beldex.wallet',
+  //         iOSDescription: 'Your App requires that you update to the latest version. You cannot use this app until it is updated.',
+  //         iOSUpdateButtonLabel: 'Upgrade',
+  //         iOSCloseButtonLabel: 'Exit',
+  //       );*/
+  //   });
+  // }
 
   myNetwork() async {
-    connectivityResult = await Connectivity().checkConnectivity();
-    switch (connectivityResult) {
-      case ConnectivityResult.wifi:
-        {
-          setState(() {});
-          netValue = true;
-        }
-        break;
-      case ConnectivityResult.ethernet:
-        {
-          setState(() {});
-          netValue = true;
-        }
-        break;
-      case ConnectivityResult.mobile:
-        {
-          setState(() {});
-          netValue = true;
-        }
-        break;
-      case ConnectivityResult.none:
-        {
-          setState(() {});
-          netValue = false;
-        }
-        break;
-      default:
-        print('Error occured while checking network');
-        break;
+    connectivityResult = await (Connectivity().checkConnectivity());
+    if(connectivityResult.contains(ConnectivityResult.wifi)){
+       setState(() {});
+       netValue = true;
+    }else  if(connectivityResult.contains(ConnectivityResult.ethernet)){
+       setState(() {});
+       netValue = true;
+    }else  if(connectivityResult.contains(ConnectivityResult.mobile)){
+       setState(() {});
+       netValue = true;
+    }else  if(connectivityResult.contains(ConnectivityResult.none)){
+       setState(() {});
+       netValue = false;
+    }else{
+      print('Error occured while checking network');
     }
   }
 
   @override
   void dispose() {
+    timer.cancel();
+    //AwesomeNotifications();
     super.dispose();
   }
 
   //List<ExitnodeList> exitList = <ExitnodeList>[];
   List myExitData = [];
   getExitnodeListDataFromAPI() async {
-   
     List<ExitnodeList> exitList = await DataRepo().getDataFromNet();
     exitList.forEach(
       (element) {
@@ -280,7 +320,6 @@ class BelnetHomePageState extends State<BelnetHomePage>
     );
 
     setInitialLog();
-  
     print("exitdata in foreach $myExitData");
     print("exitlist from json ${exitList.length}");
     print("jsonvalue from the data ${exitList[0].country}");
@@ -304,29 +343,37 @@ class BelnetHomePageState extends State<BelnetHomePage>
     final appModel = pr.Provider.of<AppModel>(context);
     return netValue == false
         ? NoInternetConnection()
-        : Container(
-            decoration: BoxDecoration(
-              color: appModel.darkTheme ? Color(0xFF242430) : Color(0xFFF9F9F9),
-              // gradient: LinearGradient(
-              //   begin: Alignment.topCenter,
-              //   end: Alignment.bottomCenter,
-              //   colors: appModel.darkTheme
-              //       ? [
-              //           Color(0xFF242430),
-              //           Color(0xFF1C1C26),
-              //         ]
-              //       : [
-              //           Color(0xFFF9F9F9),
-              //           Color(0xFFEBEBEB),
-              //         ],
-              // ),
+        : UpgradeAlert(
+          showIgnore: false,
+          showLater: false,
+            upgrader: Upgrader(
+             // debugLogging: true
             ),
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              //key: key,
-              resizeToAvoidBottomInset:
-                  false, //Prevents overflow when keyboard is shown
-              body: MyForm(appModel),
+            child: Container(
+              decoration: BoxDecoration(
+                color:
+                    appModel.darkTheme ? Color(0xFF242430) : Color(0xFFF9F9F9),
+                // gradient: LinearGradient(
+                //   begin: Alignment.topCenter,
+                //   end: Alignment.bottomCenter,
+                //   colors: appModel.darkTheme
+                //       ? [
+                //           Color(0xFF242430),
+                //           Color(0xFF1C1C26),
+                //         ]
+                //       : [
+                //           Color(0xFFF9F9F9),
+                //           Color(0xFFEBEBEB),
+                //         ],
+                // ),
+              ),
+              child: Scaffold(
+                backgroundColor: Colors.transparent,
+                //key: key,
+                resizeToAvoidBottomInset:
+                    false, //Prevents overflow when keyboard is shown
+                body: MyForm(appModel),
+              ),
             ),
           );
   }
@@ -338,10 +385,10 @@ class BelnetHomePageState extends State<BelnetHomePage>
 
 dynamic downloadRate = '';
 dynamic uploadRate = '';
-String? selectedValue =
-    'snoq7arak4d5mkpfsg69saj7bp1ikxyzqjkhzb96keywn6iyhc5y.bdx';
+String? selectedValue = 'exit.bdx';
+    //'5n6w1xd8hazxu68mrnahtupbyocqhehfy8xhnttttby64e3g3k6y.bdx';
 String? selectedConIcon =
-    "https://deb.beldex.io/Beldex-projects/Belnet/countryflag/icons8-france.png";
+    "https://belnet-exitnode.s3.ap-south-1.amazonaws.com/countryflag/icons8-france.png";
 String? hintValue = '';
 String? hintCountryIcon = '';
 
@@ -356,7 +403,8 @@ class MyForm extends StatefulWidget {
   }
 }
 
-class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
+class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin, WidgetsBindingObserver 
+{
   static final key = new GlobalKey<FormState>();
   StreamSubscription<bool>? _isConnectedEventSubscription;
   LogController logController = Get.put(LogController());
@@ -368,18 +416,125 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
   OverlayEntry? overlayEntry;
   int flag = 0;
   late AppModel appModel;
-  //late LogProvider logProvider;
-
+  bool canValidateExit= false;
+late Timer? timer1;
+bool f = false;
   @override
   initState() {
     super.initState();
+   WidgetsBinding.instance.addObserver(this);
     _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
-        .listen((bool isConnected) => setState(() {}));
+        .listen((bool isConnected) => setState(() {
+          vpnStatus(context,isConnected);
+         // showMyNotification(context,isConnected);
+        }));
     //callForUpdate();
     // getConnectingData();
     getRandomExitNodes();
     saveData();
+     
+   // showNotification(pr.Provider.of<AppModel>(context,listen: false));
   }
+
+// void showMyNotification(BuildContext context, bool isConnected){
+//   var appModel = pr.Provider.of<AppModel>(context,listen: false);
+//   if(isConnected){
+//     showNotification(appModel);
+//   }{
+//     _dismissNotification();
+//   }
+// }
+
+int count = 0;
+ void vpnStatus(BuildContext context,bool isConnected)async{
+   bool val = await BelnetLib.isRunning;
+   setState(() {
+     
+   });
+   if(isConnected == false){
+   try{
+    AwesomeNotifications().cancel(10);
+   }catch(e){
+   }
+    
+   }
+   if (loading == true) {
+        //print('belnet is running $val');
+         print('Connecting1 val $val -- $count');
+        // Future.delayed(Duration(milliseconds: 600), () {
+        if (val == true) {
+          // print('belnet is disconnected111');
+          count = 1;
+        }
+        if (count == 1) {
+          print('Connecting 2 val $val -- $count');
+          if (val == false) {
+            print('Connecting 3 val $val -- $count');
+            //SystemNavigator.pop();
+           await _disconnectFromBelnet();
+           setState(() {
+             
+           });
+           count = 0;
+           canLoading = false;
+          }
+        }
+        //});
+      }
+ }
+
+ @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+  try{
+   if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      timer1?.cancel();
+      AwesomeNotifications().cancel(10); // Cancel the notification with id 10
+    }
+  }catch(e){
+}
+   
+  }
+
+
+
+
+//  @override
+//   void didChangeAppLifecycleState(AppLifecycleState state) {
+//     // TODO: implement didChangeAppLifecycleState
+//    print('BELNET Applifecycle state--- $state ');
+//     super.didChangeAppLifecycleState(state);
+//     switch(state){
+      
+//       case AppLifecycleState.detached:
+//      print('BELNET Applifecycle state--- $state ');
+//         //Future.delayed(const Duration(microseconds: 100),()=> stopNotification());
+//          AwesomeNotifications().dismissAllNotifications();
+//         break;
+//       case AppLifecycleState.resumed:
+      
+//         break;
+//       case AppLifecycleState.inactive:
+//        break;
+//       case AppLifecycleState.hidden:
+//         break;
+//       case AppLifecycleState.paused:
+//         break;
+//     }
+//   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // function for storing the previous log data
   List<String> lData = [];
@@ -399,17 +554,22 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     SharedPreferences preference = await SharedPreferences.getInstance();
     hintValue = preference.getString('hintValue');
     hintCountryIcon = preference.getString('hintCountryicon');
-      isAddExitStatus = preference.getBool('oneTimeAddExit') ?? false;
-      print("value of isAddExitStatus is $isAddExitStatus");
+    isAddExitStatus = preference.getBool('oneTimeAddExit') ?? false;
+    print("value of isAddExitStatus is $isAddExitStatus");
     setState(() {});
   }
 
   @override
   void dispose() {
-    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+  
+    stopNotification();
     _isConnectedEventSubscription?.cancel();
-    AwesomeNotifications().dispose();
+    //timer1.cancel();
+   // AwesomeNotifications().dismissAllNotifications();
+    AwesomeNotifications().cancel(10);
     overlayEntry!.remove();
+       super.dispose();
   }
 
   bool myExit = false;
@@ -422,308 +582,478 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
       myExit = data1.isConnected;
 
       print("isConnected after the myExit $myExit");
-      // if(myEx){
-      //   setState(() {
-      //     mystr = "valid exitnode";
-      //   });
-      // }else{
-      //   mystr = "invalid exitnode";
-      // }
       setState(() {});
-    }
-  } // bool myExit = false;
-  // var mystr = "";
-  // getDataFromDaemon() async {
-  //   var fromDaemon = await BelnetLib.getSpeedStatus;
-  //   if (fromDaemon != null) {
-  //     var data1 = Welcome.fromJson(fromDaemon);
-
-  //     myExit = data1.isConnected;
-  //     // if(myEx){
-  //     //   setState(() {
-  //     //     mystr = "valid exitnode";
-  //     //   });
-  //     // }else{
-  //     //   mystr = "invalid exitnode";
-  //     // }
-  //     setState(() {});
-  //   }
-  // }
-
-  // List<String> cusExits = [];
-
-  // saveCustomForUse([eligibleC]) async {
-  //   var prefs = await SharedPreferences.getInstance();
-  //   prefs.setBool("eligibleCust", eligibleC);
-  //   if (_cusExitNode.text != null || _cusExitNode.text != "") {
-
-  //     setState(() {
-  //       cusExits = prefs.getStringList("customData")!;
-
-  //       for(int i =0;i<customExitAdd.length;i++){
-  //       if(_cusExitNode.text != customExitAdd[i]){
-  //       cusExits.add(_cusExitNode.text);
-
-  //       }
-  //       }
-
-  //       prefs.setStringList("customData", cusExits);
-  //     });
-  //   }
-  //   setState(() {
-  //     eligibleCust = prefs.getBool("eligibleCust")!;
-  //     customExitAdd = prefs.getStringList("customData")!;
-  //   });
-  // }
-
-  List<String> cusExits = [];
-
-  // saveCustomForUse([eligibleC]) async {
-  //   var prefs = await SharedPreferences.getInstance();
-  //   prefs.setBool("eligibleCust", eligibleC);
-
-  //   print("inside the saveCustomfor use function");
-  //   if (_cusExitNode.text != null || _cusExitNode.text != "") {
-  //     setState(() {
-  //       cusExits = prefs.getStringList("customData")!;
-
-  //       // for(int i =0;i<customExitAdd.length;i++){
-  //       // if(_cusExitNode.text != customExitAdd[i]){
-  //       cusExits.add(_cusExitNode.text);
-
-  //       // }
-  //       // }
-  //       // cusExits.toSet().toList();
-  //       prefs.setStringList("customData", cusExits);
-  //     });
-  //   }
-  //   setState(() {
-  //     eligibleCust = prefs.getBool("eligibleCust")!;
-  //     customExitAdd = prefs.getStringList("customData")!;
-  //     // customExitAdd.toSet().toList();
-  //   });
-  // }
-
-  late bool con;
-
-  Future toggleBelnet(
-      [String? exitvalue, String? dns, bool isCustomExit = false]) async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    appModel.uploadList.addAll(SpeedMapData().sampleUpData);
-    appModel.downloadList.addAll(SpeedMapData().sampleDownData);
-    if (BelnetLib.isConnected == false) {
-      print(
-          '${DateTime.now().microsecondsSinceEpoch} netvalue from disconnected --');
-      //AwesomeNotifications().dismiss(3);
-      appModel.singleDownload = "";
-      appModel.singleUpload = "";
-    }
-    bool dismiss = false;
-    //  loading = true;
-    setState(() {});
-  
-     await preferences.setBool('oneTimeAddExit', true);
-    isAddExitStatus = preferences.getBool('oneTimeAddExit');
-      print("isAddExitStatus is having the value $isAddExitStatus");
-
-    // setState(() {
-    //   counter++;
-    // });
-
-    // Future.delayed(const Duration(milliseconds: 10000), () {
-    //   setState(() {
-    //     loading = false;
-    //     canLoading = false;
-
-    //   });
-    // });
-    if (mounted) setState(() {});
-
-    if (BelnetLib.isConnected) {
-      setState(() {
-        loading = true;
-      });
-      var disConnectValue = await BelnetLib.disconnectFromBelnet();
-      appModel.connecting_belnet = false;
-      dismiss = true;
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() {
-          loading = false;
-        });
-      });
-
-      if (disConnectValue)
-        logController.addDataTolist(" Belnet Daemon stopped..",
-            "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
-      logController.addDataTolist(" Belnet disconnected",
-          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
-    } else {
-      setState(() {
-        loading = true;
-        canLoading = true;
-      });
-
-      var f = false;
-      Future.delayed(const Duration(seconds: 20), () {
-        //milliseconds: 11000
-        setState(() {
-          loading = false;
-          canLoading = false;
-        });
-
-        if (isCustomExit) {
-          if (myExit) {
-            setState(() {
-              f = true;
-
-              mystr = "exitnode is valid";
-
-              // saveCustomForUse(
-              //     true); // this true or false value is for eligible custom exitnode
-            });
-
-            setState(() {
-              loading = false;
-            });
-          } else {
-            setState(() {
-              mystr = "exitnode is invalid";
-            });
-            
-            print("myExitvalue is $mystr");
-            BelnetLib.disconnectFromBelnet();
-            logController.addDataTolist(
-              "$selectedValue is Invalid Exit Node",
-              "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
-            );
-            setState(() {
-              selectedValue =
-                  'snoq7arak4d5mkpfsg69saj7bp1ikxyzqjkhzb96keywn6iyhc5y.bdx';
-              selectedConIcon =
-                  "https://deb.beldex.io/Beldex-projects/Belnet/countryflag/icons8-france.png";
-            });
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                backgroundColor: appModel.darkTheme
-                    ? Colors.black.withOpacity(0.50)
-                    : Colors.white,
-                behavior: SnackBarBehavior.floating,
-                //duration: Duration(milliseconds: 200),
-                width: MediaQuery.of(context).size.height*2.5/3,
-                content: Text(
-                  "Exit Node is Invalid!.switching to default Exit Node",
-                  style: TextStyle(
-                      color: appModel.darkTheme ? Colors.white : Colors.black),
-                  textAlign: TextAlign.center,
-                )));
-            // await BelnetLib.disconnectFromBelnet();
-          }
-        }
-      });
-
-      if (isCustomExit) {
-        if (exitvalue != "") {
-          setState(() {
-            selectedValue = exitvalue;
-            selectedConIcon = "";
-          });
-
-//  var f = false;
-//     Future.delayed(Duration(seconds: 17), () {
-//                               setState(() {
-//                                f = true;
-//                                 if (myExit) {
-//                                   mystr = "exitnode is valid";
-
-//                                   saveCustomForUse(
-//                                       true); // this true or false value is for eligible custom exitnode
-
-//                                  // Navigator.pop(context);
-//                                 } else {
-//                                   mystr = "exitnode is invalid";
-//                                   // await BelnetLib.disconnectFromBelnet();
-//                                 }
-//                               });
-//                             });
-
-          Timer timer = Timer.periodic(Duration(seconds: 1), (timer) {
-            if (myExit == false && f == false) {
-              getDataFromDaemon();
-            } else {
-              timer.cancel();
-            }
-          });
-        }
-      }
-
-      //Save the exit node and upstream dns
-      final Settings settings = Settings.getInstance()!;
-      settings.exitNode = selectedValue!.trim().toString();
-      var myVal = selectedValue!.trim().toString();
-      logController.addDataTolist(" Exit node = $myVal",
-          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
-      preferences.setString('hintValue', myVal);
-      hintValue = preferences.getString('hintValue');
-      if (dns == null) {
-        logController.addDataTolist("default DNS = 1.1.1.1",
-            "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
-      }else{
-        logController.addDataTolist("DNS = $dns",
-            "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
-      }
-
-      setState(() {});
-      var eIcon = selectedConIcon!.trim().toString();
-      preferences.setString('hintCountryicon', eIcon);
-      hintCountryIcon = preferences.getString('hintCountryicon');
-      print(
-          'hint value is stored from getString $hintValue and the hintCountryicon is $hintCountryIcon');
-      logController.addDataTolist(" Connected to $myVal",
-          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
-
-      print('hint value is stored from getString $hintValue');
-      setState(() {});
-      settings.upstreamDNS = '';
-
-      final result = await BelnetLib.prepareConnection();
-      logController.addDataTolist(" Preparing Daemon connection..",
-          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
-      if (await BelnetLib.isPrepared) {
-        appModel.connecting_belnet = true;
-      }
-      if (result) {
-        con = await BelnetLib.connectToBelnet(
-            exitNode: settings.exitNode!, upstreamDNS: "");
-        logController.addDataTolist(
-          " Connected successfully",
-          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
-        );
-        print("connection data value for display $con");
-      }
-
-      setState(() {});
-
-      if (BelnetLib.isConnected) {
-        appModel.connecting_belnet = true;
-        logController.addDataTolist(
-          " Connected successfully",
-          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
-        );
-        setToLogData(
-          " Connected successfully",
-          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
-        );
-      }
-
-      if (mystr == "exitnode is invalid") {
-        BelnetLib.disconnectFromBelnet();
-
-        logController.addDataTolist(
-          "$selectedValue is Invalid Exit Node",
-          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
-        );
-      }
     }
   }
+ 
+  List<String> cusExits = [];
+
+  late bool con;
+  
+
+
+Future<void> toggleBelnet([String? exitvalue, String? dns, bool isCustomExit = false]) async {
+  SharedPreferences preferences = await SharedPreferences.getInstance();
+  appModel.uploadList.addAll(SpeedMapData().sampleUpData);
+  appModel.downloadList.addAll(SpeedMapData().sampleDownData);
+  if (!BelnetLib.isConnected) {
+    print('${DateTime.now().microsecondsSinceEpoch} netvalue from disconnected --');
+    appModel.singleDownload = "";
+    appModel.singleUpload = "";
+  }
+
+  await preferences.setBool('oneTimeAddExit', true);
+  isAddExitStatus = preferences.getBool('oneTimeAddExit');
+  print("isAddExitStatus is having the value $isAddExitStatus");
+
+  setState(() {});
+
+  if (BelnetLib.isConnected) {
+    await _disconnectFromBelnet();
+  } else {
+    await _connectToBelnet(exitvalue, dns, isCustomExit);
+  }
+
+  setState(() {});
+}
+
+Future<void> _disconnectFromBelnet() async {
+  setState(() => loading = true);
+  bool disConnectValue = await BelnetLib.disconnectFromBelnet();
+  appModel.connecting_belnet = false;
+
+  if (disConnectValue) {
+    logController.addDataTolist(" Belnet Daemon stopped..",
+        "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+    logController.addDataTolist(" Belnet disconnected",
+        "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+  }
+stopNotification();
+  Future.delayed(const Duration(seconds: 2), () {
+    setState(() => loading = false);
+  });
+  
+}
+
+Future<void> _connectToBelnet(String? exitvalue, String? dns, bool isCustomExit) async {
+  setState(() {
+    loading = true;
+    canLoading = true;
+   // canValidateExit = false;
+  });
+
+  Future.delayed(const Duration(seconds: 20), () {
+    setState(() {
+      loading = false;
+      canLoading = false;
+      if(isCustomExit){
+            _checkingExitnodeAfterDelay();
+      }
+    });
+  });
+
+  if (isCustomExit) {
+    await _handleCustomExitNode(exitvalue);
+  }
+
+  await _saveSettings(exitvalue, dns);
+
+  final result = await BelnetLib.prepareConnection();
+  if (!result) {
+    setState(() => loading = false);
+    return;
+  }
+
+  if (await BelnetLib.isPrepared) {
+    appModel.connecting_belnet = true;
+  }
+ print('CustomExitnode checking start ${Settings.getInstance()!.exitNode!}');
+  bool con = await BelnetLib.connectToBelnet(
+    exitNode: Settings.getInstance()!.exitNode!,
+    upstreamDNS: dns != null && dns.isNotEmpty ? dns : "9.9.9.9",
+  );
+print('CustomExitnode checking end');
+  if (con) {
+    Future.delayed(Duration(seconds: 4), () => showNotification(appModel));
+    Future.delayed(Duration(seconds: 19), () {
+      logController.addDataTolist(" Connected successfully",
+          "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+         
+  //         if(BelnetLib.isConnected){
+  //   showNotification(appModel);
+  // }
+    });
+    appModel.connecting_belnet = true;
+  } else {
+    setState(() => loading = false);
+  }
+  
+  if (mystr == "exitnode is invalid") {
+    await BelnetLib.disconnectFromBelnet();
+
+    logController.addDataTolist("$selectedValue is Invalid Exit Node",
+        "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+  }
+  // if(BelnetLib.isConnected){
+  //   showNotification(appModel);
+  // }
+  setState(() {});
+}
+
+Future<void> _handleCustomExitNode(String? exitvalue) async {
+  
+
+  if (exitvalue != null && exitvalue.isNotEmpty) {
+    setState(() {
+      selectedValue = exitvalue;
+      selectedConIcon = "";
+    });
+
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!myExit && !f) {
+        getDataFromDaemon();
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+ //if(canValidateExit){
+  //  if (myExit) {
+  //   setState(() {
+  //     f = true;
+  //     mystr = "exitnode is valid";
+  //    // loading = false;
+  //   });
+  // } else {
+  //   setState(() {
+  //     mystr = "exitnode is invalid";
+  //   });
+  //   print("myExitvalue is $mystr");
+  //   await BelnetLib.disconnectFromBelnet();
+  //   logController.addDataTolist(
+  //     "$selectedValue is Invalid Exit Node",
+  //     "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
+  //   );
+  //   setState(() {
+  //     selectedValue =
+  //         'exit.bdx';
+  //     selectedConIcon =
+  //         "https://belnet-exitnode.s3.ap-south-1.amazonaws.com/countryflag/icons8-france.png";
+  //   });
+  //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+  //       backgroundColor: appModel.darkTheme
+  //           ? Colors.black.withOpacity(0.50)
+  //           : Colors.white,
+  //       behavior: SnackBarBehavior.floating,
+  //       width: MediaQuery.of(context).size.height * 2.5 / 3,
+  //       content: Text(
+  //         "Exit Node is Invalid!.switching to default Exit Node",
+  //         style: TextStyle(
+  //             color: appModel.darkTheme ? Colors.white : Colors.black),
+  //         textAlign: TextAlign.center,
+  //       )));
+  // }
+ //}
+  
+}
+
+Future<void> _checkingExitnodeAfterDelay() async {
+ //if(canValidateExit){
+   if (myExit) {
+    setState(() {
+      f = true;
+      mystr = "exitnode is valid";
+      loading = false;
+    });
+  } else {
+    setState(() {
+      mystr = "exitnode is invalid";
+    });
+    print("myExitvalue is $mystr");
+    await BelnetLib.disconnectFromBelnet();
+    timer1?.cancel();
+      AwesomeNotifications().cancel(10);
+    logController.addDataTolist(
+      "$selectedValue is Invalid Exit Node",
+      "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
+    );
+    setState(() {
+      selectedValue =
+          'exit.bdx';
+      selectedConIcon =
+          "https://belnet-exitnode.s3.ap-south-1.amazonaws.com/countryflag/icons8-france.png";
+    });
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: appModel.darkTheme
+            ? Colors.black.withOpacity(0.50)
+            : Colors.white,
+        behavior: SnackBarBehavior.floating,
+        width: MediaQuery.of(context).size.height * 2.5 / 3,
+        content: Text(
+          "Exit Node is Invalid!.switching to default Exit Node",
+          style: TextStyle(
+              color: appModel.darkTheme ? Colors.white : Colors.black),
+          textAlign: TextAlign.center,
+        )));
+  }
+ //}
+  
+}
+
+
+
+
+
+
+
+Future<void> _saveSettings(String? exitvalue, String? dns) async {
+  final settings = Settings.getInstance()!;
+  settings.exitNode = selectedValue!.trim().toString();
+  final myVal = selectedValue!.trim().toString();
+  logController.addDataTolist(" Exit node = $myVal",
+      "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+
+  final preferences = await SharedPreferences.getInstance();
+  await preferences.setString('hintValue', myVal);
+  hintValue = preferences.getString('hintValue');
+
+  logController.addDataTolist(dns == null
+      ? " default Upstream DNS = 9.9.9.9"
+      : " DNS = $dns", "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+
+  settings.upstreamDNS = dns ?? '9.9.9.9';
+
+  final eIcon = selectedConIcon!.trim().toString();
+  await preferences.setString('hintCountryicon', eIcon);
+  hintCountryIcon = preferences.getString('hintCountryicon');
+  logController.addDataTolist(" Connected to $myVal",
+      "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+}
+
+
+
+
+
+//   Future toggleBelnet(
+//       [String? exitvalue, String? dns, bool isCustomExit = false]) async {
+//     SharedPreferences preferences = await SharedPreferences.getInstance();
+//     appModel.uploadList.addAll(SpeedMapData().sampleUpData);
+//     appModel.downloadList.addAll(SpeedMapData().sampleDownData);
+
+//     if (BelnetLib.isConnected == false) {
+//       print(
+//           '${DateTime.now().microsecondsSinceEpoch} netvalue from disconnected --');
+//       //AwesomeNotifications().dismiss(3);
+//       appModel.singleDownload = "";
+//       appModel.singleUpload = "";
+//     }
+//     bool dismiss = false;
+//     //  loading = true;
+//     setState(() {});
+
+//     await preferences.setBool('oneTimeAddExit', true);
+//     isAddExitStatus = preferences.getBool('oneTimeAddExit');
+//     print("isAddExitStatus is having the value $isAddExitStatus");
+//     if (mounted) setState(() {});
+
+//     if (BelnetLib.isConnected) {
+//       setState(() {
+//         loading = true;
+//       });
+//       var disConnectValue = await BelnetLib.disconnectFromBelnet();
+//       //  await AwesomeNotifications().dismiss(1);
+//       // pr.Provider.of<NotificationProvider>(context, listen: false)
+//       //       .dismissNotification(1);
+//       appModel.connecting_belnet = false;
+//       dismiss = true;
+//       Future.delayed(const Duration(seconds: 2), () {
+//         setState(() {
+//           loading = false;
+//         });
+//       });
+
+//       if (disConnectValue)
+//         logController.addDataTolist(" Belnet Daemon stopped..",
+//             "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+//       logController.addDataTolist(" Belnet disconnected",
+//           "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+//     } else {
+//       setState(() {
+//         loading = true;
+//         canLoading = true;
+//       });
+
+//       var f = false;
+//       Future.delayed(const Duration(seconds: 20), () {
+//         //milliseconds: 11000
+//         setState(() {
+//           loading = false;
+//           canLoading = false;
+//         });
+
+//         if (isCustomExit) {
+//           if (myExit) {
+//             setState(() {
+//               f = true;
+
+//               mystr = "exitnode is valid";
+
+//               // saveCustomForUse(
+//               //     true); // this true or false value is for eligible custom exitnode
+//             });
+
+//             setState(() {
+//               loading = false;
+//             });
+//           } else {
+//             setState(() {
+//               mystr = "exitnode is invalid";
+//             });
+
+//             print("myExitvalue is $mystr");
+//             BelnetLib.disconnectFromBelnet();
+//             logController.addDataTolist(
+//               "$selectedValue is Invalid Exit Node",
+//               "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
+//             );
+//             setState(() {
+//               selectedValue =
+//                   '5n6w1xd8hazxu68mrnahtupbyocqhehfy8xhnttttby64e3g3k6y.bdx';
+//               selectedConIcon =
+//                   "https://deb.beldex.io/Beldex-projects/Belnet/countryflag/icons8-france.png";
+//             });
+//             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+//                 backgroundColor: appModel.darkTheme
+//                     ? Colors.black.withOpacity(0.50)
+//                     : Colors.white,
+//                 behavior: SnackBarBehavior.floating,
+//                 //duration: Duration(milliseconds: 200),
+//                 width: MediaQuery.of(context).size.height * 2.5 / 3,
+//                 content: Text(
+//                   "Exit Node is Invalid!.switching to default Exit Node",
+//                   style: TextStyle(
+//                       color: appModel.darkTheme ? Colors.white : Colors.black),
+//                   textAlign: TextAlign.center,
+//                 )));
+//             // await BelnetLib.disconnectFromBelnet();
+//           }
+//         }
+//       });
+
+//       if (isCustomExit) {
+//         if (exitvalue != "") {
+//           setState(() {
+//             selectedValue = exitvalue;
+//             selectedConIcon = "";
+//           });
+
+// //  var f = false;
+// //     Future.delayed(Duration(seconds: 17), () {
+// //                               setState(() {
+// //                                f = true;
+// //                                 if (myExit) {
+// //                                   mystr = "exitnode is valid";
+
+// //                                   saveCustomForUse(
+// //                                       true); // this true or false value is for eligible custom exitnode
+
+// //                                  // Navigator.pop(context);
+// //                                 } else {
+// //                                   mystr = "exitnode is invalid";
+// //                                   // await BelnetLib.disconnectFromBelnet();
+// //                                 }
+// //                               });
+// //                             });
+
+//            timer1 = Timer.periodic(Duration(seconds: 1), (timer) {
+//             if (myExit == false && f == false) {
+//               getDataFromDaemon();
+//             } else {
+//               timer.cancel();
+//             }
+//           });
+//         }
+//       }
+
+//       //Save the exit node and upstream dns
+//       final Settings settings = Settings.getInstance()!;
+//       settings.exitNode = selectedValue!.trim().toString();
+//       var myVal = selectedValue!.trim().toString();
+//       logController.addDataTolist(" Exit node = $myVal",
+//           "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+//       preferences.setString('hintValue', myVal);
+//       hintValue = preferences.getString('hintValue');
+//       if (dns == null) {
+//         logController.addDataTolist(" default Upstream DNS = 9.9.9.9",
+//             "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+//       } else {
+//         logController.addDataTolist(" DNS = $dns",
+//             "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+//       }
+
+//       setState(() {});
+//       var eIcon = selectedConIcon!.trim().toString();
+//       preferences.setString('hintCountryicon', eIcon);
+//       hintCountryIcon = preferences.getString('hintCountryicon');
+//       print(
+//           'hint value is stored from getString $hintValue and the hintCountryicon is $hintCountryIcon');
+//       logController.addDataTolist(" Connected to $myVal",
+//           "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+
+//       print('hint value is stored from getString $hintValue');
+//       setState(() {});
+//       settings.upstreamDNS = '';
+
+//       final result = await BelnetLib.prepareConnection();
+//       if(!result) setState(()=>loading = false);
+//       logController.addDataTolist(" Preparing Daemon connection..",
+//           "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
+//       if (await BelnetLib.isPrepared) {
+//         appModel.connecting_belnet = true;
+//       }
+//       if (result) {
+//         con = await BelnetLib.connectToBelnet(
+//             exitNode: settings.exitNode!,
+//             upstreamDNS:
+//                 isCustomExit! == true && dns!.isNotEmpty ? dns : "9.9.9.9");
+//         print('$con value is this after connect');
+//         Future.delayed(Duration(seconds: 4), () {
+//           showNotification(appModel);
+//         });
+//         Future.delayed(Duration(seconds: 19), () {
+//           logController.addDataTolist(
+//             " Connected successfully",
+//             "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
+//           );
+//         });
+
+//         print("connection data value for display $con");
+//       }
+
+//       setState(() {});
+
+//       if (BelnetLib.isConnected) {
+//         appModel.connecting_belnet = true;
+//         logController.addDataTolist(
+//           " Connected successfully",
+//           "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
+//         );
+//         setToLogData(
+//           " Connected successfully",
+//           "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
+//         );
+//       }
+
+//       if (mystr == "exitnode is invalid") {
+//         BelnetLib.disconnectFromBelnet();
+
+//         logController.addDataTolist(
+//           "$selectedValue is Invalid Exit Node",
+//           "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
+//         );
+//       }
+//     }
+//   }
 
   var uploadUnit = ' Mbps';
   var downloadUnit = ' Mbps';
@@ -753,281 +1083,368 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     exitData1 = [];
     var res = await DataRepo().getListData();
     exitData1.addAll(res);
-
-    // if(eligibleCust){
-
-    //   var dat =
-    // }
-
     setState(() {});
   }
+//late Timer notificationTimer;
 
+void showNotification(AppModel appModel) {
+  print('Comes inside show Notification function');
  
+ showMyNotifaction(appModel);
+ timer1 = Timer.periodic(Duration(seconds: 1),(timer){
+    updateNotification(appModel);
+ });
+ 
+ 
+ 
+ 
+ 
+ 
+  //Timer.periodic(Duration(milliseconds: 100), (timer) {
+   // if (BelnetLib.isConnected) {
+     // _updateNotification(appModel);
+    // } else {
+    //   //timer.cancel();
+    //   _dismissNotification();
+    // }
+ // });
+}
+
+
+
+stopNotification()async{
+  Future.delayed(const Duration(milliseconds: 200),(){
+    timer1?.cancel();
+
+  AwesomeNotifications().cancel(10).then((value) {
+    print('Notification Stopped');
+  });
+  });
+ 
+}
+
+
+
+
+
+void showMyNotifaction(AppModel appModel){
+  AwesomeNotifications().createNotification(
+    content: NotificationContent(
+      id: 10, 
+      channelKey: 'belnets_channel',
+    title: "belnet dVPN",
+    body:
+        '↑ ${stringBeforeSpace(appModel.singleUpload)}${stringAfterSpace(appModel.singleUpload)} ↓ ${stringBeforeSpace(appModel.singleDownload)}${stringAfterSpace(appModel.singleDownload)}',
+    locked: true,
+    autoDismissible: false,
+    category: NotificationCategory.Service,)
+      );
+}
+
+void updateNotification(AppModel appModel){
+  AwesomeNotifications().createNotification(
+    content: NotificationContent(
+      id: 10, 
+        channelKey: 'belnets_channel',
+    title: "Belnet dVPN",
+    body:
+        '↑ ${stringBeforeSpace(appModel.singleUpload)}${stringAfterSpace(appModel.singleUpload)} ↓ ${stringBeforeSpace(appModel.singleDownload)}${stringAfterSpace(appModel.singleDownload)}',
+    locked: true,
+    autoDismissible: false,
+    category: NotificationCategory.Service,)
+      );
+}
+
+
+
+  // showNotification(AppModel appModel) async {
+  //   Timer.periodic(Duration(milliseconds: 100), (timer) {
+  //     if (BelnetLib.isConnected) {
+  //       print('Awesome Notification starts now');
+  //       pr.Provider.of<NotificationProvider>(context, listen: false)
+  //           .showNotification(
+  //         id: 1,
+  //         channelKey: "belnets_channel",
+  //         title: "belnet dVPN running",
+  //         body:
+  //             '↑ ${stringBeforeSpace(appModel.singleUpload)}${stringAfterSpace(appModel.singleUpload)} ↓ ${stringBeforeSpace(appModel.singleDownload)}${stringAfterSpace(appModel.singleDownload)}',
+  //         locked: true,
+  //         autoDismissible: false,
+  //         category: NotificationCategory.Service,
+  //       );
+  //     } else if (BelnetLib.isConnected == false) {
+  //       timer.cancel();
+  //      print('Awesome Notification starts now');
+  //       pr.Provider.of<NotificationProvider>(context, listen: false)
+  //           .dismissNotification(1);
+  //     }
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
     appModel = pr.Provider.of<AppModel>(context);
-    Color color = appModel.darkTheme ? Color(0xff292937) : Colors.white;
-    //logProvider = pr.Provider.of<LogProvider>(context);
     double mHeight = MediaQuery.of(context).size.height;
-    // if(BelnetLib.isConnected){
-    //     getUploadAndDownload();
-    // }
     if (netValue == false && isOpen) {
       overlayEntry!.remove();
     }
     return
-
-        // SingleChildScrollView(
-        // child:
-        // Scaffold(
-        // resizeToAvoidBottomInset: true,
-       GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Stack(
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Stack(
-                      children: [
-                        Positioned(
-                          //top:0,
-                          child: Container(
-                              width: double.infinity,
-                              //color:Colors.green,
-                              height: mHeight * 1.35 / 3,
-                              child: Stack(children: [
-                                appModel.darkTheme
-                                    ? Image.asset(
-                                        'assets/images/Map_dark (1).png',
-                                      )
-                                    : Image.asset(
-                                        'assets/images/map_white (3).png'),
-                                //appModel.connecting_belnet &&
-                                BelnetLib.isConnected
-                                    ? Image.asset(
-                                        'assets/images/Map_white_gif (1).gif') //Image.asset('assets/images/Mobile_1.gif')
-                                    : Container()
-                              ])),
-                        ),
-                        Positioned(
-                          top: mHeight * 0.10 / 3,
-                          left: mHeight * 0.04 / 3,
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => AboutPage()));
-                            },
-                            child: Container(
-                              padding: EdgeInsets.only(
-                                  left: MediaQuery.of(context).size.height *
+        GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Stack(
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Stack(
+                    children: [
+                      Positioned(
+                        //top:0,
+                        child: Container(
+                            width: double.infinity,
+                            //color:Colors.green,
+                            height: mHeight * 1.35 / 3,
+                            child: Stack(children: [
+                             Image.asset(
+                                    appModel.darkTheme 
+                                     ? 'assets/images/Map_dark (1).png'
+                                     : 'assets/images/map_white (3).png',
+                                    ),
                                   
-                                      0.06 /
-                                      3),
-                              // color: Colors.yellow,
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  appModel.darkTheme
-                                      ? SvgPicture.asset(
-                                          'assets/images/About_dark.svg',
-                                          width: mHeight * 0.06 / 3,
-                                          height: mHeight * 0.06 / 3)
-                                      : SvgPicture.asset(
-                                          'assets/images/about_white_theme.svg',
-                                          width: mHeight * 0.06 / 3,
-                                          height: mHeight * 0.06 / 3),
-                                  Padding(
-                                    padding: EdgeInsets.only(
-                                      left: MediaQuery.of(context).size.height *
-                                          0.02 /
-                                          3,
-                                      top: MediaQuery.of(context).size.height *
-                                          0.06 /
-                                          3,
-                                      bottom:
-                                          MediaQuery.of(context).size.height *
-                                              0.06 /
-                                              3,
-                                    ),
-                                    child: Text(
-                                      'About',
-                                      style: TextStyle(
-                                          fontSize: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.06 /
-                                              3,
-                                          color: appModel.darkTheme
-                                              ? Color(0xffAEAEBC)
-                                              : Color(0xff747484)),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: mHeight * 0.10 / 3,
-                          right: mHeight * 0.04 / 3,
-                          child: GestureDetector(
-                              onTap: () {
-                                appModel.darkTheme = !appModel.darkTheme;
-                              },
-                              child: appModel.darkTheme
-                                  ? Image.asset(
-                                      'assets/images/dark_theme_4x (2).png',
-                                      width: mHeight * 0.25 / 3,
-                                      height: mHeight * 0.25 / 3)
-                                  : Image.asset(
-                                      'assets/images/white_theme_4x (3).png',
-                                      width: mHeight * 0.24 / 3,
-                                      height: mHeight * 0.24 / 3)),
-                        ),
-                        Positioned(
-                          top: mHeight * 0.40 / 3,
-                          left: mHeight * 0.20 / 3,
-                          child: ThemedBelnetLogo(
-                            model: appModel.darkTheme,
-                          ),
-                        ),
-                        Center(
-                          child: Padding(
-                            padding:
-                                EdgeInsets.only(top: mHeight * 0.70 / 3), //0.63
-                            child: Container(
-                              decoration: BoxDecoration(
-                                  //color:Colors.yellow,
-                                  shape: BoxShape.circle),
-                              child: BelnetPowerButton(
-                                  onPressed: loading ? null : toggleBelnet,
-                                  isClick: BelnetLib.isConnected,
-                                  isLoading: loading),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(top: mHeight * 0.02 / 3),
-                      child: ConnectingStatus(
-                        connecting: canLoading,
-                        isConnect: BelnetLib.isConnected,
+                              if(BelnetLib.isConnected)
+                                   Image.asset(
+                                      'assets/images/Map_white_gif (1).gif') //Image.asset('assets/images/Mobile_1.gif')
+                            ])),
                       ),
-                    ),
-                    //SizedBox(height: MediaQuery.of(context),)
-                    Row(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(
-                              left: mHeight * 0.10 / 3,
-                              top: mHeight * 0.03 / 3),
-                          child: Text('Exit Node',
-                              style: TextStyle(
-                                  color: appModel.darkTheme
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: mHeight * 0.05 / 3)),
-                        ),
-                      ],
-                    ),
-
-                    // Container(
-                    //     color: Colors.transparent,
-                    //     child: Stack(
-                    //       children: [
-                    //         Padding(
-                    //             padding: EdgeInsets.only(
-                    //                 left:
-                    //                     MediaQuery.of(context).size.height * 0.08 / 3,
-                    //                 right:
-                    //                     MediaQuery.of(context).size.height * 0.10 / 3,
-                    //                 top: MediaQuery.of(context).size.height *
-                    //                     0.03 /
-                    //                     3),
-                    //             child: GestureDetector(
-                    //               onTap: () {
-                    //                 setState(() {
-                    //                   canShow = canShow ? false : true;
-                    //                 });
-                    //               },
-                    //               child: Container(
-                    //                   height: MediaQuery.of(context).size.height *
-                    //                       0.16 /
-                    //                       3,
-                    //                   decoration: BoxDecoration(
-                    //                       color: appModel.darkTheme
-                    //                           ? Color(0xff292937)
-                    //                           : Color(0xffFFFFFF),
-                    //                       borderRadius:
-                    //                           BorderRadius.all(Radius.circular(5))),
-                    //                   child: Padding(
-                    //                       padding: const EdgeInsets.only(
-                    //                           left: 4.0,
-                    //                           right: 6.0,
-                    //                           top: 3.0,
-                    //                           bottom: 5.0),
-                    //                       child: Row(
-                    //                         crossAxisAlignment:
-                    //                             CrossAxisAlignment.center,
-                    //                         children: [
-                    //                           Container(
-
-                    //                               // margin:EdgeInsets.only(right:mHeight*0.03/3,),
-                    //                               child: SvgPicture.network(
-                    //                                   "https://testdeb.beldex.dev/Beldex-Projects/Belnet/android/countryicons/icons8-france.svg")),
-                    //                           Expanded(
-                    //                               child: Center(
-                    //                             child: Text("$hintValue",
-                    //                                 overflow: TextOverflow.ellipsis,
-                    //                                 maxLines: 1,
-                    //                                 style: TextStyle(
-                    //                                     color: Color(0xff00DC00))),
-                    //                           )),
-                    //                           Container(
-                    //                               child: Icon(
-                    //                             Icons.arrow_drop_down,
-                    //                             color: Colors.grey,
-                    //                           ))
-                    //                         ],
-                    //                       ))),
-                    //             )),
-
-                    //       ],
-                    //     ),
-                    //   ),
-
-                    Container(
-                      color: Colors.transparent,
-                      child: Stack(
-                        children: [
-                          BelnetLib.isConnected
-                              ? Padding(
+                      Positioned(
+                        top: mHeight * 0.10 / 3,
+                        left: mHeight * 0.04 / 3,
+                        child: GestureDetector(
+                          onTap: ()=>
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>const AboutPage())),
+                          child: Container(
+                            padding: EdgeInsets.only(
+                                left: mHeight *
+                                    0.06 /
+                                    3),
+                            // color: Colors.yellow,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                 SvgPicture.asset(
+                                      appModel.darkTheme
+                                        ?'assets/images/About_dark.svg'
+                                        : 'assets/images/about_white_theme.svg',
+                                        width: mHeight * 0.06 / 3,
+                                        height: mHeight * 0.06 / 3),
+                                    
+                                Padding(
                                   padding: EdgeInsets.only(
-                                      left: MediaQuery.of(context).size.height *
-                                          0.08 /
-                                          3,
-                                      right: MediaQuery.of(context).size.height *
-                                          0.10 /
-                                          3,
-                                      top: MediaQuery.of(context).size.height *
-                                          0.03 /
-                                          3),
+                                    left: mHeight *
+                                        0.02 /
+                                        3,
+                                    top: mHeight *
+                                        0.06 /
+                                        3,
+                                    bottom: mHeight *
+                                        0.06 /
+                                        3,
+                                  ),
+                                  child: Text(
+                                    'About',
+                                    style: TextStyle(
+                                        fontSize:
+                                            mHeight *
+                                                0.06 /
+                                                3,
+                                        color: appModel.darkTheme
+                                            ? Color(0xffAEAEBC)
+                                            : Color(0xff747484)),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: mHeight * 0.10 / 3,
+                        right: mHeight * 0.04 / 3,
+                        child: GestureDetector(
+                            onTap: () =>
+                              appModel.darkTheme = !appModel.darkTheme,
+                            child: Image.asset(
+                            appModel.darkTheme
+                                ? 'assets/images/dark_theme_4x (2).png'
+                                : 'assets/images/white_theme_4x (3).png',
+                            width: appModel.darkTheme
+                                ? mHeight * 0.25 / 3
+                                : mHeight * 0.24 / 3,
+                            height: appModel.darkTheme
+                                ? mHeight * 0.25 / 3
+                                : mHeight * 0.24 / 3,
+                          ),
+
+                                    ),
+                      ),
+                      Positioned(
+                        top: mHeight * 0.40 / 3,
+                        left: mHeight * 0.20 / 3,
+                        child: ThemedBelnetLogo(
+                          model: appModel.darkTheme,
+                        ),
+                      ),
+                      Center(
+                        child: Padding(
+                          padding:
+                              EdgeInsets.only(top: mHeight * 0.70 / 3), //0.63
+                          child: Container(
+                            decoration: BoxDecoration(
+                                //color:Colors.yellow,
+                                shape: BoxShape.circle),
+                            child: BelnetPowerButton(
+                                onPressed: loading
+                                    ? null
+                                    : toggleBelnet,
+                                    // () {
+                                    //     toggleBelnet();
+                                    //     print("clicked this ");
+                                    //     showNotification(appModel);
+                                    //   },
+                                isClick: BelnetLib.isConnected,
+                                isLoading: loading),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: mHeight * 0.02 / 3),
+                    child: ConnectingStatus(
+                      connecting: canLoading,
+                      isConnect: BelnetLib.isConnected,
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                        left: mHeight * 0.10 / 3, top: mHeight * 0.03 / 3),
+                    child: Text('Exit Node',
+                        style: TextStyle(
+                            color: appModel.darkTheme
+                                ? Colors.white
+                                : Colors.black,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w900,
+                            fontSize: mHeight * 0.05 / 3)),
+                  ),
+                  Container(
+                    color: Colors.transparent,
+                    child: Stack(
+                      children: [
+                        BelnetLib.isConnected
+                            ? Padding(
+                                padding: EdgeInsets.only(
+                                    left: mHeight *
+                                        0.08 /
+                                        3,
+                                    right: mHeight *
+                                        0.10 /
+                                        3,
+                                    top: mHeight *
+                                        0.03 /
+                                        3),
+                                child: Container(
+                                    height: mHeight *
+                                        0.16 /
+                                        3,
+                                    decoration: BoxDecoration(
+                                        color: appModel.darkTheme
+                                            ? const Color(0xff292937)
+                                            : const Color(0xffFFFFFF),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(5))),
+                                    child: Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 4.0,
+                                            right: 6.0,
+                                            top: 3.0,
+                                            bottom: 5.0),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                                margin: EdgeInsets.all(8.0),
+                                                child: hintCountryIcon != ""
+                                                    ? Image.network(
+                                                        "$hintCountryIcon",
+                                                        errorBuilder: (context,
+                                                            error, stackTrace) {
+                                                          return Icon(
+                                                            Icons.more_horiz,
+                                                            color: Colors.grey,
+                                                          );
+                                                        },
+                                                      )
+                                                    :const Icon(
+                                                        Icons.more_horiz,
+                                                        color: Colors.grey,
+                                                      )),
+                                            Expanded(
+                                                child: Text("$hintValue",
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    maxLines: 1,
+                                                    style: TextStyle(
+                                                        color:const Color(
+                                                            0xff00DC00)))),
+                                            BelnetLib.isConnected == false ? const Icon(
+                                                                                          Icons.arrow_drop_down,
+                                                                                          color: Colors.grey,
+                                                                                        ):Container()
+                                          ],
+                                        ))))
+                            : Padding(
+                                padding: EdgeInsets.only(
+                                    left: mHeight *
+                                        0.08 /
+                                        3,
+                                    right: mHeight * 0.10 / 3,
+                                    top: mHeight * 0.03 / 3),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      isOpen = isOpen ? false : true;
+                                    });
+                                    if (isOpen &&
+                                        (exitData1.isEmpty ||
+                                            exitData1 == [])) {
+                                      print(
+                                          'cleared the data ${exitData1.length}');
+                                      saveData();
+                                    }
+                                    print("the value of the isOpen $isOpen");
+                                    OverlayState? overlayState =
+                                        Overlay.of(context);
+                                    overlayEntry = OverlayEntry(
+                                      builder: (context) {
+                                        return _buildExitnodeListView(mHeight);
+                                      },
+                                    );
+                                    overlayState.insert(overlayEntry!);
+                                  },
                                   child: Container(
-                                      height: MediaQuery.of(context).size.height *
-                                          0.16 /
-                                          3,
+                                      height:
+                                          mHeight *
+                                              0.16 /
+                                              3,
                                       decoration: BoxDecoration(
                                           color: appModel.darkTheme
                                               ? Color(0xff292937)
@@ -1045,612 +1462,290 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                                                 CrossAxisAlignment.center,
                                             children: [
                                               Container(
-                                                  margin: EdgeInsets.all(8.0),
-                                                  // margin:EdgeInsets.only(right:mHeight*0.03/3,),
-                                                  child: hintCountryIcon != ""
+                                                  margin: EdgeInsets.all(8),
+                                                  child: selectedConIcon != ""
                                                       ? Image.network(
-                                                          "$hintCountryIcon",
+                                                          //"$hintCountryIcon",
+                                                          "$selectedConIcon",
                                                           errorBuilder:
                                                               (context, error,
                                                                   stackTrace) {
                                                             return Icon(
-                                                              Icons.more_horiz,
-                                                              color:
-                                                                  Colors.grey,
-                                                            );
+                                                                Icons
+                                                                    .more_horiz,
+                                                                color: Colors
+                                                                    .grey);
                                                           },
                                                         )
-                                                      : Icon(
+                                                      :const Icon(
                                                           Icons.more_horiz,
                                                           color: Colors.grey,
                                                         )),
                                               Expanded(
-                                                  child: Center(
-                                                child: Text("$hintValue",
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    maxLines: 1,
-                                                    style: TextStyle(
-                                                        color:
-                                                            Color(0xff00DC00))),
-                                              )),
-                                              Container(
-                                                  child: Icon(
-                                                Icons.arrow_drop_down,
-                                                color: Colors.grey,
-                                              ))
-                                            ],
-                                          ))))
-                              : Padding(
-                                  padding: EdgeInsets.only(
-                                      left: MediaQuery.of(context).size.height * 0.08 / 3,
-                                      right: MediaQuery.of(context).size.height * 0.10 / 3,
-                                      top: MediaQuery.of(context).size.height * 0.03 / 3),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      // setState(() {
-                                      //   canShow = canShow ? false : true;
-                                      // });
-                                      setState(() {
-                                        isOpen = isOpen ? false : true;
-                                      });
-                                      if (isOpen &&
-                                          (exitData1.isEmpty ||
-                                              exitData1 == [])) {
-                                        //exitData.clear();
-                                        print('cleared the data ${exitData1.length}');
-                                        saveData();
-                                        //saveCustomForUse();   //hide for version 1.2.0
-                                      }
-                                      print("the value of the isOpen $isOpen");
-
-                                      OverlayState? overlayState =
-                                          Overlay.of(context);
-                                      overlayEntry = OverlayEntry(
-                                        builder: (context) {
-                                          return _buildExitnodeListView(
-                                              mHeight);
-                                        },
-                                      );
-
-                                      overlayState.insert(overlayEntry!);
-                                      // if(isOpen == false)
-                                      //   overlayEntry?.remove();
-                                    },
-                                    child: Container(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.16 /
-                                                3,
-                                        decoration: BoxDecoration(
-                                            color: appModel.darkTheme
-                                                ? Color(0xff292937)
-                                                : Color(0xffFFFFFF),
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(5))),
-                                        child: Padding(
-                                            padding: const EdgeInsets.only(
-                                                left: 4.0,
-                                                right: 6.0,
-                                                top: 3.0,
-                                                bottom: 5.0),
-                                            child: Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: [
-                                                Container(
-                                                    margin: EdgeInsets.all(8),
-                                                    //height:mHeight*0.15/3,width: mHeight*0.20/3,
-                                                    // margin:EdgeInsets.only(right:mHeight*0.03/3,),
-                                                    child: selectedConIcon != ""
-                                                        ? Image.network(
-                                                            //"$hintCountryIcon",
-                                                            "$selectedConIcon",
-                                                            errorBuilder:
-                                                                (context, error,
-                                                                    stackTrace) {
-                                                              return Icon(
-                                                                  Icons
-                                                                      .more_horiz,
-                                                                  color: Colors
-                                                                      .grey);
-                                                            },
-                                                          )
-                                                        : Icon(
-                                                            Icons.more_horiz,
-                                                            color: Colors.grey,
-                                                          )),
-                                                Expanded(
-                                                    child: Center(
                                                   child: Text("$selectedValue",
                                                       overflow:
                                                           TextOverflow.ellipsis,
                                                       maxLines: 1,
                                                       style: TextStyle(
                                                           color: Color(
-                                                              0xff00DC00))),
-                                                )),
-                                                Container(
-                                                    child: Icon(
-                                                  Icons.arrow_drop_down,
-                                                  color: Colors.grey,
-                                                ))
-                                              ],
-                                            ))),
-                                  )),
-                          // canShow ? Positioned(
-                          //      // top:mHeight*0.02/3,
-                          //       child:
-                          //       Padding(
-                          //           padding: EdgeInsets.only(
-                          //               left: MediaQuery.of(context).size.height *
-                          //                   0.08 /
-                          //                   3,
-                          //               right: MediaQuery.of(context).size.height *
-                          //                   0.10 /
-                          //                   3,
-                          //               top: MediaQuery.of(context).size.height *
-                          //                   0.03 /
-                          //                   3),
-                          //           child: Container(
-                          //             height: MediaQuery.of(context).size.height *
-                          //                 0.70 /
-                          //                 3,
-                          //             width:
-                          //                 MediaQuery.of(context).size.width * 2.7 / 3,
-                          //             color: appModel.darkTheme
-                          //                 ? Color(0xff292937)
-                          //                 : Colors.white,
-                          //             child:
-                          //             ListView.builder(
-                          //                 padding: EdgeInsets.zero,
-                          //                 shrinkWrap: true,
-                          //                 itemCount: exitData.length,
-                          //                 itemBuilder:
-                          //                     (BuildContext context, int index) {
-                          //                   // print("data inside listview ${exitData[index]}");
-                          //                   return Container(
-                          //                     margin: EdgeInsets.all(0),
-                          //                     //padding: const EdgeInsets.only(top:0.0,bottom:0.0),
-                          //                     child: ExpansionTile(
-                          //                       // backgroundColor: Colors.yellow,
-                          //                       tilePadding: EdgeInsets.only(
-                          //                           left: mHeight * 0.08 / 3,
-                          //                           right: mHeight * 0.08 / 3),
-                          //                       title: Text(
-                          //                         exitData[index].type,
-                          //                         style: TextStyle(
-                          //                             color: index == 0
-                          //                                 ? Color(0xff1CBE20)
-                          //                                 : Color(0xff1994FC),
-                          //                             fontSize: MediaQuery.of(context)
-                          //                                     .size
-                          //                                     .height *
-                          //                                 0.06 /
-                          //                                 3,
-                          //                             fontWeight: FontWeight.bold),
-                          //                       ),
-                          //                       iconColor: index == 0
-                          //                           ? Color(0xff1CBE20)
-                          //                           : Color(0xff1994FC),
-                          //                       collapsedIconColor: index == 0
-                          //                           ? Color(0xff1CBE20)
-                          //                           : Color(0xff1994FC),
-                          //                       subtitle: Text(
-                          //                         "${exitData[index].node.length} Nodes",
-                          //                         style: TextStyle(
-                          //                             color: Colors.grey,
-                          //                             fontSize: MediaQuery.of(context)
-                          //                                     .size
-                          //                                     .height *
-                          //                                 0.04 /
-                          //                                 3),
-                          //                       ),
-                          //                       children: <Widget>[
-                          //                         Column(
-                          //                           children: _buildExpandableContent(
-                          //                               exitData[index].node),
-                          //                         ),
-                          //                       ],
-                          //                     ),
-                          //                   );
-                          //                 }
-                          //                 // _buildList(exitData[index]),
-                          //                 ),
-                          //           ),
-                          //         ),
-                          //     )
-                          //     : SizedBox.shrink()
-                        ],
-                      ),
+                                                              0xff00DC00)))),
+                                             BelnetLib.isConnected == false ? const Icon(
+                                                Icons.arrow_drop_down,
+                                                color: Colors.grey,
+                                              ):Container()
+                                            ],
+                                          ))),
+                                )),
+                      ],
                     ),
+                  ),
 
-                    /////////////////////////////////////////////////////////////
+                  /////////////////////////////////////////////////////////////
 
-                    Padding(
-                      padding: EdgeInsets.only(
-                          left: mHeight * 0.08 / 3,
-                          right: mHeight * 0.10 / 3,
-                          top: mHeight * 0.03 / 3),
-                      child: BelnetLib.isConnected ||
-                              (isAddExitStatus == false &&
-                                  BelnetLib.isConnected == false)
-                          ? Container(
-                              padding: EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12.0),
-                                color: Colors.grey,
-                                // boxShadow: [
-                                //   BoxShadow(
-                                //       color: Colors.black12,
-                                //       offset: Offset(-10, -10),
-                                //       spreadRadius: 0,
-                                //       blurRadius: 10),
-                                //   BoxShadow(
-                                //       color: Colors.black,
-                                //       offset: Offset(10, 10),
-                                //       spreadRadius: 0,
-                                //       blurRadius: 10)
-                                // ],
-                                border: Border.all(
-                                  color: Color(0xffA1A1C1).withOpacity(0.1),
-                                ),
-                                gradient: LinearGradient(
-                                    colors: appModel.darkTheme
-                                        ? [Color(0xff20202B), Color(0xff2C2C39)]
-                                        : [
-                                            Color(0xffF2F0F0),
-                                            Color(0xffFAFAFA)
-                                          ]),
-                                //               boxShadow: [
-                                //                 BoxShadow(
-                                //                 color: Colors.grey.shade600,
-                                // blurRadius: 10.0,
-                                // spreadRadius: 0.1,
-                                // offset: Offset(
-                                //  4.0,4.0
-                                // )
-                                //               ),
-                                //               BoxShadow(
-                                //                 color: Colors.white,
-                                // blurRadius: 10.0,
-                                // spreadRadius: 0.1,
-                                // offset: Offset(
-                                //  -4.0,-4.0
-                                // )
-                                //               )
-
-                                //               ],
+                  Padding(
+                    padding: EdgeInsets.only(
+                        left: mHeight * 0.08 / 3,
+                        right: mHeight * 0.10 / 3,
+                        top: mHeight * 0.03 / 3),
+                    child: BelnetLib.isConnected ||
+                            (isAddExitStatus == false &&
+                                BelnetLib.isConnected == false)
+                        ? Container(
+                            padding: EdgeInsets.all(8.0),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12.0),
+                              color: Colors.grey,
+                              
+                              border: Border.all(
+                                color: Color(0xffA1A1C1).withOpacity(0.1),
                               ),
-                              height:
-                                  MediaQuery.of(context).size.height * 0.15 / 3,
-                              width: double.infinity,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SvgPicture.asset(
-                                    'assets/images/Add.svg',
-                                    color: Color(0xff56566F),
-                                    height: MediaQuery.of(context).size.height *
-                                        0.05 /
-                                        3,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 5.0),
-                                    child: Text(
-                                      "Add Exit Node",
-                                      style: TextStyle(
-                                          fontSize: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.05 /
-                                              3,
-                                          color: Color(0xff56566F),
-                                          fontFamily: "Poppins",
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                  ),
-                                ],
-                              ))
-
-                          // :
-                          //  Container()
-                          : GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _cusExitNode.text = "";
-                                  _cusAuthCode.text = "";
-                                });
-                                showDialog(
-                                    useSafeArea: false,
-                                    // barrierColor: Colors.orange,
-                                    context: context,
-                                    builder: (BuildContext dcontext) => Padding(
-                                          padding: const EdgeInsets.all(0.0),
-                                          child: AlertDialog(
-                                            scrollable: true,
-                                            backgroundColor: Colors.transparent,
-                                            contentPadding: EdgeInsets.all(0.0),
-                                            //insetPadding: EdgeInsets.all(8.0),
-                                            //clipBehavior: Clip.antiAliasWithSaveLayer,
-                                            content: containerWidget(dcontext),
-                                          ),
-                                        ));
-
-                                // Navigator.push(
-                                //     context,
-                                //     MaterialPageRoute(
-                                //         builder: (context) =>
-                                //             ShowModelDialogbox()));
-                                // showCustomExitNodeDialogBox(context,);
-                              },
-                              child: Container(
-                                  padding: EdgeInsets.all(8.0),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12.0),
-                                      color: Colors.grey,
-                                      gradient: LinearGradient(colors: [
-                                        Color(0xff00B504),
-                                        Color(0xff23DC27)
-                                      ])),
-                                  height: MediaQuery.of(context).size.height *
-                                      0.15 /
+                              gradient: LinearGradient(
+                                  colors: appModel.darkTheme
+                                      ? [const Color(0xff20202B),const Color(0xff2C2C39)]
+                                      : [const Color(0xffF2F0F0),const Color(0xffFAFAFA)]),
+                            ),
+                            height:
+                                mHeight * 0.15 / 3,
+                            width: double.infinity,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/Add.svg',
+                                  color:const Color(0xff56566F),
+                                  height: mHeight *
+                                      0.05 /
                                       3,
-                                  width: double.infinity,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      SvgPicture.asset(
-                                        'assets/images/Add.svg',
-                                        height:
-                                            MediaQuery.of(context).size.height *
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 5.0),
+                                  child: Text(
+                                    "Add Exit Node",
+                                    style: TextStyle(
+                                        fontSize:
+                                            mHeight *
                                                 0.05 /
                                                 3,
-                                      ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 5.0),
-                                        child: Text(
-                                          "Add Exit Node",
-                                          style: TextStyle(
-                                              fontFamily: "Poppins",
-                                              fontWeight: FontWeight.w600),
+                                        color:const Color(0xff56566F),
+                                        fontFamily: "Poppins",
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ],
+                            ))
+                        : GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _cusExitNode.text = "";
+                                _cusAuthCode.text = "";
+                              });
+                              showDialog(
+                                  useSafeArea: false,
+                                  // barrierColor: Colors.orange,
+                                  context: context,
+                                  builder: (BuildContext dcontext) => Padding(
+                                        padding: const EdgeInsets.all(0.0),
+                                        child: AlertDialog(
+                                          scrollable: true,
+                                          backgroundColor: Colors.transparent,
+                                          contentPadding: EdgeInsets.all(0.0),
+                                          content: containerWidget(dcontext,mHeight),
                                         ),
+                                      ));
+                            },
+                            child: Container(
+                                padding: EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    color: Colors.grey,
+                                    gradient: LinearGradient(colors: [
+                                     const Color(0xff00B504),
+                                     const Color(0xff23DC27)
+                                    ])),
+                                height: mHeight *
+                                    0.15 /
+                                    3,
+                                width: double.infinity,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/images/Add.svg',
+                                      height:
+                                          mHeight *
+                                              0.05 /
+                                              3,
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 5.0),
+                                      child: Text(
+                                        "Add Exit Node",
+                                        style: TextStyle(
+                                            fontFamily: "Poppins",
+                                            fontWeight: FontWeight.w600),
                                       ),
-                                    ],
-                                  )),
+                                    ),
+                                  ],
+                                )),
+                          ),
+                  ),
+                  SizedBox(
+                    height: mHeight * 0.05 / 3,
+                  )
+                  
+                ],
+              ),
+              Positioned(
+                top: mHeight * 1.2 / 3,
+                left: 5,
+                right: 5,
+                child: Container(
+                    padding:const EdgeInsets.only(left: 8.0, right: 8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            SvgPicture.asset(
+                              'assets/images/download_white_theme.svg',
+                              height: 9,
+                              width: 9,
                             ),
-                    ),
-
-                    ////////////////////////////////////////////////////////////////
-
-                    // Padding(
-                    //   padding: EdgeInsets.only(
-                    //       left: mHeight * 0.08 / 3,
-                    //       right: mHeight * 0.10 / 3,
-                    //       top: mHeight * 0.03 / 3),
-                    //   child: BelnetLib.isConnected
-                    //       ? Container(
-                    //           height: mHeight * 0.16 / 3,
-                    //           decoration: BoxDecoration(
-                    //               color: color,
-                    //               borderRadius:
-                    //                   BorderRadius.all(Radius.circular(5))),
-                    //           child: Padding(
-                    //               padding: const EdgeInsets.only(
-                    //                   left: 4.0, right: 6.0, top: 3.0, bottom: 5.0),
-                    //               child: Row(
-                    //                 crossAxisAlignment: CrossAxisAlignment.center,
-                    //                 children: [
-                    //                   Expanded(
-                    //                       child: Center(
-                    //                     child: Text('$hintValue',
-                    //                         overflow: TextOverflow.ellipsis,
-                    //                         maxLines: 1,
-                    //                         style: TextStyle(
-                    //                             color: Color(0xff00DC00))),
-                    //                   )),
-                    //                   Container(
-                    //                       child: Icon(
-                    //                     Icons.arrow_drop_down,
-                    //                     color: Colors.grey,
-                    //                   ))
-                    //                 ],
-                    //               )))
-                    //       :
-                    //       Container(
-                    //           height: mHeight * 0.16 / 3,
-                    //           decoration: BoxDecoration(
-                    //               color: color,
-                    //               borderRadius:
-                    //                   BorderRadius.all(Radius.circular(5))),
-                    //           child: Padding(
-                    //             padding: const EdgeInsets.only(
-                    //                 left: 0.0, right: 6.0, top: 3.0, bottom: 5.0),
-                    //             child:
-                    //             CustDropDown(
-                    //               maxListHeight: 120,
-                    //               items: exitItems
-                    //                   .map((e) => CustDropdownMenuItem(
-                    //                       value: e,
-                    //                       child: Center(
-                    //                           child: Text(
-                    //                         '$e',
-                    //                         overflow: TextOverflow.ellipsis,
-                    //                         maxLines: 1,
-                    //                         style:
-                    //                             TextStyle(color: Color(0xff00DC00)),
-                    //                       ))))
-                    //                   .toList(),
-                    //               hintText: "$selectedValue",
-                    //               borderRadius: 5,
-                    //               onChanged: (val) {
-                    //                 print(val);
-                    //                 setState(() {
-                    //                   selectedValue = val;
-                    //                 });
-                    //               },
-                    //               appModel: appModel,
-                    //             ),
-                    //           ),
-                    //         ),
-                    // ),
-
-                    // Padding(
-                    //     padding: EdgeInsets.only(
-                    //         left: mHeight * 0.08 / 3,
-                    //         right: mHeight * 0.10 / 3,
-                    //         top: mHeight * 0.03 / 3),
-                    //     child: Container(
-                    //       height: MediaQuery.of(context).size.height * 0.18 / 3,
-                    //       width: double.infinity,
-                    //     )),
-                    SizedBox(
-                      height: mHeight * 0.05 / 3,
-                    )
-                    //Spacer(),
-                  ],
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 1.2 / 3,
-                  left: 5,
-                  right: 5,
-                  child: Container(
-                      padding: EdgeInsets.only(left: 8.0, right: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/download_white_theme.svg',
-                                height: 9,
-                                width: 9,
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4.0),
+                              child: Text(
+                                'Download',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    fontFamily: 'Poppins',
+                                    color: appModel.darkTheme
+                                        ?const Color(0xffA1A1C1)
+                                        : Colors.black),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 4.0),
-                                child: Text(
-                                  'Download',
-                                  style: TextStyle(
-                                      fontSize: 11,
-                                      fontFamily: 'Poppins',
-                                      color: appModel.darkTheme
-                                          ? Color(0xffA1A1C1)
-                                          : Colors.black),
-                                ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4.0),
+                              child: Text(
+                                'Upload',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    fontFamily: 'Poppins',
+                                    color: appModel.darkTheme
+                                        ? Color(0xffA1A1C1)
+                                        : Colors.black),
                               ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(right: 4.0),
-                                child: Text(
-                                  'Upload',
-                                  style: TextStyle(
-                                      fontSize: 11,
-                                      fontFamily: 'Poppins',
-                                      color: appModel.darkTheme
-                                          ? Color(0xffA1A1C1)
-                                          : Colors.black),
-                                ),
-                              ),
-                              SvgPicture.asset(
-                                'assets/images/upload_white_theme.svg',
-                                height: 9,
-                                width: 9,
-                              ),
-                            ],
-                          ),
-                        ],
-                      )),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 1.25 / 3,
-                  left: 5,
-                  right: 5,
-                  child: Container(
-                      padding: EdgeInsets.only(left: 8.0, right: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Row(
-                          //   children: [
-                          RichText(
-                              text: TextSpan(
+                            ),
+                            SvgPicture.asset(
+                              'assets/images/upload_white_theme.svg',
+                              height: 9,
+                              width: 9,
+                            ),
+                          ],
+                        ),
+                      ],
+                    )),
+              ),
+              Positioned(
+                top: mHeight * 1.25 / 3,
+                left: 5,
+                right: 5,
+                child: Container(
+                    padding:const EdgeInsets.only(left: 8.0, right: 8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        RichText(
+                            text: TextSpan(
+                                text: appModel.singleDownload.isEmpty
+                                    ? '0.0'
+                                    : BelnetLib.isConnected
+                                        ? '${stringBeforeSpace(appModel.singleDownload)}'
+                                        : '0.0',
+                                style: TextStyle(
+                                    fontSize: 15.0,
+                                    fontWeight: FontWeight.w900,
+                                    fontFamily: 'Poppins',
+                                    color: appModel.darkTheme
+                                        ?const Color(0xffA1A1C1)
+                                        : Colors.black),
+                                children: [
+                              TextSpan(
                                   text: appModel.singleDownload.isEmpty
-                                      ? '0.0'
-                                      : BelnetLib.isConnected
-                                          ? '${stringBeforeSpace(appModel.singleDownload)}'
-                                          : '0.0',
+                                      ? ' bps'
+                                      : ' ${stringAfterSpace(appModel.singleDownload)}',
                                   style: TextStyle(
-                                      fontSize: 15.0,
-                                      fontWeight: FontWeight.w900,
+                                      fontSize: 11.0,
+                                      fontWeight: FontWeight.w100,
                                       fontFamily: 'Poppins',
                                       color: appModel.darkTheme
-                                          ? Color(0xffA1A1C1)
-                                          : Colors.black),
-                                  children: [
-                                TextSpan(
-                                    text: appModel.singleDownload.isEmpty
-                                        ? ' bps'
-                                        : ' ${stringAfterSpace(appModel.singleDownload)}',
-                                    style: TextStyle(
-                                        fontSize: 11.0,
-                                        fontWeight: FontWeight.w100,
-                                        fontFamily: 'Poppins',
-                                        color: appModel.darkTheme
-                                            ? Color(0xffA1A1C1)
-                                            : Colors.black))
-                              ])),
+                                          ?const Color(0xffA1A1C1)
+                                          : Colors.black))
+                            ])),
 
-                          RichText(
-                              text: TextSpan(
+                        RichText(
+                            text: TextSpan(
+                                text: appModel.singleUpload.isEmpty
+                                    ? '0.0'
+                                    : BelnetLib.isConnected
+                                        ? '${stringBeforeSpace(appModel.singleUpload)}'
+                                        : '0.0',
+                                style: TextStyle(
+                                    fontSize: 15.0,
+                                    fontWeight: FontWeight.w900,
+                                    fontFamily: 'Poppins',
+                                    color: appModel.darkTheme
+                                        ? Color(0xffA1A1C1)
+                                        : Colors.black),
+                                children: [
+                              TextSpan(
                                   text: appModel.singleUpload.isEmpty
-                                      ? '0.0'
-                                      : BelnetLib.isConnected
-                                          ? '${stringBeforeSpace(appModel.singleUpload)}'
-                                          : '0.0',
+                                      ? ' bps'
+                                      : ' ${stringAfterSpace(appModel.singleUpload)}',
                                   style: TextStyle(
-                                      fontSize: 15.0,
-                                      fontWeight: FontWeight.w900,
+                                      fontSize: 11.0,
+                                      fontWeight: FontWeight.w100,
                                       fontFamily: 'Poppins',
                                       color: appModel.darkTheme
                                           ? Color(0xffA1A1C1)
-                                          : Colors.black),
-                                  children: [
-                                TextSpan(
-                                    text: appModel.singleUpload.isEmpty
-                                        ? ' bps'
-                                        : ' ${stringAfterSpace(appModel.singleUpload)}',
-                                    style: TextStyle(
-                                        fontSize: 11.0,
-                                        fontWeight: FontWeight.w100,
-                                        fontFamily: 'Poppins',
-                                        color: appModel.darkTheme
-                                            ? Color(0xffA1A1C1)
-                                            : Colors.black))
-                              ])),
-
-                          //   ],
-                          // ),
-                        ],
-                      )),
-                ),
-              ],
-            ),
-            Flexible(
-              child: Container(
-                  width: double.infinity,
-                  // color: Colors.orange,
-                  child: BottomNavBarOptions()),
-            )
-          ],
-        ),
-      
+                                          : Colors.black))
+                            ])),
+                      ],
+                    )),
+              ),
+            ],
+          ),
+          Flexible(
+            child: Container(
+                width: double.infinity,
+                child:const BottomNavBarOptions()),
+          )
+        ],
+      ),
     );
-    //);
-    //);
   }
 
 /////////////////////////////////////////
@@ -1678,64 +1773,16 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     }
   }
 
-  // bool myExit = false;
-  // var mystr = "";
-  // getDataFromDaemon() async {
-  //   var fromDaemon = await BelnetLib.getSpeedStatus;
-  //   if (fromDaemon != null) {
-  //     var data1 = Welcome.fromJson(fromDaemon);
-
-  //     myExit = data1.isConnected;
-  //     // if(myEx){
-  //     //   setState(() {
-  //     //     mystr = "valid exitnode";
-  //     //   });
-  //     // }else{
-  //     //   mystr = "invalid exitnode";
-  //     // }
-  //     setState(() {});
-  //   }
-  // }
-
-  // List<String> cusExits = [];
-
-  // saveCustomForUse([eligibleC]) async {
-  //   var prefs = await SharedPreferences.getInstance();
-  //   prefs.setBool("eligibleCust", eligibleC);
-  //   if (_cusExitNode.text != null || _cusExitNode.text != "") {
-
-  //     setState(() {
-  //       cusExits = prefs.getStringList("customData")!;
-
-  //       for(int i =0;i<customExitAdd.length;i++){
-  //       if(_cusExitNode.text != customExitAdd[i]){
-  //       cusExits.add(_cusExitNode.text);
-
-  //       }
-  //       }
-
-  //       prefs.setStringList("customData", cusExits);
-  //     });
-  //   }
-  //   setState(() {
-  //     eligibleCust = prefs.getBool("eligibleCust")!;
-  //     customExitAdd = prefs.getStringList("customData")!;
-  //   });
-  // }
-
-
-
-  
-  Widget containerWidget(BuildContext dcontext) {
+  Widget containerWidget(BuildContext dcontext,double mHeight) {
     bool isAuthCode = false;
     return StatefulBuilder(builder: (dcontext, StateSetter setState) {
       return Container(
-        padding: EdgeInsets.all(15.0),
-        height: MediaQuery.of(dcontext).size.height * 1.43 / 3,
+        padding:const EdgeInsets.all(15.0),
+        height: mHeight * 1.43 / 3,
         // width: MediaQuery.of(dcontext).size.width * 2 / 3,
         decoration: BoxDecoration(
-          color: appModel.darkTheme ? Color(0xff1C1C26) : Color(0xffF5F5F5),
-          border: Border.all(color: Color(0xff707070).withOpacity(0.4)),
+          color: appModel.darkTheme ?const Color(0xff1C1C26) :const Color(0xffF5F5F5),
+          border: Border.all(color:const Color(0xff707070).withOpacity(0.4)),
           borderRadius: BorderRadius.circular(30.0),
         ),
         child: Column(
@@ -1743,7 +1790,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
           children: [
             Padding(
               padding:
-                  EdgeInsets.only(left: 5.0, right: 5.0, top: 4.0, bottom: 8.0),
+                 const EdgeInsets.only(left: 5.0, right: 5.0, top: 4.0, bottom: 8.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -1764,7 +1811,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                                         : Colors.black,
                                     fontWeight: FontWeight.w900,
                                     fontSize:
-                                        MediaQuery.of(dcontext).size.height *
+                                        mHeight *
                                             0.062 /
                                             3,
                                     fontFamily: "Poppins"),
@@ -1782,19 +1829,12 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                                   onTap: () {
                                     invalidExit = "";
                                     invalidAuth = "";
-
-                                    // _cusExitNode.dispose();
-                                    // _cusAuthCode.dispose();
-
                                     textForExit = null;
                                     textForAuth = null;
                                     //textForAuth = null;
                                     isSet = false;
                                     color = "blue";
-
                                     Navigator.pop(dcontext);
-
-                                    // Navigator.
                                   },
                                   child: SvgPicture.asset(
                                     'assets/images/close.svg',
@@ -1808,13 +1848,6 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.end,
-                  //   children: [
-                  //     //Flexible(child: Container()),
-
-                  //   ],
-                  // )
                 ],
               ),
             ),
@@ -1824,32 +1857,19 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                 'Exit Node',
                 style: TextStyle(
                     color: appModel.darkTheme ? Colors.white : Colors.black,
-                    fontSize: MediaQuery.of(dcontext).size.height * 0.06 / 3,
+                    fontSize: mHeight * 0.06 / 3,
                     fontWeight: FontWeight.w900,
                     fontFamily: "Poppins"),
               ),
             ),
             Container(
-              height: MediaQuery.of(dcontext).size.height * 0.18 / 3,
-              padding: EdgeInsets.only(left: 3.0),
+              height: mHeight * 0.18 / 3,
+              padding:const EdgeInsets.only(left: 3.0),
               decoration: BoxDecoration(
-                  color: appModel.darkTheme ? Color(0xff292937) : Colors.white,
-                  //boxShadow: [
-
-                  //  BoxShadow(
-                  //             color: Colors.white,
-                  //             offset: Offset(-10, -10),
-                  //             blurRadius: 20,
-                  //             spreadRadius: 0),
-                  //         // BoxShadow(
-                  //         //     color: Color(0xff6E6E6E),
-                  //         //     offset: Offset(-10, -10),
-                  //         //     blurRadius: 20,
-                  //         //     spreadRadius: 0)
-                  //           ],
+                  color: appModel.darkTheme ?const Color(0xff292937) : Colors.white,
                   borderRadius: BorderRadius.circular(5.0)),
               child: TextFormField(
-                style: TextStyle(color: Color(0xff00DC00)),
+                style: TextStyle(color:const Color(0xff00DC00)),
                 controller: _cusExitNode,
                 decoration: InputDecoration(border: InputBorder.none),
                 validator: (value) {
@@ -1871,7 +1891,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                     child: Text(
                   textForExit == null ? " " : '$textForExit',
                   style: TextStyle(
-                      fontSize: MediaQuery.of(dcontext).size.height * 0.05 / 3,
+                      fontSize: mHeight * 0.05 / 3,
                       color: Color(0xffFF3333),
                       fontFamily: "Poppins"),
                 ))),
@@ -1885,48 +1905,48 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                             ? Colors.white
                             : Colors.black
                         : Color(0xff90909A), // Color(0xff38384D),
-                    fontSize: MediaQuery.of(dcontext).size.height * 0.06 / 3,
+                    fontSize: mHeight * 0.06 / 3,
                     fontWeight: FontWeight.w900,
                     fontFamily: "Poppins"),
               ),
             ),
             Container(
-              height: MediaQuery.of(dcontext).size.height * 0.18 / 3,
+              height: mHeight * 0.18 / 3,
               padding: EdgeInsets.only(left: 3.0),
               decoration: BoxDecoration(
-                  color: appModel.darkTheme ? Color(0xff292937) : Colors.white,
+                  color: appModel.darkTheme ? const Color(0xff292937) : Colors.white,
                   borderRadius: BorderRadius.circular(5.0)),
               child: isAuthCode
                   ? TextField(
-                    keyboardType: TextInputType.numberWithOptions(
-                      decimal: true
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp('[0-9.,]')),
-                    ],
+                      keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp('[0-9.,]')),
+                      ],
                       controller: _cusAuthCode,
                       style: TextStyle(color: Color(0xff1994FC)),
                       decoration: InputDecoration(border: InputBorder.none),
-
                     )
                   : Container(
-                    width:double.infinity,
-                    child: Row(
-
-                      children: [
-                        Text("1.1.1.1",style: TextStyle(color: Color(0xff90909A)),),
-                      ],
+                      width: double.infinity,
+                      child: Row(
+                        children: [
+                          Text(
+                            "9.9.9.9",
+                            style: TextStyle(color: Color(0xff90909A)),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
             ),
             Container(
-                height: MediaQuery.of(dcontext).size.height * 0.10 / 3,
+                height: mHeight * 0.10 / 3,
                 // color:Colors.orange,
                 child: Center(
                     child: Text(
                   textForAuth == null ? " " : '$textForAuth',
                   style: TextStyle(
-                      fontSize: MediaQuery.of(dcontext).size.height * 0.05 / 3,
+                      fontSize: mHeight * 0.05 / 3,
                       color: Color(0xffFF3333),
                       fontFamily: "Poppins"),
                 ))),
@@ -1939,7 +1959,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                     style: TextStyle(
                         color: appModel.darkTheme ? Colors.white : Colors.black,
                         fontSize:
-                            MediaQuery.of(dcontext).size.height * 0.06 / 3,
+                            mHeight * 0.06 / 3,
                         fontWeight: FontWeight.w900,
                         fontFamily: "Poppins"),
                   ),
@@ -1948,7 +1968,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                     onTap: () {
                       setState(() {
                         isAuthCode = isAuthCode ? false : true;
-                        _cusAuthCode.text = "1.1.1.1";
+                        _cusAuthCode.text = "9.9.9.9";
                         print("this is for authcode$isAuthCode");
                       });
                     },
@@ -1977,12 +1997,14 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                       textForExit = "Exitnode should not  be empty";
                       color = "red";
                     });
-                  } else if (_cusExitNode.text.length != 56) {
+                  } 
+                  else if (_cusExitNode.text.length > 56) {
                     setState(() {
                       textForExit = "Please enter a valid Exit Node";
                     });
-                  } else if (_cusExitNode.text.isNotEmpty &&
-                      !_cusExitNode.text.contains(".bdx")) {
+                  } 
+                  else if (_cusExitNode.text.isNotEmpty &&
+                      !_cusExitNode.text.endsWith(".bdx")) {
                     setState(() {
                       textForExit = "Please enter a valid Exit Node";
                       print(
@@ -1995,21 +2017,23 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                       isSet = true;
                       color = "green";
                     });
-                    if(!isAuthCode && _cusAuthCode.text.isEmpty){
-                       toggleBelnet(_cusExitNode.text, _cusAuthCode.text, true);
-                    Navigator.pop(context);
-                     
-                    }else if(isAuthCode && _cusAuthCode.text.isNotEmpty){
-                        if(_cusAuthCode.text == "1.1.1.1" || _cusAuthCode.text == "9.9.9.9"){
-                          toggleBelnet(_cusExitNode.text, _cusAuthCode.text, true);
-                           Navigator.pop(context);
-                        }else{
-                          setState((() {
-                            textForAuth = "Please enter a valid DNS"; 
-                          }));
-                        }
+                    if (!isAuthCode && _cusAuthCode.text.isEmpty) {
+                      toggleBelnet(_cusExitNode.text, _cusAuthCode.text, true);
+                      Navigator.pop(context);
+                    } else if (isAuthCode && _cusAuthCode.text.isNotEmpty) {
+                      print('${_cusAuthCode.text} is the dns');
+                      if (_cusAuthCode.text == "1.1.1.1" ||
+                          _cusAuthCode.text == "9.9.9.9" ||
+                          _cusAuthCode.text == "8.8.8.8") {
+                        toggleBelnet(
+                            _cusExitNode.text, _cusAuthCode.text, true);
+                        Navigator.pop(context);
+                      } else {
+                        setState((() {
+                          textForAuth = "Please enter a valid DNS";
+                        }));
+                      }
                     }
-                   
                   }
                 }, //basicValidation, //customExitConnection,
                 child: Container(
@@ -2017,9 +2041,8 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12.0),
                         color: Colors.grey,
-                        gradient:
-                            LinearGradient(
-                                colors: [Color(0xff007ED1), Color(0xff0093FF)]),
+                        gradient: LinearGradient(
+                            colors: [const Color(0xff007ED1),const Color(0xff0093FF)]),
                         boxShadow: [
                           appModel.darkTheme
                               ? BoxShadow(
@@ -2032,29 +2055,25 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                                   offset: Offset(0, 1),
                                   blurRadius: 2.0)
                         ]),
-                    height: MediaQuery.of(dcontext).size.height * 0.18 / 3,
+                    height: mHeight * 0.18 / 3,
                     width: double.infinity,
                     child: isCheckLoad
                         ? Expanded(
                             child: LinearPercentIndicator(
                               lineHeight:
-                                  MediaQuery.of(context).size.height * 0.30 / 3,
+                                  mHeight * 0.30 / 3,
                               padding: EdgeInsets.zero,
                               animation: true,
                               animationDuration: 10000,
                               barRadius: Radius.circular(12.0),
                               percent: 1.0,
-                              backgroundColor: Color(0xffA8A8B7),
-                              progressColor: Color(0xff007ED1),
+                              backgroundColor:const Color(0xffA8A8B7),
+                              progressColor:const Color(0xff007ED1),
                             ),
                           )
                         :
-                        // isCheckLoad
-                        // ? Center(child: CircularProgressIndicator())
-                        // :
-
                         Center(
-                            child: Text(
+                            child:const Text(
                             "OK",
                             style: TextStyle(
                                 color: //isSet ?
@@ -2062,11 +2081,6 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                                 fontFamily: "Poppins",
                                 fontWeight: FontWeight.w900),
                           ))
-
-                    // Image.asset(
-                    //   'assets/images/ok.png',
-                    //   fit: BoxFit.cover,
-                    // ),
                     ),
               ),
             ),
@@ -2085,71 +2099,65 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
         behavior: HitTestBehavior.translucent,
         onTap: () {
           overlayEntry?.remove();
-          
         },
         child: Container(
           height: 200.0,
           margin: EdgeInsets.only(
               top: mHeight * 1.87 / 3, //2.010
-              bottom: MediaQuery.of(context).size.height * 0.38 / 3,
+              bottom: mHeight * 0.38 / 3,
               left: mHeight * 0.09 / 3,
               right: mHeight * 0.09 / 3),
-          child:
-              Container(
-            height: MediaQuery.of(context).size.height * 0.70 / 3,
-            width: MediaQuery.of(context).size.width * 2.7 / 3,
+          child: Container(
+            height: mHeight * 0.70 / 3,
+            width: mHeight * 2.7 / 3,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4.0),
-              color: appModel.darkTheme ? Color(0xff292937) : Colors.white,
+              color: appModel.darkTheme ?const Color(0xff292937) : Colors.white,
             ),
             child: ListView.builder(
                 padding: EdgeInsets.zero,
                 shrinkWrap: true,
                 itemCount: exitData1.length,
                 itemBuilder: (BuildContext context, int index) {
-                  // print("data inside listview ${exitData[index]}");
                   return Container(
                     margin: EdgeInsets.all(0),
-                    //padding: const EdgeInsets.only(top:0.0,bottom:0.0),
-                    child: ExpansionTile(
-                      // backgroundColor: Colors.yellow,
-                      //initiallyExpanded: true,
-                      tilePadding: EdgeInsets.only(
-                          left: mHeight * 0.08 / 3, right: mHeight * 0.08 / 3),
-                      title: Text(
-                        exitData[index].type,
-                        style: TextStyle(
-                            color: index == 0
-                                ? Color(0xff1CBE20)
-                                : Color(0xff1994FC),
-                            fontSize:
-                                MediaQuery.of(context).size.height * 0.06 / 3,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      iconColor:
-                          index == 0 ? Color(0xff1CBE20) : Color(0xff1994FC),
-                      collapsedIconColor:
-                          index == 0 ? Color(0xff1CBE20) : Color(0xff1994FC),
-                      subtitle: Text(
-                        // exitData[index].type == "Custom Exit Node" &&
-                        //         customExitAdd.isNotEmpty
-                        //     ? "${customExitAdd.length} Nodes":
-                        "${exitData1[index].node.length} Nodes",
-                        style: TextStyle(
-                            color: Colors.grey,
-                            fontSize:
-                                MediaQuery.of(context).size.height * 0.04 / 3),
-                      ),
-                      children: <Widget>[
-                        Column(
-                          children: _buildExpandableContent(
-                              exitData1[index].node, exitData1[index].type),
+                    child: Theme(
+                       data:  Theme.of(context).copyWith( 
+                              dividerColor: Colors.transparent,),
+                      child: ExpansionTile(
+                        tilePadding: EdgeInsets.only(
+                            left: mHeight * 0.08 / 3, right: mHeight * 0.08 / 3),
+                        title: Text(
+                          exitData[index].type,
+                          style: TextStyle(
+                              color: index == 0
+                                  ? Color(0xff1CBE20)
+                                  : Color(0xff1994FC),
+                              fontSize:
+                                  mHeight * 0.06 / 3,
+                              fontWeight: FontWeight.bold),
                         ),
-                      ],
+                        iconColor:
+                            index == 0 ? const Color(0xff1CBE20) :const Color(0xff1994FC),
+                        collapsedIconColor:
+                            index == 0 ? const Color(0xff1CBE20) :const Color(0xff1994FC),
+                        subtitle: Text(
+                          "${exitData1[index].node.length} Nodes",
+                          style: TextStyle(
+                              color: Colors.grey,
+                              fontSize:
+                                  mHeight * 0.04 / 3),
+                        ),
+                        children: <Widget>[
+                          Column(
+                            children: _buildExpandableContent(
+                                exitData1[index].node, exitData1[index].type,mHeight),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }
-                // _buildList(exitData[index]),
                 ),
           ),
           // ),
@@ -2158,88 +2166,12 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
     );
   }
 
-  // _buildExpandableContent(List<exitNodeModel.Node> vnode) {
-  //   List<Widget> columnContent = [];
-  //   for (int i = 0; i < vnode.length; i++) {
-  //     columnContent.add(Container(
-  //       height: MediaQuery.of(context).size.height * 0.15 / 3,
-  //       child: ListTile(
-  //         onTap: () async {
-  //           setState(() {
-  //             valueS = vnode[i].name;
-  //             selectedValue = vnode[i].name;
-  //             selectedConIcon = vnode[i].icon;
-  //           });
-  //           overlayEntry?.remove();
-  //           SharedPreferences preferences =
-  //               await SharedPreferences.getInstance();
-  //           preferences.setString('hintValue', selectedValue.toString());
-  //           preferences.setString('hintContryicon', selectedConIcon.toString());
-  //           print("$i th index value $valueS ");
-  //         },
-  //         title: Column(
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             Text(
-  //               vnode[i].name,
-  //               style: TextStyle(
-  //                   color: appModel.darkTheme ? Colors.white : Colors.black,
-  //                   fontSize: MediaQuery.of(context).size.height * 0.05 / 3),
-  //               overflow: TextOverflow.ellipsis,
-  //               maxLines: 1,
-  //             ),
-  //             Text(
-  //               vnode[i].country,
-  //               style: TextStyle(
-  //                   color: Colors.grey,
-  //                   fontSize: MediaQuery.of(context).size.height * 0.04 / 3),
-  //               overflow: TextOverflow.ellipsis,
-  //               maxLines: 1,
-  //             ),
-  //           ],
-  //         ),
-  //         leading: Container(
-  //           //color:Colors.yellow,
-  //           height: MediaQuery.of(context).size.height * 0.050 / 3,
-  //           width: MedtrueiaQuery.of(context).size.height * 0.060 / 3,
-  //           child: vnode[i].icon.isNotEmpty
-  //               ? Image.network(
-  //                   vnode[i].icon,
-  //                   // height: MediaQuery.of(context).size.height * 0.10 / 3,
-  //                   // width: MediaQuery.of(context).size.height * 0.15 / 3,
-  //                   fit: BoxFit.fill,
-  //                 )
-  //               : Icon(Icons.info_outline_rounded),
-  //         ),
-  //         trailing: Container(
-  //           height: 5.0,
-  //           width: 5.0,
-  //           decoration: BoxDecoration(
-  //               shape: BoxShape.circle,
-  //               color: vnode[i].isActive == "true" ? Colors.green : Colors.red),
-  //         ),
-  //       ),
-  //     ));
-  //   }
-  //   return columnContent;
-  // }
-
-  _buildExpandableContent(List<exitNodeModel.Node> vnode, String type) {
+  _buildExpandableContent(List<exitNodeModel.Node> vnode, String type,double mHeight) {
     List<Widget> columnContent = [];
     for (int i = 0; i < vnode.length; i++) {
-      columnContent.add(Container(
-        padding: EdgeInsets.only(
-            left: MediaQuery.of(context).size.height * 0.06 / 3,
-            right: MediaQuery.of(context).size.height * 0.06 / 3,
-            top: MediaQuery.of(context).size.height * 0.02 / 3,
-            bottom: MediaQuery.of(context).size.height * 0.02 / 3),
-        height: MediaQuery.of(context).size.height * 0.19 / 3,
-        decoration: BoxDecoration(
-            border: Border(
-                bottom: BorderSide(
-                    width: 0.5, color: Color(0xff56566F).withOpacity(0.2)))),
-        child: GestureDetector(
-          onTap: () async {
+      columnContent.add(
+        GestureDetector(
+                    onTap: () async {
             setState(() {
               valueS = vnode[i].name;
               selectedValue = vnode[i].name;
@@ -2252,12 +2184,24 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
             preferences.setString('hintContryicon', selectedConIcon.toString());
             print("$i th index value $valueS ");
           },
+
+          child: Container(
+          padding: EdgeInsets.only(
+              left: mHeight * 0.06 / 3,
+              right: mHeight * 0.06 / 3,
+              top: mHeight * 0.02 / 3,
+              bottom: mHeight * 0.02 / 3),
+          height: mHeight* 0.19 / 3,
+          decoration: BoxDecoration(
+              border: Border(
+                  bottom: BorderSide(
+                      width: 0.5, color: Color(0xff56566F).withOpacity(0.2)))),
           child: Row(
             children: [
               Container(
                 //color:Colors.yellow,
-                height: MediaQuery.of(context).size.height * 0.050 / 3,
-                width: MediaQuery.of(context).size.height * 0.060 / 3,
+                height: mHeight * 0.050 / 3,
+                width:mHeight * 0.060 / 3,
                 child: vnode[i].icon.isNotEmpty
                     ? Image.network(
                         vnode[i].icon,
@@ -2272,13 +2216,13 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                         // width: MediaQuery.of(context).size.height * 0.15 / 3,
                         fit: BoxFit.fill,
                       )
-                    : Icon(Icons.info_outline_rounded),
+                    : const Icon(Icons.info_outline_rounded),
               ),
               Expanded(
-                child: Container(
+                child: Padding(
                   padding: EdgeInsets.only(
-                      left: MediaQuery.of(context).size.height * 0.05 / 3,
-                      right: MediaQuery.of(context).size.height * 0.05 / 3),
+                      left: mHeight * 0.05 / 3,
+                      right:mHeight * 0.05 / 3),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -2289,7 +2233,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                               color: appModel.darkTheme
                                   ? Colors.white
                                   : Colors.black,
-                              fontSize: MediaQuery.of(context).size.height *
+                              fontSize: mHeight *
                                   0.05 /
                                   3),
                           overflow: TextOverflow.ellipsis,
@@ -2301,7 +2245,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                         style: TextStyle(
                             color: Colors.grey,
                             fontSize:
-                                MediaQuery.of(context).size.height * 0.04 / 3),
+                                mHeight * 0.04 / 3),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
@@ -2313,7 +2257,7 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
                 height: 5.0,
                 width: 5.0,
                 padding: EdgeInsets.only(
-                    right: MediaQuery.of(context).size.height * 0.05 / 3),
+                    right: mHeight * 0.05 / 3),
                 decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: vnode[i].isActive == "true"
@@ -2322,111 +2266,9 @@ class MyFormState extends State<MyForm> with SingleTickerProviderStateMixin {
               ),
             ],
           ),
-        ),
-      ));
+                ),
+        ));
     }
-
-    // if (customExitAdd.isNotEmpty && type == "Custom Exit Node") {
-    //   for (int i = 0; i < customExitAdd.length; i++) {
-    //     columnContent.add(Container(
-    //       padding: EdgeInsets.only(
-    //           left: MediaQuery.of(context).size.height * 0.06 / 3,
-    //           right: MediaQuery.of(context).size.height * 0.06 / 3,
-    //           top: MediaQuery.of(context).size.height * 0.02 / 3,
-    //           bottom: MediaQuery.of(context).size.height * 0.02 / 3),
-    //       height: MediaQuery.of(context).size.height * 0.19 / 3,
-    //       decoration: BoxDecoration(
-    //           border: Border(
-    //               bottom: BorderSide(
-    //                   width: 0.5, color: Color(0xff56566F).withOpacity(0.2)))),
-    //       child: GestureDetector(
-    //         onTap: () async {
-    //           setState(() {
-    //             valueS = customExitAdd[i];
-    //             selectedValue = customExitAdd[i];
-    //             selectedConIcon = null;
-    //           });
-    //           overlayEntry?.remove();
-    //           SharedPreferences preferences =
-    //               await SharedPreferences.getInstance();
-    //           preferences.setString('hintValue', selectedValue.toString());
-    //           preferences.setString(
-    //               'hintContryicon', selectedConIcon.toString());
-    //           print("$i th index value $valueS ");
-    //         },
-    //         child: Row(
-    //           //crossAxisAlignment: CrossAxisAlignment.center,
-    //           children: [
-    //             // Container(
-    //             //     //color:Colors.yellow,
-    //             //     height: MediaQuery.of(context).size.height * 0.050 / 3,
-    //             //     width: MediaQuery.of(context).size.height * 0.060 / 3,
-    //             //     child: Text("")
-    //             //     // vnode[i].icon.isNotEmpty
-    //             //     //     ? Image.network(
-    //             //     //         vnode[i].icon,
-    //             //     //         errorBuilder: (context, error, stackTrace) {
-    //             //     //           return Icon(
-    //             //     //             Icons.more_horiz,
-    //             //     //             color: Colors.grey,
-    //             //     //             size: 0.4,
-    //             //     //           );
-    //             //     //         },
-    //             //     //         // height: MediaQuery.of(context).size.height * 0.10 / 3,
-    //             //     //         // width: MediaQuery.of(context).size.height * 0.15 / 3,
-    //             //     //         fit: BoxFit.fill,
-    //             //     //       )
-    //             //     //     : Icon(Icons.info_outline_rounded),
-    //             //     ),
-    //             Expanded(
-    //               child: Container(
-    //                 padding: EdgeInsets.only(
-    //                     left: MediaQuery.of(context).size.height * 0.05 / 3,
-    //                     right: MediaQuery.of(context).size.height * 0.05 / 3),
-    //                 child: Text(
-    //                   customExitAdd[i],
-    //                   style: TextStyle(
-    //                       color: appModel.darkTheme
-    //                           ? Colors.white
-    //                           : Colors.black,
-    //                       fontSize: MediaQuery.of(context).size.height *
-    //                           0.05 /
-    //                           3),
-    //                   overflow: TextOverflow.ellipsis,
-    //                   maxLines: 1,
-    //                 ),
-    //               ),
-    //             ),
-    //             Container(
-    //                 height: MediaQuery.of(context).size.height * 0.050 / 3,
-    //                 width: MediaQuery.of(context).size.height * 0.060 / 3,
-    //                 padding: EdgeInsets.only(
-    //                     right: MediaQuery.of(context).size.height * 0.05 / 3,
-    //                     bottom: 10.0,
-    //                     top: 0.0),
-    //                 child: GestureDetector(
-    //                   onTap: (){
-
-    //                     setState(() {
-    //                       print("before delete $customExitAdd");
-    //                       customExitAdd.remove(customExitAdd[i]);
-    //                       print("after delete $customExitAdd");
-    //                     });
-    //                   },
-    //                   child: Icon(Icons.close, color: Colors.green, size: 15.0))
-    //                 // // decoration: BoxDecoration(
-    //                 // //     shape: BoxShape.circle,
-    //                 // //     color:
-    //                 // //          Colors.green
-    //                 //         ),
-    //                 ),
-    //           ],
-    //         ),
-    //       ),
-    //     ));
-    //   }
-    // }
-
     return columnContent;
   }
 }

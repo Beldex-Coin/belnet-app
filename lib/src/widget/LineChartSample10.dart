@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/widget/txrxspeed.dart';
 import 'package:chart_sparkline/chart_sparkline.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
+//import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/foundation/key.dart';
@@ -405,7 +405,7 @@ class Charts extends StatelessWidget {
                               padding:
                                   const EdgeInsets.only(left: 8.0, right: 8.0),
                               child: Text(
-                                "upload",
+                                "Upload",
                                 style: TextStyle(
                                     fontSize:
                                         MediaQuery.of(context).size.height *

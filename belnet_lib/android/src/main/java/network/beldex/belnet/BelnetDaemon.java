@@ -48,7 +48,7 @@ import java.util.stream.Stream;
 
 import io.beldex.belnet_lib.BelnetLibPlugin;
 
-import io.beldex.belnet_lib.DisconActionReceiver;
+// import io.beldex.belnet_lib.DisconActionReceiver;
 import io.beldex.belnet_lib.R;
 import io.beldex.belnet_lib.UpdateNetwork;
 
@@ -117,7 +117,7 @@ public class BelnetDaemon extends VpnService{
     mUpdateIsConnectedTimer = new Timer();
     mUpdateIsConnectedTimer.schedule(new UpdateIsConnectedTask(), 0, 500);
     Log.d(LOG_TAG, "Connected timer is "+ mUpdateIsConnectedTimer.toString());
-    createNotific();
+   // createNotific();
 //    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
 //      createNotificationChannel();
 
@@ -133,7 +133,7 @@ public class BelnetDaemon extends VpnService{
       mUpdateIsConnectedTimer.cancel();
       mUpdateIsConnectedTimer = null;
     }
-     clearNotifications();
+    // clearNotifications();
     disconnect();
    
     super.onDestroy();
@@ -142,41 +142,41 @@ public class BelnetDaemon extends VpnService{
 
 
 
-  public void updateTheData(Boolean isRunning){
-    updateNotify = new UpdateNetwork(isRunning).myData;
-  }
+//   public void updateTheData(Boolean isRunning){
+//     updateNotify = new UpdateNetwork(isRunning).myData;
+//   }
 
 
 
 
 
-  private void clearNotifications() {
-    if (mNotificationManager != null)
-     // mNotificationManager.cancelAll();   // i changed 1
-      mNotificationManager.cancel(NOTIFY_ID);
-  }
+//   private void clearNotifications() {
+//     if (mNotificationManager != null)
+//      // mNotificationManager.cancelAll();   // i changed 1
+//       mNotificationManager.cancel(NOTIFY_ID);
+//   }
 
 
 
-private void createNotific(){
-    NotificationManager mNotificationManager = null;
-    mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    String name = "Belnet";
-  NotificationChannel mChannel = null;
-  if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-    mChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,name, NotificationManager.IMPORTANCE_LOW);
-  }
-  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+// private void createNotific(){
+//     NotificationManager mNotificationManager = null;
+//     mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//     String name = "Belnet";
+//   NotificationChannel mChannel = null;
+//   if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+//     mChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,name, NotificationManager.IMPORTANCE_LOW);
+//   }
+//   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
-    mChannel.setDescription("Belnet is Connected");
+//     mChannel.setDescription("Belnet is Connected");
 
-    mChannel.enableLights(false);
-    mChannel.enableVibration(false);
-    mChannel.setShowBadge(false);
-    mChannel.setLockscreenVisibility(Notification.VISIBILITY_SECRET);
-    mNotificationManager.createNotificationChannel(mChannel);
-  }
-}
+//     mChannel.enableLights(false);
+//     mChannel.enableVibration(false);
+//     mChannel.setShowBadge(false);
+//     mChannel.setLockscreenVisibility(Notification.VISIBILITY_SECRET);
+//     mNotificationManager.createNotificationChannel(mChannel);
+//   }
+// }
 
 
 
@@ -200,44 +200,44 @@ private void createNotific(){
 
 
 
-  public void displaySpeedData() {
-    Timer t = new Timer();
-    t.scheduleAtFixedRate(
-            new TimerTask()
-            {
-              public void run()
-              {
-                if(IsRunning()) {
-                  displayUploadData();
-                }
-                else
-                {
-                  clearNotifications();
-                }
-              }
-            },
-            0,      // run first occurrence immediatetly
-            500);
-  }
+//   public void displaySpeedData() {
+//     Timer t = new Timer();
+//     t.scheduleAtFixedRate(
+//             new TimerTask()
+//             {
+//               public void run()
+//               {
+//                 if(IsRunning()) {
+//                   displayUploadData();
+//                 }
+//                 else
+//                 {
+//                   clearNotifications();
+//                 }
+//               }
+//             },
+//             0,      // run first occurrence immediatetly
+//             500);
+//   }
 
-public void displayUploadData(){
-  try {
+// public void displayUploadData(){
+//   try {
 
-    String data = GetStatus();
-    //jsonObject = null;
-    JSONObject jsonObject = new JSONObject(data);
-    int rxRate = jsonObject.getInt("rxRate");
-    int txRate = jsonObject.getInt("txRate");
+//     String data = GetStatus();
+//     //jsonObject = null;
+//     JSONObject jsonObject = new JSONObject(data);
+//     int rxRate = jsonObject.getInt("rxRate");
+//     int txRate = jsonObject.getInt("txRate");
 
-    String sValue = "↑" + makeRate(txRate) + "↓" + makeRate(rxRate);
-    Log.d("MyStringForRX", String.valueOf(rxRate));
-    Log.d("MyStringForTX", String.valueOf(txRate));
-    jstUpdate(sValue);
-  } catch (JSONException e) {
-    Log.e(LOG_TAG,e.toString());
-  }
+//     String sValue = "↑" + makeRate(txRate) + "↓" + makeRate(rxRate);
+//     Log.d("MyStringForRX", String.valueOf(rxRate));
+//     Log.d("MyStringForTX", String.valueOf(txRate));
+//     jstUpdate(sValue);
+//   } catch (JSONException e) {
+//     Log.e(LOG_TAG,e.toString());
+//   }
 
-}
+// }
 
 
 
@@ -247,19 +247,19 @@ public void displayUploadData(){
 
 
 
-  String makeRate(int originalValue) {
-     final DecimalFormat df = new DecimalFormat("0.00");
-    String[] units = new String[]{"b","Kb","Mb"};
-    int unit_idx = 0;
-    double value = (originalValue * 8);
-    while (value > 1000.0 && unit_idx + 1 < units.length) {
-      value /= 1000.0;
-      unit_idx += 1;
-    }
+//   String makeRate(int originalValue) {
+//      final DecimalFormat df = new DecimalFormat("0.00");
+//     String[] units = new String[]{"b","Kb","Mb"};
+//     int unit_idx = 0;
+//     double value = (originalValue * 8);
+//     while (value > 1000.0 && unit_idx + 1 < units.length) {
+//       value /= 1000.0;
+//       unit_idx += 1;
+//     }
 
-    String unitSpeed = units[unit_idx] + "ps";
-    return df.format(value) + unitSpeed;
-  }
+//     String unitSpeed = units[unit_idx] + "ps";
+//     return df.format(value) + unitSpeed;
+//   }
 
 
 
@@ -268,62 +268,62 @@ public void displayUploadData(){
 
 
 
-  @SuppressLint("RestrictedApi")
-  public void showToolbarNotification(String notifyMsg, int notifyType, int icon) {
-//    Log.d("NotifyNet",networkSpeeds);
-    displaySpeedData();
-    Log.d("showToolbarNotification","notifymsg"+notifyMsg);
-    Intent intent = null;
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CUPCAKE) {
-      intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
-    }
-    PendingIntent pendIntent = PendingIntent.getActivity(BelnetDaemon.this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+//   @SuppressLint("RestrictedApi")
+//   public void showToolbarNotification(String notifyMsg, int notifyType, int icon) {
+// //    Log.d("NotifyNet",networkSpeeds);
+//     displaySpeedData();
+//     Log.d("showToolbarNotification","notifymsg"+notifyMsg);
+//     Intent intent = null;
+//     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CUPCAKE) {
+//       intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+//     }
+//     PendingIntent pendIntent = PendingIntent.getActivity(BelnetDaemon.this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
 
-//    Intent disconIntent = new Intent(BelnetDaemon.this, ActionReceivers.class);
-//    disconIntent.putExtra("test",false);
-//    PendingIntent pIntent = PendingIntent.getActivity(BelnetDaemon.this,0,disconIntent,PendingIntent.FLAG_IMMUTABLE);
+// //    Intent disconIntent = new Intent(BelnetDaemon.this, ActionReceivers.class);
+// //    disconIntent.putExtra("test",false);
+// //    PendingIntent pIntent = PendingIntent.getActivity(BelnetDaemon.this,0,disconIntent,PendingIntent.FLAG_IMMUTABLE);
 
-//     Intent disconIntent = DisconActionReceiver.Companion.createIntent(BelnetDaemon.this,DisconActionReceiver.DISCONNECT_ACTION);
-//     PendingIntent disconPendingIntent = PendingIntent.getBroadcast(BelnetDaemon.this,NOTIFY_ID,disconIntent, PendingIntent.FLAG_MUTABLE );
+// //     Intent disconIntent = DisconActionReceiver.Companion.createIntent(BelnetDaemon.this,DisconActionReceiver.DISCONNECT_ACTION);
+// //     PendingIntent disconPendingIntent = PendingIntent.getBroadcast(BelnetDaemon.this,NOTIFY_ID,disconIntent, PendingIntent.FLAG_MUTABLE );
 
-    if (mNotifyBuilder == null) {
-      mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-      mNotifyBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-              .setSmallIcon(R.drawable.belnet_svg)
-             .setContentIntent(pendIntent)
-              .setCategory(Notification.CATEGORY_SERVICE);
-    }
-    mNotifyBuilder.mActions.clear();
-    mNotifyBuilder.setOngoing(true);
+//     if (mNotifyBuilder == null) {
+//       mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//       mNotifyBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+//               .setSmallIcon(R.drawable.belnet_svg)
+//              .setContentIntent(pendIntent)
+//               .setCategory(Notification.CATEGORY_SERVICE);
+//     }
+//     mNotifyBuilder.mActions.clear();
+//     mNotifyBuilder.setOngoing(true);
 
-//    String title ;
-//
-//  title= notifyMsg;
+// //    String title ;
+// //
+// //  title= notifyMsg;
 
-//    Intent notificationssIntent = new Intent(BelnetDaemon.this, NotifyButton.class);
-//    notificationIntent.putExtra("fromNotification", true);
-//    PendingIntent pendingIntent = PendingIntent.getActivity(BelnetDaemon.this, 0, notificationIntent,
-//            PendingIntent.FLAG_UPDATE_CURRENT);
+// //    Intent notificationssIntent = new Intent(BelnetDaemon.this, NotifyButton.class);
+// //    notificationIntent.putExtra("fromNotification", true);
+// //    PendingIntent pendingIntent = PendingIntent.getActivity(BelnetDaemon.this, 0, notificationIntent,
+// //            PendingIntent.FLAG_UPDATE_CURRENT);
 
-   // mNotifyBuilder.addAction(R.drawable.belnet_svg,"Disconnect",disconPendingIntent);
-  // mNotifyBuilder.setContentIntent(disconPendingIntent);
-   // mNotifyBuilder.setContentTitle("Belnet");
-    mNotifyBuilder.setContentText(notifyMsg);
-    //mNotifyBuilder.mActions.clear();
-    mNotifyBuilder.setOnlyAlertOnce(true);
+//    // mNotifyBuilder.addAction(R.drawable.belnet_svg,"Disconnect",disconPendingIntent);
+//   // mNotifyBuilder.setContentIntent(disconPendingIntent);
+//    // mNotifyBuilder.setContentTitle("Belnet");
+//     mNotifyBuilder.setContentText(notifyMsg);
+//     //mNotifyBuilder.mActions.clear();
+//     mNotifyBuilder.setOnlyAlertOnce(true);
 
-    mNotificationManager.notify(notifyType,mNotifyBuilder.build());
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ECLAIR) {
-      startForeground(NOTIFY_ID, mNotifyBuilder.build());
-    }
-  }
+//     mNotificationManager.notify(notifyType,mNotifyBuilder.build());
+//     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ECLAIR) {
+//       startForeground(NOTIFY_ID, mNotifyBuilder.build());
+//     }
+//   }
 
 
-public void jstUpdate(String data){
-    mNotifyBuilder.setContentText(data);
-    mNotificationManager.notify(NOTIFY_ID, mNotifyBuilder.build());
-}
+// public void jstUpdate(String data){
+//     mNotifyBuilder.setContentText(data);
+//     mNotificationManager.notify(NOTIFY_ID, mNotifyBuilder.build());
+// }
 
 
 //
@@ -378,11 +378,11 @@ public void jstUpdate(String data){
 
   public void disconnectNotificationButton(){
     Log.d("callingbelnetDeamon","true");
-    isCalling = false;
+   // isCalling = false;
     disconnect();
 
     stopSelf();
-    clearNotifications();
+    //clearNotifications();
 
   }
 
@@ -399,10 +399,10 @@ public void jstUpdate(String data){
 
     if (ACTION_DISCONNECT.equals(action)) {
       Log.d("callingbelnetDeamon","true");
-      isCalling = false;
+     // isCalling = false;
       disconnect();
       stopSelf();
-     clearNotifications();
+     //clearNotifications();
 
       return START_NOT_STICKY;
     } else {
@@ -416,12 +416,12 @@ public void jstUpdate(String data){
       if (ACTION_CONNECT.equals(action)) {
 
        // Belnet is connected
-     showToolbarNotification("↑ 60.0Kb/s ↓12.3Kb/s", NOTIFY_ID,1);
+    // showToolbarNotification("↑ 60.0Kb/s ↓12.3Kb/s", NOTIFY_ID,1);
 
         // started by the app
         exitNode = intent.getStringExtra(EXIT_NODE);
         upstreamDNS = intent.getStringExtra(UPSTREAM_DNS);
-        isCalling = true;
+       // isCalling = true;
         // save values
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(EXIT_NODE, exitNode);

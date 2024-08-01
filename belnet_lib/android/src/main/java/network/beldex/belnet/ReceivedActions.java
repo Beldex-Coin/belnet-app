@@ -1,16 +1,16 @@
-package network.beldex.belnet;
+// package network.beldex.belnet;
 
-//public class ReceivedActions {
-//}
+// //public class ReceivedActions {
+// //}
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
+// import android.content.BroadcastReceiver;
+// import android.content.Context;
+// import android.content.Intent;
 
-class ReceivedActions extends BroadcastReceiver {
+// class ReceivedActions extends BroadcastReceiver {
 
-    @Override
-    public void onReceive(Context context, Intent intent) {
+//     @Override
+//     public void onReceive(Context context, Intent intent) {
 
-    }
-}
+//     }
+// }

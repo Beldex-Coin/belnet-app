@@ -223,7 +223,7 @@ class _MyWidgetState extends State<AboutPage> {
                             children: [
                           TextSpan(
                               text:
-                                  """ You are protected from hackers and malicious actors that try to steal your information. Since all data about you remains private when you’re browsing, there’s very little window of opportunity for bad actors to pilfer your personal and private information. """,
+                                  """ You are protected from hackers and malicious actors that try to steal your information. Since all data about you remains confidential when you’re browsing, there’s very little window of opportunity for bad actors to pilfer your personal and confidential information. """,
                               style: TextStyle(
                                   fontSize: mHeight * 0.056 / 3,
                                   fontWeight: FontWeight.w100,
@@ -267,7 +267,7 @@ class _MyWidgetState extends State<AboutPage> {
                               appModel.darkTheme ? Colors.white : Colors.black),
                     ),
                     Text(
-                      """BelNet conceals your IP. Thus, your browsing history remains private to the destination website and third parties. However, you may still be shown ads that aren’t relevant to your browsing history.""",
+                      """BelNet conceals your IP. Thus, your browsing history remains confidential and inaccessible to the destination website and third parties. However, you may still be shown ads that aren’t relevant to your browsing history.""",
                       style: TextStyle(
                           fontSize: mHeight * 0.056 / 3,
                           fontFamily: "Poppins",
@@ -373,7 +373,7 @@ class _MyWidgetState extends State<AboutPage> {
                                       color: Colors.blue)),
                               TextSpan(
                                 text:
-                                    """. Exit node contributors will be rewarded and their node will be added to the BelNet app. To To add your exit node to the BelNet app, reach out to """,
+                                    """. Exit node contributors will be rewarded and their node will be added to the BelNet app. To add your exit node to the BelNet app, reach out to """,
                                 style: TextStyle(
                                     fontSize: mHeight * 0.056 / 3,
                                     fontFamily: "Poppins",
@@ -426,7 +426,7 @@ class _MyWidgetState extends State<AboutPage> {
                               appModel.darkTheme ? Colors.white : Colors.black),
                     ),
                     Text(
-                      """MN Apps are decentralized applications hosted on BelNet.MN Apps are privacy preserving applications and do not collect or reveal any personal information about the user.They can be accessed only by connecting to BelNet.Below is a sample MNApp that you can access by enabling BelNet:""",
+                      """MN Apps are decentralized applications hosted on BelNet.MN Apps are confidentiality-focused applications and do not collect or reveal any personal information about the user.They can be accessed only by connecting to BelNet.Below is a sample MNApp that you can access by enabling BelNet:""",
                       style: TextStyle(
                           fontSize: mHeight * 0.056 / 3,
                           fontFamily: "Poppins",
@@ -440,17 +440,17 @@ class _MyWidgetState extends State<AboutPage> {
                       onTap: () async {
                         //FlutterClipboard.copy("http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/");
                         if (await canLaunchUrl(Uri.parse(
-                            "http://675wmqqbzg6nqs688e1n3bti6ter4kt5q4u5bs1c4quutpnyxsxy.bdx/"))) {
+                            "http://explorer.bdx/"))) {
                           await launchUrl(
                               Uri.parse(
-                                  "http://675wmqqbzg6nqs688e1n3bti6ter4kt5q4u5bs1c4quutpnyxsxy.bdx/"),
+                                  "http://explorer.bdx/"),
                               mode: LaunchMode.externalApplication);
                         } else {
-                          throw 'Could not launch http://675wmqqbzg6nqs688e1n3bti6ter4kt5q4u5bs1c4quutpnyxsxy.bdx/';
+                          throw 'Could not launch http://explorer.bdx/';
                         }
                       },
                       child: Text(
-                        """http://675wmqqbzg6nqs688e1n3bti6ter4kt5q4u5bs1c4quutpnyxsxy.bdx/""",
+                        """http://explorer.bdx/""",
                         style: TextStyle(
                             decoration: TextDecoration.underline,
                             fontSize: mHeight * 0.056 / 3,

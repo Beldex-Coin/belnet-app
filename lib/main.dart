@@ -552,11 +552,13 @@ int count = 0;
 
   getRandomExitNodes() async {
     SharedPreferences preference = await SharedPreferences.getInstance();
-    hintValue = preference.getString('hintValue');
+    setState(() {
+     hintValue = preference.getString('hintValue');
     hintCountryIcon = preference.getString('hintCountryicon');
-    isAddExitStatus = preference.getBool('oneTimeAddExit') ?? false;
-    print("value of isAddExitStatus is $isAddExitStatus");
-    setState(() {});
+    isAddExitStatus = preference.getBool('onFreshInitAddExit') ?? false;
+   // isAddExitStatus = preference.getBool('oneTimeAddExit') ?? false;
+    print("value of isAddExitStatus onFreshInitAddExit is $isAddExitStatus");
+    });
   }
 
   @override
@@ -602,8 +604,10 @@ Future<void> toggleBelnet([String? exitvalue, String? dns, bool isCustomExit = f
     appModel.singleUpload = "";
   }
 
-  await preferences.setBool('oneTimeAddExit', true);
-  isAddExitStatus = preferences.getBool('oneTimeAddExit');
+  await preferences.setBool('onFreshInitAddExit', true);
+  //await preferences.setBool('oneTimeAddExit', true);
+  isAddExitStatus = preferences.getBool('onFreshInitAddExit');
+  //isAddExitStatus = preferences.getBool('oneTimeAddExit');
   print("isAddExitStatus is having the value $isAddExitStatus");
 
   setState(() {});

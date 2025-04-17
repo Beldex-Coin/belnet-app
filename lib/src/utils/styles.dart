@@ -1,29 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+//import 'package:flutter/material.dart';
+
 ThemeData buildLightTheme() {
-  final ThemeData base = ThemeData.light();
+  final ThemeData base = ThemeData.light(useMaterial3: true);
   return base.copyWith(
     cardColor: Colors.white,
-    backgroundColor: Color(0xffF9F9F9),
-    primaryColor: Colors.red,
-    textTheme: TextTheme(headline6: TextStyle(color:Colors.black,fontWeight: FontWeight.w900,
-      fontFamily: 'Poppins',)),
-    scaffoldBackgroundColor: Color(0xffF9F9F9),
+    colorScheme: base.colorScheme.copyWith(
+      background: const Color(0xffF9F9F9), // Replaces backgroundColor
+      primary: Colors.red,
+    ),
+    textTheme: base.textTheme.copyWith(
+      headlineMedium: const TextStyle(
+        color: Colors.black,
+        fontWeight: FontWeight.w900,
+        fontFamily: 'Poppins',
+      ), // Replaces headline6
+    ),
+    scaffoldBackgroundColor: const Color(0xffF9F9F9),
   );
 }
 
 ThemeData buildDarkTheme() {
-  final ThemeData base = ThemeData.dark();
+  final ThemeData base = ThemeData.dark(useMaterial3: true);
   return base.copyWith(
     cardColor: Colors.grey[800],
-    backgroundColor: Color(0xff242430),
-    primaryColor: Colors.blue[900],
-    textTheme: TextTheme(headline6: TextStyle(color:Colors.white,fontWeight: FontWeight.w900,
-      fontFamily: 'Poppins',)),
+    colorScheme: base.colorScheme.copyWith(
+      background: const Color(0xff242430), // Replaces backgroundColor
+      primary: Colors.blue[900],
+    ),
+    textTheme: base.textTheme.copyWith(
+      headlineMedium: const TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.w900,
+        fontFamily: 'Poppins',
+      ), // Replaces headline6
+    ),
     scaffoldBackgroundColor: Colors.grey[900],
   );
 }
-
 
 class ConvertTimeToHMS{
 

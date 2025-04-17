@@ -78,7 +78,7 @@ void main() async {
   if (!isNotificationAllowed) {
     AwesomeNotifications().requestPermissionToSendNotifications();
   }
-  Paint.enableDithering = true;
+  //Paint .enableDithering = true;
   pr.Provider.debugCheckInvalidValueType = null;
 
   runApp(ProviderScope(child: BelnetApp()));
@@ -199,12 +199,12 @@ class _BelnetAppState extends State<BelnetApp> {
         return pr.ChangeNotifierProvider(
           create: (context) => NotificationProvider(),
           child: GetMaterialApp(
-              title: 'Belnet App',
-              debugShowCheckedModeBanner: false,
-              theme: appModel.darkTheme ? buildDarkTheme() : buildLightTheme(),
+            title: 'Belnet App',
+            debugShowCheckedModeBanner: false,
+            theme: appModel.darkTheme ? buildDarkTheme() : buildLightTheme(),
               home: SplashScreens() //BelnetHomePage(),
-              ),
-        );
+      ),
+    );
       }),
     );
   }

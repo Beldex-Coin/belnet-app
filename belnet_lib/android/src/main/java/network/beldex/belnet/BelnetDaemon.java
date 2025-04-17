@@ -49,8 +49,8 @@ import java.util.stream.Stream;
 import io.beldex.belnet_lib.BelnetLibPlugin;
 
 // import io.beldex.belnet_lib.DisconActionReceiver;
-import io.beldex.belnet_lib.R;
-import io.beldex.belnet_lib.UpdateNetwork;
+//import io.beldex.belnet_lib.R;
+//import io.beldex.belnet_lib.UpdateNetwork;
 
 
 public class BelnetDaemon extends VpnService{

@@ -51,6 +51,12 @@ dependencies:
   percent_indicator: ^4.2.5 #^4.2.2
   installed_apps: ^1.6.0
   flutter_map: 
+  video_player: ^2.9.5
+
+  glass_kit: ^4.0.1
+  flutter_switch: ^0.3.2
+  share_plus: ^11.0.0
+  loader_overlay: ^5.0.0
   # flutter_sinusoidals:
 #  url_launcher: ^6.1.5
   # The following adds the Cupertino Icons font to your application.
@@ -85,6 +91,9 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/images/dark_theme/
+    - assets/images/light_theme/
+    - assets/images/flags/
     # - assets/images/Belnet_Text_White.png
 
   # An image asset can refer to one or more resolution-specific "variants", see

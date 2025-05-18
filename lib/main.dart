@@ -192,17 +192,28 @@ class _BelnetAppState extends State<BelnetApp> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-
-    return pr.ChangeNotifierProvider<AppModel>.value(
-      value: appModel,
-      child: pr.Consumer<AppModel>(builder: (context, value, child) {
-        return pr.ChangeNotifierProvider(
+ return pr.MultiProvider(
+      providers: [
+        pr.ChangeNotifierProvider<AppModel>.value(value: appModel),
+        pr.ChangeNotifierProvider<NotificationProvider>(
           create: (context) => NotificationProvider(),
-          child: GetMaterialApp(
+        ),
+        pr.ChangeNotifierProvider<NodeProvider>(create: (_)=> NodeProvider()..fetchNodes()),
+        pr.ChangeNotifierProvider<VpnConnectionProvider>(create: (_)=> VpnConnectionProvider()),
+        pr.ChangeNotifierProvider<LoaderVideoProvider>(create: (_)=> LoaderVideoProvider()..initialize('assets/images/dark_theme/Loading_v1_slow.webm')),
+                pr.ChangeNotifierProvider<SettingsProvider>(create: (_) => SettingsProvider()),
+        pr.ChangeNotifierProvider<AppSelectionProvider>(create: (_)=>AppSelectionProvider()..loadSelectedApps(),),
+        pr.ChangeNotifierProvider<AppSelectingProvider>(create: (_)=>AppSelectingProvider())
+      ],
+      child: pr.Consumer<AppModel>(
+        builder: (context, appModel, child) {
+          return GetMaterialApp(
             title: 'Belnet App',
             debugShowCheckedModeBanner: false,
             theme: appModel.darkTheme ? buildDarkTheme() : buildLightTheme(),
-              home: SplashScreens() //BelnetHomePage(),
+            home: SplashScreens(), //BelnetHomePage()
+          );
+        },
       ),
     );
       }),

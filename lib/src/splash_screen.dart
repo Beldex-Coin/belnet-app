@@ -23,7 +23,7 @@ class _SplashScreensState extends State<SplashScreens>
   void initState() {
     // _controller = AnimationController(vsync: this, duration: Duration(seconds:5));
     super.initState();
-    _videoController = VideoPlayerController.asset('assets/images/video.webm')
+    _videoController = VideoPlayerController.asset('assets/images/dark_theme/splash_v2.webm')
       ..initialize().then((_) {
         setState(() {});
         _videoController.play();

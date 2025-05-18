@@ -1,7 +1,10 @@
 import 'package:belnet_mobile/bottom_nav_bar.dart';
 import 'package:belnet_mobile/main.dart';
+import 'package:belnet_mobile/src/screens/onboarding_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 
 
@@ -29,16 +32,19 @@ class _SplashScreensState extends State<SplashScreens>
         _videoController.play();
       });
 
-    _videoController.addListener(() {
+    _videoController.addListener((){
       if (_videoController.value.position == _videoController.value.duration) {
+       
         _goToNextScreen();
       }
     });
   }
 
-void _goToNextScreen() {
+void _goToNextScreen()async {
+     SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => MainBottomNavbar() //BelnetHomePage()
+      MaterialPageRoute(builder: (_) => isFirstLaunch ? OnboardingScreen() : MainBottomNavbar() //BelnetHomePage()
       ),
     );
   }

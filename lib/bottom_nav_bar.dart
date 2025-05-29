@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/node_provider.dart';
+import 'package:belnet_mobile/src/providers/internet_checking_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/providers/log_provider.dart';
 import 'package:belnet_mobile/src/providers/vpn_provider.dart';
@@ -12,6 +13,7 @@ import 'package:belnet_mobile/src/screens/exit_node_screen.dart';
 import 'package:belnet_mobile/src/screens/home_screen.dart';
 import 'package:belnet_mobile/src/screens/settings_screen.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart';
+import 'package:belnet_mobile/src/widget/nointernet_connection.dart';
 import 'package:flutter/material.dart';
 //import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -265,8 +267,9 @@ Widget _getScreen(int index) {
   Widget build(BuildContext context) {
     final loaderProvider = Provider.of<LoaderVideoProvider>(context);
      final selectedIndex = loaderProvider.selectedIndex;
+     final connectivityProvider = Provider.of<ConnectivityProvider>(context);
     //loaderProvider.initialize('assets/loader.webm');
-    return WillPopScope(
+    return connectivityProvider.isConnected ? WillPopScope(
       onWillPop: () async {
 
     if (loaderProvider.isLoading) {
@@ -619,7 +622,7 @@ Widget _getScreen(int index) {
           ),
         ),
      // ),
-    );
+    ) : NoInternetConnection();
   }
 }
 

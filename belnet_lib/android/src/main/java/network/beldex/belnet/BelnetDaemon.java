@@ -61,6 +61,7 @@ public class BelnetDaemon extends VpnService{
   public static final String MESSAGE_CHANNEL = "BELNET_DAEMON";
   public static final String EXIT_NODE = "EXIT_NODE";
   public static final String UPSTREAM_DNS = "UPSTREAM_DNS";
+  public static final String ALLOWED_APPS = "allowed_apps";
   public static final String NOTIFICATION_ID = "NOTIFICATION_ID";
   private static final String DEFAULT_EXIT_NODE = "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx";
   private static final String DEFAULT_UPSTREAM_DNS = "1.1.1.1";
@@ -410,7 +411,7 @@ public class BelnetDaemon extends VpnService{
 
       String exitNode = "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx";
       String upstreamDNS = null;
-
+      ArrayList<String> allowedApps = new ArrayList<>();
       SharedPreferences sharedPreferences = getSharedPreferences("belnet_lib", MODE_PRIVATE);
 
       if (ACTION_CONNECT.equals(action)) {
@@ -421,6 +422,7 @@ public class BelnetDaemon extends VpnService{
         // started by the app
         exitNode = intent.getStringExtra(EXIT_NODE);
         upstreamDNS = intent.getStringExtra(UPSTREAM_DNS);
+        allowedApps = intent.getStringArrayListExtra(ALLOWED_APPS);
        // isCalling = true;
         // save values
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -456,7 +458,7 @@ public class BelnetDaemon extends VpnService{
       // set log level to info
       configVals.add(new ConfigValue("logging", "level", "info"));
 
-      boolean connectedSuccessfully = connect(configVals);
+      boolean connectedSuccessfully = connect(configVals,allowedApps);
       if (connectedSuccessfully){
         return START_STICKY;
       }
@@ -495,7 +497,7 @@ public class BelnetDaemon extends VpnService{
     }
   }
 
-  private boolean connect(ArrayList<ConfigValue> configVals) {
+  private boolean connect(ArrayList<ConfigValue> configVals,ArrayList<String> allowedApps) {
     if (!IsRunning()) {
       if (impl != null) {
         Free(impl);
@@ -563,6 +565,16 @@ public class BelnetDaemon extends VpnService{
       builder.addDnsServer(upstreamDNS);
       builder.setSession("Belnet");
       builder.setConfigureIntent(null);
+        try{
+      if (allowedApps != null) {
+    for (String packageName : allowedApps) {
+        builder.addAllowedApplication(packageName);
+    }
+}
+        //builder.addAllowedApplication("com.android.chrome");
+      }catch(Exception e){
+        Log.e(LOG_TAG,"error"+ e);
+      }
 
       iface = builder.establish();
       if (iface == null) {

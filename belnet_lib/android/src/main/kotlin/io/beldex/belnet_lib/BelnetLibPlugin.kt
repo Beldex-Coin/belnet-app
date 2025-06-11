@@ -109,14 +109,15 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
                 val exitNode = call.argument<String>("exit_node")
                 val upstreamDNS = call.argument<String>("upstream_dns")
+                val packageNames = call.argument<List<String>>("package_names")
 
                 val belnetIntent = Intent(activityBinding.activity.applicationContext, BelnetDaemon::class.java).apply {
                     action = BelnetDaemon.ACTION_CONNECT
                     putExtra(BelnetDaemon.EXIT_NODE, exitNode)
                     putExtra(BelnetDaemon.UPSTREAM_DNS, upstreamDNS)
-                    // packageNames?.let {
-                    //     putStringArrayListExtra(BelnetDaemon.ALLOWED_APPS, ArrayList(it))
-                    // }
+                    packageNames?.let {
+                        putStringArrayListExtra(BelnetDaemon.ALLOWED_APPS, ArrayList(it))
+                    }
                 }
 
                 activityBinding.activity.applicationContext.startService(belnetIntent)

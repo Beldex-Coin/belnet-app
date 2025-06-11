@@ -11,6 +11,11 @@ class BelnetLib {
   static const EventChannel _isConnectedEventChannel =
       const EventChannel('belnet_lib_is_connected_event_channel');
 
+
+static const EventChannel disconnectEventChannel = EventChannel('belnet_lib_notification_disconnect_event_channel');
+
+
+
   static bool _isConnected = false;
 
   static bool get isConnected => _isConnected;

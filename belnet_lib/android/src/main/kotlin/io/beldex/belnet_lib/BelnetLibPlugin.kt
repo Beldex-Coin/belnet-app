@@ -27,6 +27,11 @@ import network.beldex.belnet.BelnetDaemon
 import network.beldex.belnet.ConnectionTools
 import kotlin.math.roundToLong
 
+
+
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
+
 /** BelnetLibPlugin */
 class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private var shouldUnbind: Boolean = false
@@ -41,6 +46,10 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var methodChannel: MethodChannel
     private lateinit var isConnectedEventChannel: EventChannel
     private var eventSink: EventChannel.EventSink? = null
+    private lateinit var notificationDisconnectEventChannel: EventChannel
+    private var disconnectEventSink: EventChannel.EventSink? = null
+     private lateinit var notificationDisconnectReceiver: BroadcastReceiver
+
 
     // Observe the isConnected LiveData
     private val isConnectedObserver = Observer<Boolean> { isConnected ->
@@ -70,10 +79,51 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 }
             }
         )
+
+
+
+
+
+        notificationDisconnectEventChannel = EventChannel(binding.binaryMessenger, "belnet_lib_notification_disconnect_event_channel")
+        notificationDisconnectEventChannel.setStreamHandler(
+            object : EventChannel.StreamHandler {
+                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                    disconnectEventSink = events
+                    notificationDisconnectReceiver = object : BroadcastReceiver() {
+                        override fun onReceive(context: Context?, intent: Intent?) {
+                            if (intent?.action == "com.belnet.NOTIFICATION_DISCONNECTED") {
+                                Log.d("BelnetLibPlugin", "Received notification disconnect broadcast")
+                                disconnectEventSink?.success("notification_disconnect")
+                            }
+                        }
+                    }
+                    val filter = IntentFilter("com.belnet.NOTIFICATION_DISCONNECTED")
+                    activityBinding.activity.registerReceiver(notificationDisconnectReceiver, filter)
+                }
+
+                override fun onCancel(arguments: Any?) {
+                    disconnectEventSink = null
+                    try {
+                        notificationDisconnectReceiver?.let {
+                            activityBinding.activity.unregisterReceiver(it)
+                        }
+                    } catch (e: Exception) {
+                        Log.e("BelnetLibPlugin", "Receiver already unregistered: ${e.message}")
+                    }
+                }
+            }
+        )
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         methodChannel.setMethodCallHandler(null)
+         try {
+            notificationDisconnectReceiver?.let {
+                activityBinding.activity.unregisterReceiver(it)
+            }
+        } catch (e: Exception) {
+            Log.e("BelnetLibPlugin", "Failed to unregister receiver: ${e.message}")  
+        }
         doUnbindService()
     }
 
@@ -184,8 +234,22 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 lastTimestamp = timestamp
             }
             "getDataStatus" -> {
-                result.success(boundService?.GetStatus() ?: false)
-                Log.d("BelnetLibPlugin", "getDataStatus: ${boundService?.GetStatus()}")
+                if (boundService == null) {
+        Log.w("BelnetLibPlugin", "getDataStatus: Service not bound")
+        result.success(false)
+        return
+    }
+
+    try {
+        val status = boundService?.GetStatus()
+        Log.d("BelnetLibPlugin", "getDataStatus: $status")
+        result.success(status)
+    } catch (e: Exception) {
+        Log.e("BelnetLibPlugin", "Exception in getDataStatus", e)
+        result.success(false)
+    }
+               // result.success(boundService?.GetStatus() ?: false)
+               // Log.d("BelnetLibPlugin", "getDataStatus: ${boundService?.GetStatus()}")
             }
             "disconnectForNotification" -> {
                 result.success(boundService != null)
@@ -197,10 +261,23 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activityBinding = binding
         doBindService()
+
+        //         // Register for notification disconnect broadcast
+        // notificationDisconnectReceiver = object : BroadcastReceiver() {
+        //     override fun onReceive(context: Context?, intent: Intent?) {
+        //         if (intent?.action == "com.belnet.NOTIFICATION_DISCONNECTED") {
+        //             Log.d("BelnetLibPlugin", "Received notification disconnect broadcast")
+        //             eventSink?.success("notification_clicked")
+        //         }
+        //     }
+        // }
+        // val filter = IntentFilter("com.belnet.NOTIFICATION_DISCONNECTED")
+        // activityBinding.activity.registerReceiver(notificationDisconnectReceiver, filter)
     }
 
     override fun onDetachedFromActivity() {
         doUnbindService()
+        //activityBinding.activity.unregisterReceiver(notificationDisconnectReceiver)
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
@@ -210,6 +287,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     override fun onDetachedFromActivityForConfigChanges() {
         doUnbindService()
+        //activityBinding.activity.unregisterReceiver(notificationDisconnectReceiver)
     }
 
     private val connection: ServiceConnection = object : ServiceConnection {

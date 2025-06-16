@@ -41,7 +41,7 @@ class AppCache {
 
   Future<void> loadApps() async {
     try {
-      _apps = await InstalledApps.getInstalledApps(true, true);
+      _apps = await InstalledApps.getInstalledApps(false, true);
       // Debug: Log fetched apps
       print('Fetched ${_apps.length} apps:');
       for (var app in _apps) {

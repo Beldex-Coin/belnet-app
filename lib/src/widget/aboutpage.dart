@@ -179,13 +179,13 @@ class _MyWidgetState extends State<AboutPage> with SingleTickerProviderStateMixi
             // color: Colors.black,
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage('assets/images/dark_theme/BG.png'), // <-- your image
+                  image:appModel.darkTheme ? AssetImage('assets/images/dark_theme/BG.png') : AssetImage('assets/images/light_theme/BG.png') , // <-- your image
                   fit: BoxFit.cover,
                 ),
               ),
             // padding: EdgeInsets.only(right:mHeight*0.05/3),
             child: GlassContainer.clearGlass(
-                color: Colors.black.withOpacity(0.5),
+                color: appModel.darkTheme ? Colors.black.withOpacity(0.5) : Colors.white.withOpacity(0.2),
                 borderColor: Colors.transparent,
               child: SafeArea(
                 child: Container(
@@ -194,7 +194,18 @@ class _MyWidgetState extends State<AboutPage> with SingleTickerProviderStateMixi
                      // color: Colors.black.withOpacity(0.5),
                      border: Border.all(color: Color(0xffACACAC).withOpacity(0.3),width: 0.5),
                                         borderRadius: BorderRadius.circular(12),
-      
+                     boxShadow:appModel.darkTheme ? [] : [
+                        BoxShadow(
+                    color: Color(0xff00FFDD).withOpacity(0.05) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
+                   
+                  ),
+                  BoxShadow(
+                    color: Colors.white.withOpacity(0.7),
+                    spreadRadius: -01.0,
+                    blurRadius: 23.5,
+                    offset: Offset(-3.0, 4.5),
+                  )
+                     ]
                     ),
                    
                     padding: EdgeInsets.only(top: 20,right: 10),

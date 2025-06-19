@@ -1,3 +1,4 @@
+import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
@@ -10,6 +11,16 @@ class LoaderVideoProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   ConnectionStatus _conStatus = ConnectionStatus.DISCONNECTED;
   ConnectionStatus get conStatus => _conStatus;
+
+ bool _belnetIsConnect = false;
+ bool get belnetIsConnect => _belnetIsConnect;
+
+ void setbelnetIsConnected(bool value){
+  _belnetIsConnect = value;
+  notifyListeners();
+ }
+
+
 
   void setConnectionStatus(ConnectionStatus value ){
     _conStatus = value;

@@ -2,6 +2,7 @@
 import 'package:belnet_mobile/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:glass_kit/glass_kit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreen extends StatelessWidget {
@@ -29,7 +30,7 @@ class OnboardingScreen extends StatelessWidget {
            Container(
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage('assets/images/dark_theme/BG.png'), // <-- your image
+                        image: AssetImage('assets/images/dark_theme/Dark_background.png'), // <-- your image
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -46,40 +47,33 @@ class OnboardingScreen extends StatelessWidget {
                               Text('1.2.0')
                             ],
                           ),
-                          Spacer(flex: 3,),
+                          Spacer(flex: 5,),
                           Container(
                            // height: MediaQuery.of(context).size.height*0.50/3,
                             width: double.infinity,
                             margin: EdgeInsets.symmetric(horizontal: 20),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Color(0xffACACAC),width: 0.4)
+                              border: Border.all(color: Color(0xffACACAC),width: 0.5)
                             ),
                             child: SvgPicture.asset('assets/images/dark_theme/Fast & Secure dVPN.svg',height: 120,fit: BoxFit.cover,)
-                            // Column(
-                            //   children: [
-                            //     Text('Fast & Secure',style: TextStyle(fontSize: 44,fontWeight: FontWeight.bold,fontFamily: 'Poppins'),),
-                            //     Text('dVPN',style: TextStyle(fontSize: 44,fontWeight: FontWeight.bold,fontFamily: 'Poppins',color: Color(0xff00DC00)),),
-
-                            //   ],
-                            // ),
                           ),
-                          Spacer(flex: 1,),
+                          SizedBox(height: MediaQuery.of(context).size.height*0.20/3),
                           //SizedBox(height: 15,),
                           GestureDetector(
                             onTap:()=> _goToHome(context),
-                            child: Container(
+                            child: GlassContainer.clearGlass(
+                              height: 60,
                               width: double.infinity,
                               margin: EdgeInsets.symmetric(horizontal: 20),
                               padding: EdgeInsets.all(15),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xff00DC00)),
-                                borderRadius:BorderRadius.circular(10)
-                                ),
+                               color: Color(0xff3A4962).withOpacity(0.01), //s.white.withOpacity(0.02),
+                              borderColor: Color(0xff00DC00),
+                              borderRadius:BorderRadius.circular(10),
                                 child: Center(child: Text('Next',style: TextStyle(color: Color(0xff00DC00),fontSize: 20,fontWeight: FontWeight.w700),)),
                               ),
                           ),
-                          SizedBox(height: 8,)
+                          SizedBox(height: 15)
                         ],
                       ),
                     ),

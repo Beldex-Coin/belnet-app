@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:glass_kit/glass_kit.dart';
 import 'package:provider/provider.dart';
 
 import '../model/theme_set_provider.dart';
@@ -20,7 +21,7 @@ class NoInternetConnection extends StatelessWidget {
             Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image:appModel.darkTheme ? AssetImage('assets/images/dark_theme/BG.png') :AssetImage('assets/images/light_theme/BG.png'),
+                    image:appModel.darkTheme ? AssetImage('assets/images/dark_theme/Dark_background.png') :AssetImage('assets/images/light_theme/White__theme_background_v1.png'),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -38,7 +39,7 @@ class NoInternetConnection extends StatelessWidget {
                   Container(
                       height: MediaQuery.of(context).size.height * 1 / 3,
                       width: MediaQuery.of(context).size.width * 1.3 / 3,
-                      child:appModel.darkTheme ? SvgPicture.asset('assets/images/dark_theme/no_connection.svg',height: MediaQuery.of(context).size.height * 0.20 / 3) : SvgPicture.asset('assets/images/light_theme/no_connection.svg',height: MediaQuery.of(context).size.height * 0.20 / 3)),
+                      child:appModel.darkTheme ? SvgPicture.asset('assets/images/dark_theme/no_connection.svg',height: MediaQuery.of(context).size.height * 0.20 / 3,color: Color(0xff8A8A9D).withOpacity(0.8),) : SvgPicture.asset('assets/images/light_theme/no_connection.svg',height: MediaQuery.of(context).size.height * 0.20 / 3)),
                   Container(
                     padding: EdgeInsets.only(
                       left: 15.0,
@@ -71,7 +72,7 @@ class NoInternetConnection extends StatelessWidget {
                               style: TextStyle(
                                   color: appModel.darkTheme
                                       ? Color(0xffACACAC)
-                                      : Color(0xff4D4D4D),
+                                      : Color(0xff2E3E49),
                                       fontSize: 15,
                                       fontWeight: FontWeight.w100,
                                   fontFamily: 'Poppins')))),
@@ -83,14 +84,16 @@ class NoInternetConnection extends StatelessWidget {
 
                         ),
 
-                    child: Container(
+                    child: GlassContainer.clearGlass(
                         height: MediaQuery.of(context).size.height * 0.20 / 3,
                         width: MediaQuery.of(context).size.height * 0.70 / 3,
-                        decoration: BoxDecoration(
-                            color: Colors.transparent,// Color(0xff00DC00),
+                       // decoration: BoxDecoration(
+                            color: Color(0xff00DC00).withOpacity(0.02),// Color(0xff00DC00),
                             borderRadius: BorderRadius.all(Radius.circular(14.0)),
-                            border:
-                                Border.all(color: Color(0xff00DC00), width: 1)),
+                            borderColor:Color(0xff00DC00),
+                            borderWidth: 1,
+                               // Border.all(color: Color(0xff00DC00), width: 1)
+                               // ),
                         child: TextButton(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -122,9 +125,10 @@ class NoInternetConnection extends StatelessWidget {
                         height: MediaQuery.of(context).size.height * 0.20 / 3,
                         width: MediaQuery.of(context).size.height * 0.70 / 3,
                          decoration: BoxDecoration(
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(12.0),
                           border: Border.all(color:  Color(0xff00B400) //: Color(0xffACACAC)
-                          ,width: 0.3),
+                          ,width: 0.6),
                           //color: Colors.grey,
                           // gradient: LinearGradient(
                           //     colors: [const Color(0xff007ED1),const Color(0xff0093FF)]),
@@ -135,9 +139,9 @@ class NoInternetConnection extends StatelessWidget {
                   ),
                   BoxShadow(
                     color: Colors.white,
-                    spreadRadius: -01.0,
-                    blurRadius: 23.5,
-                    offset: Offset(-3.0, 4.5),
+                    spreadRadius: -02.0,
+                    blurRadius: 13.5,
+                   // offset: Offset(-3.0, 4.5),
                   )]),
                         // decoration: BoxDecoration(
                         //     color: Colors.transparent,// Color(0xff00DC00),
@@ -157,7 +161,7 @@ class NoInternetConnection extends StatelessWidget {
                                   fontFamily: 'Poppins',
                                   fontSize:
                                       MediaQuery.of(context).size.height * 0.07 / 3,
-                                  // fontWeight: FontWeight.w900
+                                   fontWeight: FontWeight.w700
                                 ),
                               ),
                             ],

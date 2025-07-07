@@ -569,14 +569,7 @@ class _MyWidgetState extends State<AboutPage> with SingleTickerProviderStateMixi
                                     appModel.darkTheme ? Colors.white : Colors.black),
                           ),
                           Text(
-                            """BNS stands for Beldex Name Service. BNS names are human readable domain names on BelNet. BNS is a censorship-free, decentralized, unstoppable domain name service. 
-                    
-                    It has many utilities. For example, BNS names could be mapped to MN Apps to make them easily readable and discoverable.
-                    
-                    The Beldex team is researching the possibility of mapping BNS names to BChat IDs and your wallet address so you can send and receive messages as well as BDX with your BNS name.
-                    
-                    BNS names end with the top level domain .bdx
-                     Example: yourname.bdx""",
+                            """BNS stands for Beldex Name Service. BNS names are human readable domain names on BelNet. BNS is a censorship-free, decentralized, unstoppable domain name service. It has many utilities. For example, BNS names could be mapped to MN Apps to make them easily readable and discoverable.The Beldex team is researching the possibility of mapping BNS names to BChat IDs and your wallet address so you can send and receive messages as well as BDX with your BNS name. BNS names end with the top level domain .bdx. Example: yourname.bdx""",
                             style: TextStyle(
                                 fontSize:13,// mHeight * 0.056 / 3,
                                 fontFamily: "Poppins",

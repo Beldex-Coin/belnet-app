@@ -39,7 +39,7 @@ class NoInternetConnection extends StatelessWidget {
                   Container(
                       height: MediaQuery.of(context).size.height * 1 / 3,
                       width: MediaQuery.of(context).size.width * 1.3 / 3,
-                      child:appModel.darkTheme ? SvgPicture.asset('assets/images/dark_theme/no_connection.svg',height: MediaQuery.of(context).size.height * 0.20 / 3,color: Color(0xff8A8A9D).withOpacity(0.8),) : SvgPicture.asset('assets/images/light_theme/no_connection.svg',height: MediaQuery.of(context).size.height * 0.20 / 3)),
+                      child:appModel.darkTheme ? SvgPicture.asset('assets/images/dark_theme/no_connection.svg',height: MediaQuery.of(context).size.height * 0.20 / 3,color: Color(0xff8A8A9D).withOpacity(0.8),) : SvgPicture.asset('assets/images/light_theme/no_connection.svg',height: MediaQuery.of(context).size.height * 0.20 / 3,color: Color(0xff8FB2CE).withOpacity(0.7),)),
                   Container(
                     padding: EdgeInsets.only(
                       left: 15.0,
@@ -117,7 +117,7 @@ class NoInternetConnection extends StatelessWidget {
                   ):Padding(
                     padding: EdgeInsets.only(
                         top: MediaQuery.of(context).size.height * 0.19 / 3,
-                        bottom: MediaQuery.of(context).size.height * 0.12 / 3,
+                        bottom: MediaQuery.of(context).size.height * 0.14 / 3,
 
                         ),
 

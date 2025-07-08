@@ -1,20 +1,26 @@
 import 'dart:async';
 
 import 'package:belnet_lib/belnet_lib.dart';
+import 'package:belnet_mobile/country_code_list.dart';
 import 'package:belnet_mobile/node_provider.dart';
 import 'package:belnet_mobile/src/app_list_provider.dart';
+import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/providers/chartData_controller.dart';
+import 'package:belnet_mobile/src/providers/introstate_provider.dart';
+import 'package:belnet_mobile/src/providers/ip_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/providers/log_provider.dart';
 import 'package:belnet_mobile/src/providers/speed_chart_provider.dart';
 import 'package:belnet_mobile/src/providers/vpn_provider.dart';
+import 'package:belnet_mobile/src/screens/add_exitnode_screen.dart';
+import 'package:belnet_mobile/src/utils/show_toast.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:glass_kit/glass_kit.dart';
-import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
-import 'package:video_player/video_player.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 class HomeScreen extends StatefulWidget {
   final VoidCallback onNavigateToExitNodes;
 
@@ -24,10 +30,13 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>  with SingleTickerProviderStateMixin, WidgetsBindingObserver{
+class _HomeScreenState extends State<HomeScreen>  with TickerProviderStateMixin, WidgetsBindingObserver{
 
 late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
+
+  // late AnimationController _bounceButtonController;
+  // late Animation<Offset> _bounceButtonAnimationOffset;
    // late VideoPlayerController _videoLoaderController;
  TextEditingController exitNodeController = TextEditingController();
  TextEditingController dnsController = TextEditingController();
@@ -56,13 +65,30 @@ void initState() {
   ));
 
   _controller.forward();
+
+
+// /// For the power button
+// _bounceButtonController = AnimationController(
+//   duration: const Duration(milliseconds: 450),
+//   vsync: this);
+
+//  _bounceButtonAnimationOffset = Tween<Offset>(
+//   begin: const Offset(0.0, -0.2),
+//   end: Offset.zero
+//  ).animate(CurvedAnimation(
+//   parent: _bounceButtonController,
+//   curve:Curves.bounceInOut ));
+//  _bounceButtonController.forward(); // Start bounce animation
+
   final loaderVideoProvider = Provider.of<LoaderVideoProvider>(context,listen: false);
     final vpnConnectionProvider = Provider.of<VpnConnectionProvider>(context,listen: false);
     final logProvider = Provider.of<LogProvider>(context,listen: false);
-     Future.microtask(() {
-  print('inside the exitnode screen ${Provider.of<NodeProvider>(context,listen: false).nodeData}');
-  });
+    final appModel = Provider.of<AppModel>(context,listen: false);
+    final ipProvider = Provider.of<IpProvider>(context,listen: false);
+     final introStateProvider = Provider.of<IntroStateProvider>(context,listen: false);
+    final nodeProvider = Provider.of<NodeProvider>(context,listen: false);
 
+//checkCanAddExitNodeEnabled();
   _isConnectedEventSubscription = BelnetLib.isConnectedEventStream.listen(
     (bool isConnected) {
       if (!mounted) return;
@@ -97,13 +123,13 @@ void initState() {
   }
   
   );
+
+   chartController = ChartDataController();
+    chartController.init(appModel);
 }
 
-int count = 0;
-checkVPN(bool isConnect)async{
-    bool connect = await BelnetLib.isRunning;  
-  setState(() {
-    
+
+
 
   resetIfCustomExitnode(IpProvider ipProvider,IntroStateProvider introProvider,NodeProvider nodeProvider){
   if(introProvider.isCustomNode){
@@ -114,10 +140,27 @@ checkVPN(bool isConnect)async{
   
 
 
-
-  });
-
 }
+}
+
+  String stringBeforeSpace(String value) {
+    String str = value;
+    str = value.split(' ').first;
+    setState(() {});
+    return str;
+  }
+
+  String stringAfterSpace(String value) {
+    String str = value;
+    str = value.split(' ').last;
+    setState(() {});
+    return str;
+  }
+
+
+
+
+
 
 
 
@@ -138,7 +181,9 @@ checkCanAddExitNodeEnabled()async{
   void dispose() {
     _controller.dispose();
        WidgetsBinding.instance.removeObserver(this);
+       //_bounceButtonController.dispose();
    // _videoLoaderController.dispose();
+       chartController.dispose();
     super.dispose();
   }
 

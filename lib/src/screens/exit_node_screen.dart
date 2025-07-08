@@ -193,7 +193,7 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
     }
 
     if (nodeProvider.hasError) {
-      return Center(child: Text('Failed to load data'));
+      return Center(child: CircularProgressIndicator(color: Color(0xff00DC00),));
     }
 
     final groupedNodes = nodeProvider.groupByCountryWithIcon(selectedType);

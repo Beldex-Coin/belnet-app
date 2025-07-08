@@ -84,6 +84,9 @@ void initState() {
       loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
       logProvider.addLog('Belnet Daemon stopped');
       logProvider.addLog('Belnet disconnected');
+      stopNotification();
+      resetIfCustomExitnode(ipProvider,introStateProvider,nodeProvider);
+      //AwesomeNotifications().cancelAll();
       }catch(e){
 
       }
@@ -102,6 +105,13 @@ checkVPN(bool isConnect)async{
   setState(() {
     
 
+  resetIfCustomExitnode(IpProvider ipProvider,IntroStateProvider introProvider,NodeProvider nodeProvider){
+  if(introProvider.isCustomNode){
+    introProvider.setIsCustomNode(false);
+    ipProvider.resetCustomValue();
+     nodeProvider.selectNode(3,'exit.bdx','France');
+    showMessage('Switching to default Exit Node');
+  
 
 
 
@@ -117,7 +127,12 @@ String displaySpeed(int data){
 }
 
 
-
+checkCanAddExitNodeEnabled()async{
+ SharedPreferences prefs = await SharedPreferences.getInstance();
+ setState(() {
+   isInitialAddExitNode = prefs.getBool('isinitialaddnode') ?? true;
+ });
+}
 
 @override
   void dispose() {

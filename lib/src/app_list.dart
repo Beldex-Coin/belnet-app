@@ -13,6 +13,7 @@ import 'package:glass_kit/glass_kit.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:provider/provider.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 // //import 'package:mobile/src/app_list_provider.dart';
 
 // class InstalledAppsList extends StatefulWidget {
@@ -313,7 +314,6 @@ bool isTosplitTunnel = false;
   }
 }
 
-TextEditingController searchController = TextEditingController();
 class _AppListView extends StatelessWidget {
   final List<AppInfo> allApps;
 
@@ -686,48 +686,49 @@ class _AppListView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Search Bar
-            Stack(
-              children: [
-                Container(
-                  height: 45,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xff3A496266).withOpacity(0.1)),
-                  ),
-                  child: TextField(
-                    controller: searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search apps',
-                      prefixIcon: const Icon(Icons.search),
-                      border: InputBorder.none,
-                      hintStyle: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                
-                    ),
-                    onChanged: (value) {
+            Container(
+              height: 45,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: appModel.darkTheme ? Colors.white.withOpacity(0.05):Colors.grey.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color:appModel.darkTheme ? const Color(0xff3A496266).withOpacity(0.1) : Colors.transparent),
+              ),
+              child: VisibilityDetector(
+                key: const Key('text-field'),
+                onVisibilityChanged: (VisibilityInfo info) { 
+                  if(info.visibleFraction == 0){
+                     FocusScope.of(context).unfocus();
+                  }
+                 },
+                child: TextField(
+                  controller: searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search apps',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: searchController.text.trim().isNotEmpty ? GestureDetector(
+                    onTap: (){
+                       searchController.clear();
                       Provider.of<AppSelectingProvider>(context, listen: false)
-                          .updateSearchQuery(value);
+                              .updateSearchQuery('');
                     },
+                    child: Icon(Icons.close,color: appModel.darkTheme ? Colors.white : Colors.black,) //SvgPicture.asset('assets/images/dark_theme/clear_text_search.svg' ,color:appModel.darkTheme ? Colors.white : Colors.black,)
+                    )
+                    : SizedBox.shrink(),
+                    border: InputBorder.none,
+                    hintStyle: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                            
                   ),
+                  onChanged: (value) {
+                    Provider.of<AppSelectingProvider>(context, listen: false)
+                        .updateSearchQuery(value);
+                  },
                 ),
-             
-            searchController.text.trim().isNotEmpty ? Positioned( 
-              right: 13,
-              top: 17,
-              child: GestureDetector(
-                onTap: (){
-                   searchController.clear();
-                  Provider.of<AppSelectingProvider>(context, listen: false)
-                          .updateSearchQuery('');
-                },
-                child: SvgPicture.asset('assets/images/dark_theme/clear_text_search.svg'))): SizedBox.shrink()
-             
-              ],
+              ),
             ),
            searchedApps.isEmpty ? SizedBox.shrink() : const SizedBox(height: 16),
       

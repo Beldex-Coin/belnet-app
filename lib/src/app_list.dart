@@ -411,7 +411,7 @@ class _AppListView extends StatelessWidget {
                     sliver: SliverList(
                       delegate: SliverChildListDelegate.fixed([
                          Text(
-                          'Include Apps (${selectedApps.length})',
+                          'Included Apps (${selectedApps.length})',
                           style: TextStyle(fontFamily: 'Poppins',
               fontSize: 14,
               color:appModel.darkTheme ? Color(0xffA1A1AF) : Color(0xff4D4D4D),

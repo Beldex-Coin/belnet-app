@@ -281,6 +281,7 @@ Widget _getScreen(int index) {
           loaderProvider.setIndex(0);
           return false; // Prevent app from closing
         }
+        stopNotification();
         return true; // Allow app to close if on Home tab
       },
       // child:

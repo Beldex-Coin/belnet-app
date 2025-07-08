@@ -163,8 +163,8 @@ print('THE LOADER VALUE IS 1----> ${loaderVideoProvider.isLoading}');
   print('THE LOADER VALUE IS 333----> ${loaderVideoProvider.isLoading}');
  print('CustomExitnode checking start ${Settings.getInstance()!.exitNode!}');
   bool con = await BelnetLib.connectToBelnet(
-      appSelectingProvider.isSPEnabled ?
-     appSelectingProvider.selectedApps.toList() : [],
+       appSelectingProvider.isSPEnabled && appSelectingProvider.selectedApps.toList().isNotEmpty ?
+      [...appSelectingProvider.selectedApps.toList(),'io.beldex.belnet'] : [],
     exitNode: Settings.getInstance()!.exitNode!,
     upstreamDNS: dns != null && dns.isNotEmpty ? dns : "9.9.9.9",
   );

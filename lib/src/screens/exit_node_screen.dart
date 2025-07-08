@@ -53,6 +53,43 @@ class _ExitNodesScreenState extends State<ExitNodesScreen> with SingleTickerProv
   }
 
 
+void showCustomDialog(BuildContext context,AppModel appModel) {
+
+   showDialog(
+                                  useSafeArea: false,
+                                  // barrierColor: Colors.white.withOpacity(0.09),
+                                  context: context,
+                                  builder: (BuildContext dcontext) => Padding(
+                                        padding: const EdgeInsets.all(0.0),
+                                        child: appModel.darkTheme ?
+                                        GlassContainer.clearGlass(
+                                         color: Colors.black.withOpacity(0.3), //s.white.withOpacity(0.8),
+                                         blur: 10.0,
+                                         borderColor: Colors.transparent,
+                                          child: Dialog(
+                                           // scrollable: true,
+                                           insetPadding: EdgeInsets.all(18),
+                                            backgroundColor: Colors.transparent, 
+                                            //contentPadding: EdgeInsets.all(0.0),
+                                            child:CustomAddExitNodeDialog() //containerWidget(dcontext,mHeight,appModel),
+                                          ),
+                                        )
+                                        : GlassContainer.clearGlass(
+                                         color:  Color(0x80FFFFFF), //s.white.withOpacity(0.8),
+                                         //blur: 10.0,
+                                         borderColor: Colors.transparent,
+                                          child: Dialog(
+                                           // scrollable: true,
+                                           insetPadding: EdgeInsets.all(18),
+                                            backgroundColor: Colors.transparent,
+                                            //contentPadding: EdgeInsets.all(0.0),
+                                            child:CustomAddExitNodeDialog() //containerWidget(dcontext,mHeight,appModel),
+                                          ),
+                                        ),
+                                      ));
+}
+
+
 
   @override
   Widget build(BuildContext context) {

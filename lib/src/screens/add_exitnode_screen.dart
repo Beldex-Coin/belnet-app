@@ -4,6 +4,7 @@ import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/node_provider.dart';
 import 'package:belnet_mobile/src/app_list_provider.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/providers/introstate_provider.dart';
 import 'package:belnet_mobile/src/providers/ip_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/providers/log_provider.dart';
@@ -56,7 +57,8 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
     final appSelectingProvider = Provider.of<AppSelectingProvider>(context);
     final nodeProvider = Provider.of<NodeProvider>(context);
         final loaderVideoProvider =  Provider.of<LoaderVideoProvider>(context, listen: false);
-
+         final introStateProvider = Provider.of<IntroStateProvider>(context);
+         final ipProvider = Provider.of<IpProvider>(context);
     return GlassContainer.clearGlass(
        padding:const EdgeInsets.all(15.0),
         height:_authCodeError != null || _exitNodeError != null ? mHeight * 1.47 / 3 : mHeight *1.38/3,
@@ -429,6 +431,8 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                       nodeProvider.selectNode(100,_exitNodeController.text,'');
                       toggleBelnet(context,appSelectingProvider,dns:  '9.9.9.9',isCustomeExitNode: true);
                       loaderVideoProvider.setIndex(0);
+                      introStateProvider.setIsCustomNode(true);
+                       ipProvider.resetCustomValue();
                       //toggleBelnet(AppSelectingProvider()..selectedApps.toList(),_cusExitNode.text, _cusAuthCode.text, true);
                       Navigator.pop(context);
 
@@ -443,6 +447,8 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                         // toggleBelnet(AppSelectingProvider()..selectedApps.toList(),
                         //     _cusExitNode.text, _cusAuthCode.text, true);
                         loaderVideoProvider.setIndex(0);
+                        introStateProvider.setIsCustomNode(true);
+                         ipProvider.resetCustomValue();
                         Navigator.pop(context);
                       } else {
                         setState((() {

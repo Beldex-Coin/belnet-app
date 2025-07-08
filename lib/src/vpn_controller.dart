@@ -95,6 +95,17 @@ Future<void> toggleBelnet(BuildContext context,AppSelectingProvider appSelecting
 
 }
 
+
+
+resetStatevalue(IntroStateProvider introStateProvider)async{
+  introStateProvider.setMyExitValue(false);
+  introStateProvider.setFlagvalue(false);
+//Future.delayed(Duration(milliseconds: ))
+  //  chartController = ChartDataController();
+  //   chartController.init(appModel);
+
+ }
+
 Future<void> _saveSettings(NodeProvider nodeProvider ,{String? exitvalue, String? dns}) async {
   final settings = Settings.getInstance()!;
   settings.exitNode = nodeProvider.selectedExitNodeName!.trim().toString();

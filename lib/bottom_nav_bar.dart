@@ -2,9 +2,12 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/node_provider.dart';
 import 'package:belnet_mobile/src/providers/internet_checking_provider.dart';
+import 'package:belnet_mobile/src/providers/introstate_provider.dart';
+import 'package:belnet_mobile/src/providers/ip_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/providers/log_provider.dart';
 import 'package:belnet_mobile/src/providers/vpn_provider.dart';
@@ -35,68 +38,50 @@ class _MainBottomNavbarState extends State<MainBottomNavbar> with WidgetsBinding
   final List<Widget> _screens = [];
 StreamSubscription<bool>? _isConnectedEventSubscription;
 bool isBelConnect = false;
+
+
 @override
   void initState() {
     // TODO: implement initState
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // _screens.addAll(
-    //   [
-    //  HomeScreen(
-    //   onNavigateToExitNodes: () {
-    //     Provider.of<LoaderVideoProvider>(context, listen: false).setIndex(1);
-    //     // setState(() {
-    //     //   _selectedIndex = 1; //  switches to ExitNodesScreen
-    //     // });
-    //   },
-    //  ),
-    // ExitNodesScreen(),
-    // ChartScreen(),
-    // SettingsScreen(),
-    //   ]
-    // );
+   
     final loaderVideoProvider = Provider.of<LoaderVideoProvider>(context,listen: false);
     final nodeProvider = Provider.of<NodeProvider>(context,listen: false);
     final logProvider = Provider.of<LogProvider>(context,listen: false);
+    final ipProvider = Provider.of<IpProvider>(context,listen: false);
+    final introStateProvider = Provider.of<IntroStateProvider>(context,listen: false);
      // final vpnConnectionProvider = Provider.of<VpnConnectionProvider>(context,listen: false);
       
    _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
         .listen((bool isConnected) => setState(() {
-          print('Belnet is running NAVVVV $isConnected');
-                          print('I AM INTO 111----->$isConnected}----- ${loaderVideoProvider.conStatus}');
           isBelConnect = isConnected;
-          //isConnectedStatus(isConnected,loaderVideoProvider);
-          //loaderVideoProvider.setbelnetIsConnected(isConnected);
-          //vpnStatus(context,isConnected,loaderVideoProvider,vpnConnectionProvider);
-         // showMyNotification(context,isConnected);
         }));
        
-        checkNode(nodeProvider,loaderVideoProvider,logProvider);
-        // Future.delayed(Duration(milliseconds: 150),(){
-        //           getStatus(loaderVideoProvider);
-         
-        // });
+        checkNode(nodeProvider,loaderVideoProvider,logProvider,ipProvider,introStateProvider);
   }
 
 
-checkNode(NodeProvider nodeProvider,LoaderVideoProvider loaderVideoProvider,LogProvider logProvider)async{
-  print('inside the bottom nav bar ${nodeProvider.nodeData.length}');
+checkNode(NodeProvider nodeProvider,LoaderVideoProvider loaderVideoProvider,LogProvider logProvider,IpProvider ipProvider,IntroStateProvider introProvider)async{
+  //print('inside the bottom nav bar ${nodeProvider.nodeData.length}');
   try{
 var value = await BelnetLib.isRunning;
   if(value){
-      print('inside the bottom nav bar if statement');
+     // print('inside the bottom nav bar if statement');
 
       loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
        logProvider.addLog('Exit node set by Daemon: Connected to ${nodeProvider.selectedExitNodeName}');
       // nodeProvider.selectRandomNode();
   }else{
-      print('inside the bottom nav bar else statement');
+    checkIsCustomNode(ipProvider,introProvider);
+     nodeProvider.selectRandomNode();
+      //print('inside the bottom nav bar else statement');
      //Future.delayed(Duration(milliseconds: 200),(){
         //  nodeProvider.selectRandomNode();
 
      //});
   }
-    print('inside the bottom nav bar --- ${BelnetLib.isConnected} ${await BelnetLib.isRunning}');
+    //print('inside the bottom nav bar --- ${BelnetLib.isConnected} ${await BelnetLib.isRunning}');
 
   }catch(e){
       print('inside the bottom nav bar $e');
@@ -105,7 +90,12 @@ var value = await BelnetLib.isRunning;
 }
 
 
-
+checkIsCustomNode(IpProvider ipProvider,IntroStateProvider introProvider)async{
+   if(introProvider.isCustomNode){
+    introProvider.setIsCustomNode(false);
+    ipProvider.resetCustomValue();
+   }
+}
 
 
 int index = 0;
@@ -128,12 +118,12 @@ isConnectedStatus(bool isConnected,LoaderVideoProvider loaderVideoProvider){
 
 getStatus(LoaderVideoProvider loaderVideoProvider){
         //final loaderVideoProvider = Provider.of<LoaderVideoProvider>(context,listen: false);
-                print('I AM INTO 1112----->${BelnetLib.isConnected}----- ${loaderVideoProvider.conStatus}');
+                //print('I AM INTO 1112----->${BelnetLib.isConnected}----- ${loaderVideoProvider.conStatus}');
                 setState(() {
                   
                 });
      if(isBelConnect){
-                      print('I AM INTO 1112----->$isBelConnect----- ${loaderVideoProvider.conStatus}');
+                     // print('I AM INTO 1112----->$isBelConnect----- ${loaderVideoProvider.conStatus}');
       loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
      }
    }

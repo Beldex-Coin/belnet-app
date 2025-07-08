@@ -184,427 +184,429 @@ class _MyWidgetState extends State<AboutPage> with SingleTickerProviderStateMixi
                 ),
               ),
             // padding: EdgeInsets.only(right:mHeight*0.05/3),
-            child: GlassContainer.clearGlass(
-                color: appModel.darkTheme ? Colors.black.withOpacity(0.5) : Colors.white.withOpacity(0.2),
-                borderColor: Colors.transparent,
+            child: Container(
+                // color: appModel.darkTheme ? Colors.black.withOpacity(0.5) : Color(0x33FFFFFF).withOpacity(0.02),
+                // borderColor: Colors.transparent,
               child: SafeArea(
-                child: Container(
+                child: GlassContainer.clearGlass(
                     margin: EdgeInsets.only(bottom: 15,left:10,right:10),
-                    decoration: BoxDecoration(
+                    color: appModel.darkTheme ? Color(0xff080C29).withOpacity(0.5): Colors.transparent,
+                    //decoration: BoxDecoration(
                      // color: Colors.black.withOpacity(0.5),
-                     border: Border.all(color: Color(0xffACACAC).withOpacity(0.3),width: 0.5),
-                                        borderRadius: BorderRadius.circular(12),
+                                          borderColor: Color(0xffACACAC).withOpacity(0.3),borderWidth: 0.5,
+borderRadius:BorderRadius.circular(12) ,
+                    //  border: Border.all(color: Color(0xffACACAC).withOpacity(0.3),width: 0.5),
+                    //                     borderRadius: BorderRadius.circular(12),
                      boxShadow:appModel.darkTheme ? [] : [
                         BoxShadow(
-                    color: Color(0xff00FFDD).withOpacity(0.05) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
+                    color: Color(0xff00FFDD).withOpacity(0.03) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
                    
                   ),
                   BoxShadow(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withOpacity(0.5),
                     spreadRadius: -01.0,
                     blurRadius: 23.5,
                     offset: Offset(-3.0, 4.5),
                   )
-                     ]
-                    ),
+                     ],
+                    //),
                    
                     padding: EdgeInsets.only(top: 20,right: 10),
                     
-                  child: ScrollConfiguration(
-                    behavior: NoGlowScrollBehavior(),
-                    child: RawScrollbar(
-                              thumbColor:
-                      appModel.darkTheme ? const Color(0xffACACAC) :const Color(0xffC7C7C7),
-                              //controller: scrollController,
-                              thumbVisibility: true,
-                              thickness: 4,
-                              radius: Radius.circular(10),
-                              child: Container(
-                    //color: appModel.darkTheme ?const Color(0xff111117) :const Color(0xffE3E3E3),
-                                    padding: EdgeInsets.only(left: 5.0),
-                    child: SingleChildScrollView(
-                      physics: ClampingScrollPhysics(),
-                        child: Padding(
-                      
-                      padding: EdgeInsets.only(
-                          left: 8, right: 15),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            """BelNet is a decentralized VPN service built on top of the Beldex Network.The BelNet dVPN utilizes Beldex masternodes to route your connection.\n\n A unique onion routing protocol is used to encrypt and route your data.""",
-                            style: TextStyle(
-                                fontSize:13, //mHeight * 0.056 / 3,
-                                fontFamily: "Poppins",
-                                color: appModel.darkTheme
-                                    ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
-                                    : Color(0xff24242F)  //Color(0xff56566F)
-                                    ),
-                            textAlign: TextAlign.justify,
-                          ),
-                          Text(
-                            "\nWhat are exit nodes?",
-                            style: TextStyle(
-                                fontSize:13,// mHeight * 0.060 / 3,
-                                fontFamily: "Poppins",
-                                fontWeight: FontWeight.w600,
-                                color:
-                                    appModel.darkTheme ? Colors.white : Colors.black),
-                          ),
-                          Text(
-                            """Exit nodes on the Beldex network helps you browse the internet without exposing your IP address. They also hide your geographical location.BelNet has several uses and chief among them are,""",
-                            style: TextStyle(
-                                fontSize:13, //mHeight * 0.056 / 3,
-                                fontFamily: "Poppins",
-                                color: appModel.darkTheme
-                                    ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
-                                    : Color(0xff24242F)  //Color(0xff56566F)
-                                    ),
-                                     textAlign: TextAlign.justify
-                          ),
-                          RichText(
-                            textAlign: TextAlign.justify,
-                              text: TextSpan(
-                                  text: "\nUnblocking content:",
-                                  style: TextStyle(
-                                      fontSize:13, //mHeight * 0.060 / 3,
-                                      fontWeight: FontWeight.w600,
-                                      fontFamily: 'Poppins',
-                                      color: appModel.darkTheme
-                                          ? Colors.white
-                                          : Colors.black),
-                                  children: [
-                                TextSpan(
-                                    text:
-                                        """ Certain websites may be blocked in your region. BelNet can be used to unblock these websites. For example, a streaming platform may be restricted in your region. With BelNet, you can unblock this website, pay for the streaming service and enjoy watching the content that you love!""",
-                                    style: TextStyle(
-                                        fontSize:13, //mHeight * 0.056 / 3,
-                                        fontWeight: FontWeight.w100,
-                                        fontFamily: 'Poppins',
-                                        color: appModel.darkTheme
-                                    ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
-                                    : Color(0xff24242F)  //Color(0xff56566F)
-                                            ))
-                              ])),
-                          RichText(
-                            textAlign: TextAlign.justify,
-                              text: TextSpan(
-                                  text: "\nMasking your IP & Location:",
-                                  style: TextStyle(
-                                      fontSize:13,// mHeight * 0.060 / 3,
-                                      fontWeight: FontWeight.w600,
-                                      fontFamily: 'Poppins',
-                                      color: appModel.darkTheme
-                                          ? Colors.white
-                                          : Colors.black),
-                                  children: [
-                                TextSpan(
-                                    text:
-                                        """ The websites that you visit only see the exit node’s IP address while your IP remains concealed. It is also hidden from your Internet Service Provider (ISP), mobile network operator, and even prying regulators. Your online activity remains truly anonymous!""",
-                                    style: TextStyle(
-                                        fontSize:13,// mHeight * 0.056 / 3,
-                                        fontWeight: FontWeight.w100,
-                                        fontFamily: 'Poppins',
-                                        color: appModel.darkTheme
-                                    ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
-                                    : Color(0xff24242F)  //Color(0xff56566F)
-                                            ))
-                              ])),
-                          RichText(
-                            textAlign: TextAlign.justify,
-                              text: TextSpan(
-                                  text: "\nSecurity:",
-                                  style: TextStyle(
-                                      fontSize:13,// mHeight * 0.060 / 3,
-                                      fontWeight: FontWeight.w600,
-                                      fontFamily: 'Poppins',
-                                      color: appModel.darkTheme
-                                          ? Colors.white
-                                          : Colors.black),
-                                  children: [
-                                TextSpan(
-                                    text:
-                                        """ You are protected from hackers and malicious actors that try to steal your information. Since all data about you remains confidential when you’re browsing, there’s very little window of opportunity for bad actors to pilfer your personal and confidential information. """,
-                                    style: TextStyle(
-                                        fontSize:13,// mHeight * 0.056 / 3,
-                                        fontWeight: FontWeight.w100,
-                                        fontFamily: 'Poppins',
-                                        color: appModel.darkTheme
-                                    ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
-                                    : Color(0xff24242F)  //Color(0xff56566F)
-                                            ))
-                              ])),
-                          RichText(
-                            textAlign: TextAlign.justify,
-                              text: TextSpan(
-                                  text: "\nProtects your identity:",
-                                  style: TextStyle(
-                                      fontSize:13,// mHeight * 0.060 / 3,
-                                      fontWeight: FontWeight.w600,
-                                      fontFamily: 'Poppins',
-                                      color: appModel.darkTheme
-                                          ? Colors.white
-                                          : Colors.black),
-                                  children: [
-                                TextSpan(
-                                    text:
-                                        """ Masking your IP also protects your identity online. Your browsing history, purchase history, and any financial information is only available to you. That means, no more cookies, trackers, and relevant ads that pursue you no matter where you go.""",
-                                    style: TextStyle(
-                                        fontSize:13,// mHeight * 0.056 / 3,
-                                        fontWeight: FontWeight.w100,
-                                        fontFamily: 'Poppins',
-                                        color: appModel.darkTheme
-                                    ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
-                                    : Color(0xff24242F)  //Color(0xff56566F)
-                                            ))
-                              ])),
-                          Text(
-                            "\nDoes BelNet block ads? ",
-                            style: TextStyle(
-                                fontSize:13,// mHeight * 0.060 / 3,
-                                fontFamily: "Poppins",
-                                fontWeight: FontWeight.w600,
-                                color:
-                                    appModel.darkTheme ? Colors.white : Colors.black),
-                          ),
-                          Text(
-                            """BelNet conceals your IP. Thus, your browsing history remains confidential and inaccessible to the destination website and third parties. However, you may still be shown ads that aren’t relevant to your browsing history.""",
-                            style: TextStyle(
-                                fontSize:13,// mHeight * 0.056 / 3,
-                                fontFamily: "Poppins",
-                                color: appModel.darkTheme
-                                    ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
-                                    : Color(0xff24242F)  //Color(0xff56566F)
-                                    ),
-                                     textAlign: TextAlign.justify
-                          ),
-                          Text(
-                            "\nWhere are the current exit nodes located?",
-                            style: TextStyle(
-                                fontSize:13,// mHeight * 0.060 / 3,
-                                fontFamily: "Poppins",
-                                fontWeight: FontWeight.w600,
-                                color:
-                                    appModel.darkTheme ? Colors.white : Colors.black),
-                          ),
-                          Text(
-                            """There are currently three active exit nodes maintained by the Beldex foundation. They are located in the Netherlands (2) and France (1).""",
-                            style: TextStyle(
-                                fontSize:13, //mHeight * 0.056 / 3,
-                                fontFamily: "Poppins",
-                                color: appModel.darkTheme
-                                    ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
-                                    : Color(0xff24242F)  //Color(0xff56566F)
-                                    ),
-                                     textAlign: TextAlign.justify
-                          ),
-                          Text(
-                            "\nCan you set up an exit node?",
-                            style: TextStyle(
-                                fontSize:13,// mHeight * 0.060 / 3,
-                                fontFamily: "Poppins",
-                                fontWeight: FontWeight.w600,
-                                color:
-                                    appModel.darkTheme ? Colors.white : Colors.black),
-                          ),
-                          RichText(
-                            textAlign: TextAlign.justify,
-                              text: TextSpan(
+                  child: RawScrollbar(
+                            thumbColor:
+                    appModel.darkTheme ? const Color(0xffACACAC) :const Color(0xffC7C7C7),
+                            //controller: scrollController,
+                            thumbVisibility: true,
+                            thickness: 4,
+                            minThumbLength: 20,
+                            interactive: true,
+                            radius: Radius.circular(10),
+                            child: Container(
+                  //color: appModel.darkTheme ?const Color(0xff111117) :const Color(0xffE3E3E3),
+                                  padding: EdgeInsets.only(left: 5.0),
+                  child: SingleChildScrollView(
+                    physics: ClampingScrollPhysics(),
+                      child: Padding(
+                    
+                    padding: EdgeInsets.only(
+                        left: 8, right: 15),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          """BelNet is a decentralized VPN service built on top of the Beldex Network.The BelNet dVPN utilizes Beldex masternodes to route your connection.\n\n A unique onion routing protocol is used to encrypt and route your data.""",
+                          style: TextStyle(
+                              fontSize:13, //mHeight * 0.056 / 3,
+                              fontFamily: "Poppins",
+                              color: appModel.darkTheme
+                                  ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
+                                  : Color(0xff24242F)  //Color(0xff56566F)
+                                  ),
+                          textAlign: TextAlign.justify,
+                        ),
+                        Text(
+                          "\nWhat are exit nodes?",
+                          style: TextStyle(
+                              fontSize:13,// mHeight * 0.060 / 3,
+                              fontFamily: "Poppins",
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  appModel.darkTheme ? Colors.white : Colors.black),
+                        ),
+                        Text(
+                          """Exit nodes on the Beldex network helps you browse the internet without exposing your IP address. They also hide your geographical location.BelNet has several uses and chief among them are,""",
+                          style: TextStyle(
+                              fontSize:13, //mHeight * 0.056 / 3,
+                              fontFamily: "Poppins",
+                              color: appModel.darkTheme
+                                  ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
+                                  : Color(0xff24242F)  //Color(0xff56566F)
+                                  ),
+                                   textAlign: TextAlign.justify
+                        ),
+                        RichText(
+                          textAlign: TextAlign.justify,
+                            text: TextSpan(
+                                text: "\nUnblocking content:",
+                                style: TextStyle(
+                                    fontSize:13, //mHeight * 0.060 / 3,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: 'Poppins',
+                                    color: appModel.darkTheme
+                                        ? Colors.white
+                                        : Colors.black),
+                                children: [
+                              TextSpan(
                                   text:
-                                      """Yes, anyone can set up an exit node. Check the """,
+                                      """ Certain websites may be blocked in your region. BelNet can be used to unblock these websites. For example, a streaming platform may be restricted in your region. With BelNet, you can unblock this website, pay for the streaming service and enjoy watching the content that you love!""",
+                                  style: TextStyle(
+                                      fontSize:13, //mHeight * 0.056 / 3,
+                                      fontWeight: FontWeight.w100,
+                                      fontFamily: 'Poppins',
+                                      color: appModel.darkTheme
+                                  ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
+                                  : Color(0xff24242F)  //Color(0xff56566F)
+                                          ))
+                            ])),
+                        RichText(
+                          textAlign: TextAlign.justify,
+                            text: TextSpan(
+                                text: "\nMasking your IP & Location:",
+                                style: TextStyle(
+                                    fontSize:13,// mHeight * 0.060 / 3,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: 'Poppins',
+                                    color: appModel.darkTheme
+                                        ? Colors.white
+                                        : Colors.black),
+                                children: [
+                              TextSpan(
+                                  text:
+                                      """ The websites that you visit only see the exit node’s IP address while your IP remains concealed. It is also hidden from your Internet Service Provider (ISP), mobile network operator, and even prying regulators. Your online activity remains truly anonymous!""",
                                   style: TextStyle(
                                       fontSize:13,// mHeight * 0.056 / 3,
-                                      //fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w100,
                                       fontFamily: 'Poppins',
                                       color: appModel.darkTheme
-                                    ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
-                                    : Color(0xff24242F)  //Color(0xff56566F)
-                                          ),
-                                  children: [
-                                    TextSpan(
-                                        recognizer: TapGestureRecognizer()
-                                          ..onTap = (() async {
-                                            if (await canLaunchUrl(Uri.parse(
-                                                "https://belnet.beldex.io/"))) {
-                                              await launchUrl(
-                                                  Uri.parse(
-                                                      "https://belnet.beldex.io/"),
-                                                  mode:
-                                                      LaunchMode.externalApplication);
-                                            } else {
-                                              throw 'Could not launch https://belnet.beldex.io/';
-                                            }
-                                          }),
-                                        text: """Belnet""",
-                                        style: TextStyle(
-                                            decoration: TextDecoration.underline,
-                                            fontSize:13,// mHeight * 0.056 / 3,
-                                            fontFamily: "Poppins",
-                                            color: Colors.blue)),
-                                    TextSpan(
-                                      text:
-                                          """ website for complete documentation on how to set up an exit node.\nYou can also find the setup guide under """,
+                                  ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
+                                  : Color(0xff24242F)  //Color(0xff56566F)
+                                          ))
+                            ])),
+                        RichText(
+                          textAlign: TextAlign.justify,
+                            text: TextSpan(
+                                text: "\nSecurity:",
+                                style: TextStyle(
+                                    fontSize:13,// mHeight * 0.060 / 3,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: 'Poppins',
+                                    color: appModel.darkTheme
+                                        ? Colors.white
+                                        : Colors.black),
+                                children: [
+                              TextSpan(
+                                  text:
+                                      """ You are protected from hackers and malicious actors that try to steal your information. Since all data about you remains confidential when you’re browsing, there’s very little window of opportunity for bad actors to pilfer your personal and confidential information. """,
+                                  style: TextStyle(
+                                      fontSize:13,// mHeight * 0.056 / 3,
+                                      fontWeight: FontWeight.w100,
+                                      fontFamily: 'Poppins',
+                                      color: appModel.darkTheme
+                                  ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
+                                  : Color(0xff24242F)  //Color(0xff56566F)
+                                          ))
+                            ])),
+                        RichText(
+                          textAlign: TextAlign.justify,
+                            text: TextSpan(
+                                text: "\nProtects your identity:",
+                                style: TextStyle(
+                                    fontSize:13,// mHeight * 0.060 / 3,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: 'Poppins',
+                                    color: appModel.darkTheme
+                                        ? Colors.white
+                                        : Colors.black),
+                                children: [
+                              TextSpan(
+                                  text:
+                                      """ Masking your IP also protects your identity online. Your browsing history, purchase history, and any financial information is only available to you. That means, no more cookies, trackers, and relevant ads that pursue you no matter where you go.""",
+                                  style: TextStyle(
+                                      fontSize:13,// mHeight * 0.056 / 3,
+                                      fontWeight: FontWeight.w100,
+                                      fontFamily: 'Poppins',
+                                      color: appModel.darkTheme
+                                  ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
+                                  : Color(0xff24242F)  //Color(0xff56566F)
+                                          ))
+                            ])),
+                        Text(
+                          "\nDoes BelNet block ads? ",
+                          style: TextStyle(
+                              fontSize:13,// mHeight * 0.060 / 3,
+                              fontFamily: "Poppins",
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  appModel.darkTheme ? Colors.white : Colors.black),
+                        ),
+                        Text(
+                          """BelNet conceals your IP. Thus, your browsing history remains confidential and inaccessible to the destination website and third parties. However, you may still be shown ads that aren’t relevant to your browsing history.""",
+                          style: TextStyle(
+                              fontSize:13,// mHeight * 0.056 / 3,
+                              fontFamily: "Poppins",
+                              color: appModel.darkTheme
+                                  ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
+                                  : Color(0xff24242F)  //Color(0xff56566F)
+                                  ),
+                                   textAlign: TextAlign.justify
+                        ),
+                        Text(
+                          "\nWhere are the current exit nodes located?",
+                          style: TextStyle(
+                              fontSize:13,// mHeight * 0.060 / 3,
+                              fontFamily: "Poppins",
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  appModel.darkTheme ? Colors.white : Colors.black),
+                        ),
+                        Text(
+                          """There are currently three active exit nodes maintained by the Beldex foundation. They are located in the Netherlands (2) and France (1).""",
+                          style: TextStyle(
+                              fontSize:13, //mHeight * 0.056 / 3,
+                              fontFamily: "Poppins",
+                              color: appModel.darkTheme
+                                  ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
+                                  : Color(0xff24242F)  //Color(0xff56566F)
+                                  ),
+                                   textAlign: TextAlign.justify
+                        ),
+                        Text(
+                          "\nCan you set up an exit node?",
+                          style: TextStyle(
+                              fontSize:13,// mHeight * 0.060 / 3,
+                              fontFamily: "Poppins",
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  appModel.darkTheme ? Colors.white : Colors.black),
+                        ),
+                        RichText(
+                          textAlign: TextAlign.justify,
+                            text: TextSpan(
+                                text:
+                                    """Yes, anyone can set up an exit node. Check the """,
+                                style: TextStyle(
+                                    fontSize:13,// mHeight * 0.056 / 3,
+                                    //fontWeight: FontWeight.w600,
+                                    fontFamily: 'Poppins',
+                                    color: appModel.darkTheme
+                                  ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
+                                  : Color(0xff24242F)  //Color(0xff56566F)
+                                        ),
+                                children: [
+                                  TextSpan(
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = (() async {
+                                          if (await canLaunchUrl(Uri.parse(
+                                              "https://belnet.beldex.io/"))) {
+                                            await launchUrl(
+                                                Uri.parse(
+                                                    "https://belnet.beldex.io/"),
+                                                mode:
+                                                    LaunchMode.externalApplication);
+                                          } else {
+                                            throw 'Could not launch https://belnet.beldex.io/';
+                                          }
+                                        }),
+                                      text: """Belnet""",
                                       style: TextStyle(
+                                          decoration: TextDecoration.underline,
                                           fontSize:13,// mHeight * 0.056 / 3,
                                           fontFamily: "Poppins",
-                                          color: appModel.darkTheme
-                                    ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
-                                    : Color(0xff24242F)  //Color(0xff56566F)
-                                              ),
-                                    ),
-                                    TextSpan(
-                                        text: """Beldex docs""",
-                                        recognizer: TapGestureRecognizer()
-                                          ..onTap = (() async {
-                                            if (await canLaunchUrl(Uri.parse(
-                                                "https://docs.beldex.io/belnet/exit-node-setup-guide"))) {
-                                              await launchUrl(
-                                                  Uri.parse(
-                                                      "https://docs.beldex.io/belnet/exit-node-setup-guide"),
-                                                  mode:
-                                                      LaunchMode.externalApplication);
-                                            } else {
-                                              throw 'Could not launch https://docs.beldex.io/belnet/exit-node-setup-guide';
-                                            }
-                                          }),
-                                        style: TextStyle(
-                                            decoration: TextDecoration.underline,
-                                            fontSize:12,// mHeight * 0.056 / 3,
-                                            fontFamily: "Poppins",
-                                            color: Colors.blue)),
-                                    TextSpan(
-                                      text:
-                                          """. Exit node contributors will be rewarded and their node will be added to the BelNet app. To add your exit node to the BelNet app, reach out to """,
+                                          color: Colors.blue)),
+                                  TextSpan(
+                                    text:
+                                        """ website for complete documentation on how to set up an exit node.\nYou can also find the setup guide under """,
+                                    style: TextStyle(
+                                        fontSize:13,// mHeight * 0.056 / 3,
+                                        fontFamily: "Poppins",
+                                        color: appModel.darkTheme
+                                  ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
+                                  : Color(0xff24242F)  //Color(0xff56566F)
+                                            ),
+                                  ),
+                                  TextSpan(
+                                      text: """Beldex docs""",
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = (() async {
+                                          if (await canLaunchUrl(Uri.parse(
+                                              "https://docs.beldex.io/belnet/exit-node-setup-guide"))) {
+                                            await launchUrl(
+                                                Uri.parse(
+                                                    "https://docs.beldex.io/belnet/exit-node-setup-guide"),
+                                                mode:
+                                                    LaunchMode.externalApplication);
+                                          } else {
+                                            throw 'Could not launch https://docs.beldex.io/belnet/exit-node-setup-guide';
+                                          }
+                                        }),
                                       style: TextStyle(
-                                          fontSize:13,// mHeight * 0.056 / 3,
+                                          decoration: TextDecoration.underline,
+                                          fontSize:12,// mHeight * 0.056 / 3,
                                           fontFamily: "Poppins",
-                                          color: appModel.darkTheme
-                                    ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
-                                    : Color(0xff24242F)  //Color(0xff56566F)
-                                              ),
-                                               
-                                    ),
-                                   TextSpan(
-                                      text: """outreach@beldex.io""",
-                                      recognizer: TapGestureRecognizer()..onTap = (() {
-                                         FlutterClipboard.copy("outreach@beldex.io")
-                                    .then((value) => ScaffoldMessenger.of(context)
-                                        .showSnackBar(SnackBar(
-                                            backgroundColor: appModel.darkTheme
-                                                ? Colors.black.withOpacity(0.50)
-                                                : Colors.white,
-                                            behavior: SnackBarBehavior.floating,
-                                            duration: Duration(milliseconds: 200),
-                                            width: 200,
-                                            content: Text(
-                                              "Copied to clipboard!",
-                                              style: TextStyle(
-                                                  color: appModel.darkTheme
-                                                      ? Colors.white
-                                                      : Colors.black),
-                                              textAlign: TextAlign.center,
-                                            )
-                                            //content: Text("Sending Message"),
-                                            )));
-                    
-                                      }),
-                                      style: TextStyle(
-                                        decoration: TextDecoration.underline,
-                                            fontSize:12,// mHeight * 0.056 / 3,
-                                            fontFamily: "Poppins",
-                                            color: Colors.blue
-                                      )
-                                   )
-                            
-                                  ])),
-                          Text(
-                            "\nWhat are MN Apps? ",
+                                          color: Colors.blue)),
+                                  TextSpan(
+                                    text:
+                                        """. Exit node contributors will be rewarded and their node will be added to the BelNet app. To add your exit node to the BelNet app, reach out to """,
+                                    style: TextStyle(
+                                        fontSize:13,// mHeight * 0.056 / 3,
+                                        fontFamily: "Poppins",
+                                        color: appModel.darkTheme
+                                  ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
+                                  : Color(0xff24242F)  //Color(0xff56566F)
+                                            ),
+                                             
+                                  ),
+                                 TextSpan(
+                                    text: """outreach@beldex.io""",
+                                    recognizer: TapGestureRecognizer()..onTap = (() {
+                                       FlutterClipboard.copy("outreach@beldex.io")
+                                  .then((value) => ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                          backgroundColor: appModel.darkTheme
+                                              ? Colors.black.withOpacity(0.50)
+                                              : Colors.white,
+                                          behavior: SnackBarBehavior.floating,
+                                          duration: Duration(milliseconds: 200),
+                                          width: 200,
+                                          content: Text(
+                                            "Copied to clipboard!",
+                                            style: TextStyle(
+                                                color: appModel.darkTheme
+                                                    ? Colors.white
+                                                    : Colors.black),
+                                            textAlign: TextAlign.center,
+                                          )
+                                          //content: Text("Sending Message"),
+                                          )));
+                  
+                                    }),
+                                    style: TextStyle(
+                                      decoration: TextDecoration.underline,
+                                          fontSize:12,// mHeight * 0.056 / 3,
+                                          fontFamily: "Poppins",
+                                          color: Colors.blue
+                                    )
+                                 )
+                          
+                                ])),
+                        Text(
+                          "\nWhat are MNApps? ",
+                          style: TextStyle(
+                              fontSize:13,// mHeight * 0.060 / 3,
+                              fontFamily: "Poppins",
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  appModel.darkTheme ? Colors.white : Colors.black),
+                        ),
+                        Text(
+                          """MNApps are decentralized applications hosted on BelNet.MNApps are confidentiality-focused applications and do not collect or reveal any personal information about the user.They can be accessed only by connecting to BelNet.Below is a sample MNApp that you can access by enabling BelNet:""",
+                          style: TextStyle(
+                              fontSize:13,// mHeight * 0.056 / 3,
+                              fontFamily: "Poppins",
+                              color: appModel.darkTheme
+                                  ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
+                                  : Color(0xff24242F)  //Color(0xff56566F)
+                                  ),
+                                   textAlign: TextAlign.justify
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            //FlutterClipboard.copy("http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/");
+                            if (await canLaunchUrl(Uri.parse(
+                                "http://explorer.bdx/"))) {
+                              await launchUrl(
+                                  Uri.parse(
+                                      "http://explorer.bdx/"),
+                                  mode: LaunchMode.externalApplication);
+                            } else {
+                              throw 'Could not launch http://explorer.bdx/';
+                            }
+                          },
+                          child: Text(
+                            """http://explorer.bdx/""",
                             style: TextStyle(
-                                fontSize:13,// mHeight * 0.060 / 3,
-                                fontFamily: "Poppins",
-                                fontWeight: FontWeight.w600,
-                                color:
-                                    appModel.darkTheme ? Colors.white : Colors.black),
-                          ),
-                          Text(
-                            """MN Apps are decentralized applications hosted on BelNet.MN Apps are confidentiality-focused applications and do not collect or reveal any personal information about the user.They can be accessed only by connecting to BelNet.Below is a sample MNApp that you can access by enabling BelNet:""",
-                            style: TextStyle(
+                                decoration: TextDecoration.underline,
                                 fontSize:13,// mHeight * 0.056 / 3,
                                 fontFamily: "Poppins",
-                                color: appModel.darkTheme
-                                    ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
-                                    : Color(0xff24242F)  //Color(0xff56566F)
-                                    ),
-                                     textAlign: TextAlign.justify
+                                color: Colors.blue),
                           ),
-                          GestureDetector(
-                            onTap: () async {
-                              //FlutterClipboard.copy("http://cw41adqqhykuxw51xmagkkb3fixyieat1josbux13jn6o973tqgy.bdx/");
-                              if (await canLaunchUrl(Uri.parse(
-                                  "http://explorer.bdx/"))) {
-                                await launchUrl(
-                                    Uri.parse(
-                                        "http://explorer.bdx/"),
-                                    mode: LaunchMode.externalApplication);
-                              } else {
-                                throw 'Could not launch http://explorer.bdx/';
-                              }
-                            },
-                            child: Text(
-                              """http://explorer.bdx/""",
-                              style: TextStyle(
-                                  decoration: TextDecoration.underline,
-                                  fontSize:13,// mHeight * 0.056 / 3,
-                                  fontFamily: "Poppins",
-                                  color: Colors.blue),
+                        ),
+                        Text(
+                          "\nWhat are BNS Names?",
+                          style: TextStyle(
+                              fontSize:13,// mHeight * 0.060 / 3,
+                              fontFamily: "Poppins",
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  appModel.darkTheme ? Colors.white : Colors.black),
+                        ),
+                        Text(
+                          """BNS stands for Beldex Name Service. BNS names are human readable domain names on BelNet. BNS is a censorship-free, decentralized, unstoppable domain name service. It has many utilities. For example, BNS names could be mapped to MNApps to make them easily readable and discoverable.The Beldex team is researching the possibility of mapping BNS names to BChat IDs and your wallet address so you can send and receive messages as well as BDX with your BNS name. BNS names end with the top level domain .bdx. Example: yourname.bdx""",
+                          style: TextStyle(
+                              fontSize:13,// mHeight * 0.056 / 3,
+                              fontFamily: "Poppins",
+                              color: appModel.darkTheme
+                                  ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
+                                  : Color(0xff24242F)  //Color(0xff56566F)
+                                  ),
+                                   textAlign: TextAlign.justify
+                        ),
+                        Text(
+                          "\nCredits:",
+                          style: TextStyle(
+                              fontSize:13,// mHeight * 0.060 / 3,
+                              fontFamily: "Poppins",
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  appModel.darkTheme ? Colors.white : Colors.black),
+                        ),
+                        Text(
+                          """BelNet uses several protocols that were designed by the open source projects Tor, I2P, and Lokinet.\n""",
+                          style: TextStyle(
+                              fontSize:13,// mHeight * 0.056 / 3,
+                              fontFamily: "Poppins",
+                              color: appModel.darkTheme
+                                  ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
+                                  : Color(0xff24242F)  //Color(0xff56566F)
+                                  ),
+                                   textAlign: TextAlign.justify
+                        ),
+                      ],
+                    ),
+                  )),
                             ),
                           ),
-                          Text(
-                            "\nWhat are BNS Names?",
-                            style: TextStyle(
-                                fontSize:13,// mHeight * 0.060 / 3,
-                                fontFamily: "Poppins",
-                                fontWeight: FontWeight.w600,
-                                color:
-                                    appModel.darkTheme ? Colors.white : Colors.black),
-                          ),
-                          Text(
-                            """BNS stands for Beldex Name Service. BNS names are human readable domain names on BelNet. BNS is a censorship-free, decentralized, unstoppable domain name service. It has many utilities. For example, BNS names could be mapped to MN Apps to make them easily readable and discoverable.The Beldex team is researching the possibility of mapping BNS names to BChat IDs and your wallet address so you can send and receive messages as well as BDX with your BNS name. BNS names end with the top level domain .bdx. Example: yourname.bdx""",
-                            style: TextStyle(
-                                fontSize:13,// mHeight * 0.056 / 3,
-                                fontFamily: "Poppins",
-                                color: appModel.darkTheme
-                                    ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
-                                    : Color(0xff24242F)  //Color(0xff56566F)
-                                    ),
-                                     textAlign: TextAlign.justify
-                          ),
-                          Text(
-                            "\nCredits:",
-                            style: TextStyle(
-                                fontSize:13,// mHeight * 0.060 / 3,
-                                fontFamily: "Poppins",
-                                fontWeight: FontWeight.w600,
-                                color:
-                                    appModel.darkTheme ? Colors.white : Colors.black),
-                          ),
-                          Text(
-                            """BelNet uses several protocols that were designed by the open source projects Tor, I2P, and Lokinet.\n""",
-                            style: TextStyle(
-                                fontSize:13,// mHeight * 0.056 / 3,
-                                fontFamily: "Poppins",
-                                color: appModel.darkTheme
-                                    ?  Color(0xffACACAC)  //Color(0xffA1A1C1) 
-                                    : Color(0xff24242F)  //Color(0xff56566F)
-                                    ),
-                                     textAlign: TextAlign.justify
-                          ),
-                        ],
-                      ),
-                    )),
-                              ),
-                            ),
-                  ),
                 ),
               ),
             )),

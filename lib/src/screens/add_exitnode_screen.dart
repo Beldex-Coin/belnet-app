@@ -30,207 +30,20 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
   String? _exitNodeError;
   String? _authCodeError;
   bool isAuthCode = false;
-  void _validateInputs() {
-    setState(() {
-      _exitNodeError =
-          _exitNodeController.text.isEmpty ||
-              !_exitNodeController.text.contains('wookajaspd')
-          ? 'Please enter valid Exit Node'
-          : null;
-      _authCodeError =
-          _authCodeController.text.isEmpty ||
-              !_authCodeController.text.contains('wookajaspd')
-          ? 'Please enter valid Auth Code'
-          : null;
-    });
-  }
-
-
-
-
-
-
-
-
-// Future<void> _handleCustomExitNode(String? exitvalue) async {
-  
-
-//   if (exitvalue != null && exitvalue.isNotEmpty) {
-//     setState(() {
-//       selectedValue = exitvalue;
-//       selectedConIcon = "";
-//     });
-
-//     Timer.periodic(const Duration(seconds: 1), (timer) {
-//       if (!myExit && !f) {
-//         getDataFromDaemon();
-//       } else {
-//         timer.cancel();
-//       }
-//     });
-//   }
-//  //if(canValidateExit){
-//   //  if (myExit) {
-//   //   setState(() {
-//   //     f = true;
-//   //     mystr = "exitnode is valid";
-//   //    // loading = false;
-//   //   });
-//   // } else {
-//   //   setState(() {
-//   //     mystr = "exitnode is invalid";
-//   //   });
-//   //   print("myExitvalue is $mystr");
-//   //   await BelnetLib.disconnectFromBelnet();
-//   //   logController.addDataTolist(
-//   //     "$selectedValue is Invalid Exit Node",
-//   //     "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
-//   //   );
-//   //   setState(() {
-//   //     selectedValue =
-//   //         'exit.bdx';
-//   //     selectedConIcon =
-//   //         "https://belnet-exitnode.s3.ap-south-1.amazonaws.com/countryflag/icons8-france.png";
-//   //   });
-//   //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-//   //       backgroundColor: appModel.darkTheme
-//   //           ? Colors.black.withOpacity(0.50)
-//   //           : Colors.white,
-//   //       behavior: SnackBarBehavior.floating,
-//   //       width: MediaQuery.of(context).size.height * 2.5 / 3,
-//   //       content: Text(
-//   //         "Exit Node is Invalid!.switching to default Exit Node",
-//   //         style: TextStyle(
-//   //             color: appModel.darkTheme ? Colors.white : Colors.black),
-//   //         textAlign: TextAlign.center,
-//   //       )));
-//   // }
-//  //}
-  
-// }
-
-
-
-
-
-
-
-// Future<void> _checkingExitnodeAfterDelay() async {
-//  //if(canValidateExit){
-//    if (myExit) {
-//     setState(() {
-//       f = true;
-//       mystr = "exitnode is valid";
-//       loading = false;
-//     });
-//   } else {
-//     setState(() {
-//       mystr = "exitnode is invalid";
-//     });
-//     print("myExitvalue is $mystr");
-//     await BelnetLib.disconnectFromBelnet();
-//     timer1?.cancel();
-//     //  AwesomeNotifications().cancel(10);
-//     logController.addDataTolist(
-//       "$selectedValue is Invalid Exit Node",
-//       "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
-//     );
-//     setState(() {
-//       selectedValue =
-//           'exit.bdx';
-//       selectedConIcon =
-//           "https://belnet-exitnode.s3.ap-south-1.amazonaws.com/countryflag/icons8-france.png";
-//     });
-//     showMessage('Exit Node is Invalid!.switching to default Exit Node');
-//     // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-//     //     backgroundColor: appModel.darkTheme
-//     //         ? Colors.black.withOpacity(0.50)
-//     //         : Colors.white,
-//     //     behavior: SnackBarBehavior.floating,
-//     //     width: MediaQuery.of(context).size.height * 2.5 / 3,
-//     //     content: Text(
-//     //       "Exit Node is Invalid!.switching to default Exit Node",
-//     //       style: TextStyle(
-//     //           color: appModel.darkTheme ? Colors.white : Colors.black),
-//     //       textAlign: TextAlign.center,
-//     //     )));
-//   }
-//  //}
-  
-// }
-
-
-// Future<void> _saveCustomExitnodeSettings({String? exitvalue, String? dns}) async {
-//   final settings = Settings.getInstance()!;
-//   settings.exitNode = exitvalue.toString(); //nodeProvider.selectedExitNodeName!.trim().toString();
-//   settings.upstreamDNS = dns ?? '9.9.9.9';
-//   // final myVal = selectedValue!.trim().toString();
-//   // logController.addDataTolist(" Exit node = $myVal",
-//   //     "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
-
-//   // final preferences = await SharedPreferences.getInstance();
-//   // await preferences.setString('hintValue', myVal);
-//   // hintValue = preferences.getString('hintValue');
-
-//   // logController.addDataTolist(dns == null
-//   //     ? " default Upstream DNS = 9.9.9.9"
-//   //     : " DNS = $dns", "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
-
-//   // settings.upstreamDNS = dns ?? '9.9.9.9';
-
-//   // final eIcon = selectedConIcon!.trim().toString();
-//   // await preferences.setString('hintCountryicon', eIcon);
-//   // hintCountryIcon = preferences.getString('hintCountryicon');
-//   // logController.addDataTolist(" Connected to $myVal",
-//   //     "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}");
-// }
-
-
-// Future<void> connectToCustomBelnet(BuildContext context,AppSelectingProvider appSelectingProvider,NodeProvider nodeProvider,LoaderVideoProvider loaderVideoProvider,VpnConnectionProvider vpnConnectionProvider,SpeedChartProvider speedChartProvider,IpProvider ipProvider,LogProvider logProvider,[String? exitvalue, String? dns, bool isCustomExit = false]) async {
- 
-
- 
-//   await _saveCustomExitnodeSettings(exitvalue: exitvalue,dns: dns);;
-// print('THE LOADER VALUE IS 1----> ${loaderVideoProvider.isLoading}');
-// logProvider.addLog('Checking for vpn Permission..');
-//   final result = await BelnetLib.prepareConnection();
-//   if (!result) {
-//       print('THE LOADER VALUE IS 666----> ${loaderVideoProvider.isLoading}');
-//       logProvider.addLog('VPN is not allowed to run');
-
-//     return;
-//   }
-//     loaderVideoProvider.setLoading(true);
-//     logProvider.addLog('Checking for connectivity');
-//   bool con = await BelnetLib.connectToBelnet(
-//       appSelectingProvider.isSPEnabled ?
-//      appSelectingProvider.selectedApps.toList() : [],
-//     exitNode: Settings.getInstance()!.exitNode!,
-//     upstreamDNS: dns != null && dns.isNotEmpty ? dns : "9.9.9.9",
-//   );
-//       logProvider.addLog('Exit node set by Daemon: Connecting to ${nodeProvider.selectedExitNodeName}');
-
-
-// print('CustomExitnode checking end');
-//   if (con) {
-//     vpnConnectionProvider.startConnectionDelay((){
-   
-//    ipProvider.startMonitoring();
-//      loaderVideoProvider.setLoading(false);
-//          loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
-//                logProvider.addLog('Exit node set by Daemon: Connected to ${nodeProvider.selectedExitNodeName}');
-
-//         // speedChartProvider.startMonitoring();
-//      print('ISCONNECT IS CONNNECTED AR NOT --> ${BelnetLib.isConnected}');
-//      print('THE LOADER VALUE IS 4444----> ${loaderVideoProvider.isLoading}');
-//   });
-//   } else {
-//     //setState(() => loading = false);
-//   }
-// }
-
-
-
+  // void _validateInputs() {
+  //   setState(() {
+  //     _exitNodeError =
+  //         _exitNodeController.text.isEmpty ||
+  //             !_exitNodeController.text.contains('wookajaspd')
+  //         ? 'Please enter valid Exit Node'
+  //         : null;
+  //     _authCodeError =
+  //         _authCodeController.text.isEmpty ||
+  //             !_authCodeController.text.contains('wookajaspd')
+  //         ? 'Please enter valid Auth Code'
+  //         : null;
+  //   });
+  // }
 
 
 
@@ -246,7 +59,7 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
 
     return GlassContainer.clearGlass(
        padding:const EdgeInsets.all(15.0),
-        height: mHeight * 1.47 / 3,
+        height:_authCodeError != null || _exitNodeError != null ? mHeight * 1.47 / 3 : mHeight *1.38/3,
          width:double.infinity, //MediaQuery.of(dcontext).size.width * 2 / 3,
        // decoration: BoxDecoration(
           color: appModel.darkTheme ?Colors.transparent// black.withOpacity(0.7)
@@ -261,7 +74,7 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                  
                 ),
                 BoxShadow(
-                  color: Colors.white,
+                  color: Colors.white.withOpacity(0.7),
                   spreadRadius: -01.0,
                   blurRadius: 23.5,
                   offset: Offset(-3.0, 4.5),
@@ -315,6 +128,7 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                 
               ),
               padding: EdgeInsets.symmetric(vertical: 2,horizontal: 8),
+              margin: EdgeInsets.only(bottom: 5.0),
               child: TextField(
                 cursorColor: Color(0xff00B400),
                 controller: _exitNodeController,
@@ -356,7 +170,7 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                   '$_exitNodeError',
                   style: TextStyle(
                     color:Colors.red,
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.w400,
                     fontFamily: 'Poppins'
                   ),
@@ -381,6 +195,7 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                 
               ),
               padding: EdgeInsets.symmetric(vertical: 2,horizontal: 8),
+                            margin: EdgeInsets.only(bottom: 5.0),
               child: TextField(
                 cursorColor: Color(0xff00B400),
                 controller: _authCodeController,
@@ -573,7 +388,8 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
            // SizedBox(height: 20),
           // Spacer(),
             Padding(
-                padding: const EdgeInsets.only(top: 10.0),
+                padding: EdgeInsets.only(top: MediaQuery.of(context).size.height*0.07/3, //10.0 
+                ),
                 child: GestureDetector(
                   onTap: () {
                   setState(

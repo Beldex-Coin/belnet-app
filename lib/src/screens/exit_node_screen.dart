@@ -212,14 +212,27 @@ class NodeTabScreen extends StatefulWidget {
 class _NodeTabScreenState extends State<NodeTabScreen> {
   final List<String> tabTypes = ['Beldex Official', 'Contributor exit node'];
   String selectedType = 'Beldex Official';
-
+  bool isConnect = false;
   @override
   void initState() {
     super.initState();
     // Future.microtask(() {
     //   Provider.of<NodeProvider>(context, listen: false).fetchNodes();
     // });
+    checkRunning();
   }
+
+
+  void checkRunning()async{
+     isConnect = await BelnetLib.isRunning.asStream().first;
+     setState(() {
+       
+     });
+     print('THE STREAM VALUE FROM THE RUNNING STATUS $isConnect');
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {

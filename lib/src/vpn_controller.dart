@@ -158,6 +158,10 @@ Future<void> _disconnectFromBelnet(VpnConnectionProvider vpnConnectionProvider,L
   if (disConnectValue) {
     vpnConnectionProvider.cancelDelay();
       loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+      logProvider.addLog('Belnet Daemon stopped');
+      logProvider.addLog('Belnet disconnected');
+
+      setForCustomExitnode(ipProvider,introProvider,nodeProvider);
      //context.loaderOverlay.hide();
      print('THE LOADER VALUE IS D11----> ${loaderVideoProvider.isLoading}');
      //loaderVideoProvider.setLoading(false);
@@ -215,9 +219,12 @@ introStateProvider.showButtonAfterOk();
   await _saveSettings(nodeProvider);
   
 print('THE LOADER VALUE IS 1----> ${loaderVideoProvider.isLoading}');
+//logProvider.addLog('Checking for vpn Permission..');
   final result = await BelnetLib.prepareConnection();
   if (!result) {
       print('THE LOADER VALUE IS 666----> ${loaderVideoProvider.isLoading}');
+      logProvider.addLog('Permission denied: Unable to start VPN');
+      introStateProvider.setGrantPermissionCount(1);
      //loaderVideoProvider.setLoading(false);
           //loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
    // setState(() => loading = false);
@@ -225,6 +232,8 @@ print('THE LOADER VALUE IS 1----> ${loaderVideoProvider.isLoading}');
   }
    print('THE LOADER VALUE IS 22----> ${loaderVideoProvider.isLoading}');
     loaderVideoProvider.setLoading(true);
+    logProvider.addLog('Checking for connectivity');
+     loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTING);
     //loaderVideoProvider.showLoader();
   // if (await BelnetLib.isPrepared) {
   //   appModel.connecting_belnet = true;
@@ -237,15 +246,27 @@ print('THE LOADER VALUE IS 1----> ${loaderVideoProvider.isLoading}');
     exitNode: Settings.getInstance()!.exitNode!,
     upstreamDNS: dns != null && dns.isNotEmpty ? dns : "9.9.9.9",
   );
+      logProvider.addLog('Exit node set by Daemon: Connecting to ${nodeProvider.selectedExitNodeName}');
+
 print('CustomExitnode checking end');
   if (con) {
     vpnConnectionProvider.startConnectionDelay((){
   //context.loaderOverlay.hide();
  // loaderVideoProvider.hideLoader();
+ if(isCustomeExitNode){
+ _checkingExitnodeAfterDelay(nodeProvider,logProvider,vpnConnectionProvider,loaderVideoProvider,speedChartProvider,ipProvider,appModel,introStateProvider);
+ }else{
+  showNotification(appModel);
+   ipProvider.startMonitoring();
      loaderVideoProvider.setLoading(false);
          loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
+               logProvider.addLog('Exit node set by Daemon: Connected to ${nodeProvider.selectedExitNodeName}');
+introStateProvider.setValueAfterResume();
+        // speedChartProvider.startMonitoring();
      print('ISCONNECT IS CONNNECTED AR NOT --> ${BelnetLib.isConnected}');
      print('THE LOADER VALUE IS 4444----> ${loaderVideoProvider.isLoading}');
+ }
+   
   });
   } else {
     //setState(() => loading = false);

@@ -1,6 +1,11 @@
 import 'dart:ui';
 
 import 'package:belnet_mobile/src/app_list_provider.dart';
+import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/providers/loader_provider.dart';
+import 'package:belnet_mobile/src/utils/show_toast.dart';
+import 'package:belnet_mobile/src/vpn_controller.dart';
+import 'package:belnet_mobile/src/widget/LineChartSample10.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_switch/flutter_switch.dart';
@@ -186,68 +191,117 @@ bool isTosplitTunnel = false;
     // }
   // final allApps = AppCache.instance.apps;
    final appSelectingProvider = Provider.of<AppSelectingProvider>(context);
+   final loaderVideoProvider = Provider.of<LoaderVideoProvider>(context);
+   final appModel = Provider.of<AppModel>(context);
     return 
-        SingleChildScrollView(
-          child: Column(
-                        children: [
-                                   GlassContainer.clearGlass(
-                        height: 50,width: double.infinity,
-                        blur: 30.0,
-                        margin: EdgeInsets.symmetric(horizontal: 10),
-                        padding: EdgeInsets.symmetric(horizontal:  15.0),
-                                color: Colors.grey.withOpacity(0.1), //Colors.transparent,
-                                borderRadius: BorderRadius.circular(14),
-                                borderColor: Colors.transparent,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                      Row(
-                        children: [
-                           SvgPicture.asset('assets/images/dark_theme/Split Tunneling.svg'),
-                           Padding(
-                             padding: const EdgeInsets.only(left: 8.0),
-                             child: Text('Split tunneling',style: TextStyle(fontFamily: 'Poppins',
-                                         fontSize: 14,
-                                         fontWeight: FontWeight.w500,),),
-                           )
-                        ],
-                      ),
-                       FlutterSwitch(
-                      width: 45.0,
-                      height: 24.0,
-                      toggleSize: 19.0,
-                      value: appSelectingProvider.isSPEnabled,//showSystemApps,
-                      borderRadius: 30.0,
-                      padding: 2.0,
-                      //activeIcon: SvgPicture.asset('assets/images/'),
-                      activeToggleColor: Color(0xff00DC00), // We’ll apply gradient manually
-                      inactiveToggleColor: Color(0xff929492),
-                      //switchBorder: Border.all(width: 0.2),
-                      activeSwitchBorder: Border.all(
-                          color: Color(0xffA1A1AF), width: 0.3),
-                      inactiveSwitchBorder:
-                          Border.all(color: Color(0xffA1A1AF), width: 0.3),
-                      activeColor: Colors.transparent, // Make track transparent
-                      inactiveColor: Colors.transparent,
-                      // toggleGradient: LinearGradient(
-                      //   colors: [Colors.greenAccent, Colors.green],
-                      //   begin: Alignment.topLeft,
-                      //   end: Alignment.bottomRight,
-                      // ),
-                      onToggle: (value) {
-                        FocusScope.of(context).unfocus();
-                        appSelectingProvider.toggle();
-                      },
-                                  ),
-                                  ],
-                                ),
-                      ),
-                          widget.allApps.isEmpty
-                              ? const Center(child: CircularProgressIndicator())
-                              : _AppListView(allApps: widget.allApps),
-                        ],
-                      ),
-        );
+        Column(
+                      children: [
+                                 GlassContainer.clearGlass(
+                      height: 50,width: double.infinity,
+                      blur: 30.0,
+                      margin: EdgeInsets.symmetric(horizontal: 10),
+                      padding: EdgeInsets.symmetric(horizontal:  15.0),
+                              color: Colors.grey.withOpacity(0.1), //Colors.transparent,
+                              borderRadius: BorderRadius.circular(14),
+                              borderColor: Colors.transparent,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                    Row(
+                      children: [
+                         SvgPicture.asset('assets/images/dark_theme/Split Tunneling.svg'),
+                         Padding(
+                           padding: const EdgeInsets.only(left: 8.0),
+                           child: Text('Split tunneling',style: TextStyle(fontFamily: 'Poppins',
+                                       fontSize: 14,
+                                       fontWeight: FontWeight.w500,),),
+                         )
+                      ],
+                    ),
+                loaderVideoProvider.conStatus == ConnectionStatus.CONNECTING || loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ?
+                    
+                      FlutterSwitch(
+                        //disabled: true,
+                        //   inactiveToggleColor: appModel.darkTheme
+                        // ? const Color(0xff9595B5).withOpacity(0.4)
+                        // : const Color(0xffC5C5C5).withOpacity(0.08),
+                        width: 45.0,
+                        height: 24.0,
+                        toggleSize: 19.0,
+                        value: appSelectingProvider.isSPEnabled,//showSystemApps,
+                        borderRadius: 30.0,
+                        padding: 2.0,
+                        //activeIcon: SvgPicture.asset('assets/images/'),
+                        activeToggleColor: Color(0xff00DC00).withOpacity(0.5), // We’ll apply gradient manually
+                        inactiveToggleColor: Color(0xff929492).withOpacity(0.5),
+                        //switchBorder: Border.all(width: 0.2),
+                        activeSwitchBorder: Border.all(
+                            color: Color(0xffA1A1AF), width: 0.3),
+                        inactiveSwitchBorder:
+                            Border.all(color: Color(0xffA1A1AF), width: 0.3),
+                        activeColor: Colors.transparent, // Make track transparent
+                        inactiveColor: Colors.transparent,
+                        // toggleGradient: LinearGradient(
+                        //   colors: [Colors.greenAccent, Colors.green],
+                        //   begin: Alignment.topLeft,
+                        //   end: Alignment.bottomRight,
+                        // ),
+                        onToggle: (value) {
+                          showMessage("Please disconnect the current node to modify split tunneling settings.");
+                          // FocusScope.of(context).unfocus();
+                          // appSelectingProvider.toggle();
+                        },
+                                    ):
+        
+                  FlutterSwitch(
+                    width: 45.0,
+                    height: 24.0,
+                    toggleSize: 19.0,
+                    value: appSelectingProvider.isSPEnabled,//showSystemApps,
+                    borderRadius: 30.0,
+                    padding: 2.0,
+                    //activeIcon: SvgPicture.asset('assets/images/'),
+                    activeToggleColor: Color(0xff00DC00), // We’ll apply gradient manually
+                    inactiveToggleColor: Color(0xff929492),
+                    //switchBorder: Border.all(width: 0.2),
+                    activeSwitchBorder: Border.all(
+                        color: Color(0xffA1A1AF), width: 0.3),
+                    inactiveSwitchBorder:
+                        Border.all(color: Color(0xffA1A1AF), width: 0.3),
+                    activeColor: Colors.transparent, // Make track transparent
+                    inactiveColor: Colors.transparent,
+                    // toggleGradient: LinearGradient(
+                    //   colors: [Colors.greenAccent, Colors.green],
+                    //   begin: Alignment.topLeft,
+                    //   end: Alignment.bottomRight,
+                    // ),
+                    onToggle: (value) {
+                      FocusScope.of(context).unfocus();
+                      appSelectingProvider.toggle();
+                    },
+                                ) ,
+         
+                     
+                                ],
+                              ),
+                    ),
+        
+                   
+        
+                        // widget.allApps.isEmpty
+                        //     ?
+                        //      Column(
+                        //       mainAxisAlignment: MainAxisAlignment.center,
+                        //       crossAxisAlignment: CrossAxisAlignment.center,
+                        //       children: [
+                        //         SizedBox(height: 200,),
+                        //         const Center(child: CircularProgressIndicator(color: Color(0xff00DC00),)),
+                        //       ],
+                        //     )
+                        //     : 
+                            Expanded(child: _AppListView(allApps: widget.allApps)),
+                      ],
+                    );
               //     ),
               //   ),
               // );
@@ -281,7 +335,8 @@ class _AppListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
        final appSelectingProvider = Provider.of<AppSelectingProvider>(context);
-
+    final appModel = Provider.of<AppModel>(context);
+    final loaderVideoProvider = Provider.of<LoaderVideoProvider>(context);
     return GlassContainer.clearGlass(
       height:double.infinity, //MediaQuery.of(context).size.height*1.90/3,
       margin: EdgeInsets.only(top: 10,left:10,right:10),
@@ -307,8 +362,22 @@ class _AppListView extends StatelessWidget {
       //   border: Border.all(color: Color(0xffA1A1AF),width: 0.1)
       // ),
      // padding: EdgeInsets.all(8),
-      child: Stack(
+      child: 
+       allApps.isEmpty
+                            ?
+                             Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                               // SizedBox(height: 200,),
+                                const Center(child: CircularProgressIndicator(color: Color(0xff00DC00),)),
+                              ],
+                            )
+                            :
+      
+      Stack(
         children: [
+         
           Selector<AppSelectingProvider, (List<String>, bool, String)>(
             selector: (_, provider) => (
               provider.selectedApps,
@@ -366,70 +435,145 @@ class _AppListView extends StatelessWidget {
           border: Border.all(color:appModel.darkTheme ? const Color(0xff3A496266).withOpacity(0.2) :Colors.transparent),
         ),
         padding: const EdgeInsets.all(8),
-        child: ListView.builder(
-          shrinkWrap: true, // important to avoid unbounded height
-          physics: const NeverScrollableScrollPhysics(), // disable inner scroll
-          itemCount: selectedApps.length,
-          itemBuilder: (context, index) {
-            final app = selectedApps[index];
-            return Container(
-              key: ValueKey(app.packageName),
-              padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5),
-              child: Row(
-                children: [
-                  // App Icon
-                  app.icon != null
-                      ? Container(
-                          padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                                color: const Color(0xff3A496266).withOpacity(0.1)),
-                          ),
-                          child: Image.memory(
-                            app.icon!,
-                            width: 25,
-                            height: 25,
-                            fit: BoxFit.cover,
-                            gaplessPlayback: true,
-                            cacheWidth: 25,
-                            cacheHeight: 25,
-                          ),
-                        )
-                      : const Icon(Icons.android, size: 40, color: Colors.white),
-      
-                  const SizedBox(width: 12),
-      
-                  // App Name
-                  Expanded(
-                    child: Text(
-                      app.name ?? app.packageName,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+        child:
+        Column(
+  children: List.generate(selectedApps.length, (index) {
+    final app = selectedApps[index];
+    return Container(
+      key: ValueKey(app.packageName),
+      padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5),
+      child: Row(
+        children: [
+          // App Icon
+          app.icon != null
+              ? Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: appModel.darkTheme
+                        ? Colors.white.withOpacity(0.05)
+                        : const Color(0xff3A4962).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: appModel.darkTheme
+                            ? const Color(0xff3A496266).withOpacity(0.1)
+                            : Colors.transparent),
                   ),
-      
-                  const SizedBox(width: 8),
-      
-                  // Remove Button
-                  GestureDetector(
-                    onTap: () {
-                      Provider.of<AppSelectingProvider>(context, listen: false)
-                          .removeApp(app.packageName);
-                    },
-                    child: SvgPicture.asset(
-                        'assets/images/dark_theme/removelist.svg'),
+                  child: Image.memory(
+                    app.icon!,
+                    width: 25,
+                    height: 25,
+                    fit: BoxFit.cover,
+                    gaplessPlayback: true,
+                    cacheWidth: 25,
+                    cacheHeight: 25,
                   ),
-                ],
+                )
+              : const Icon(Icons.android, size: 40, color: Colors.white),
+          const SizedBox(width: 12),
+
+          // App Name
+          Expanded(
+            child: Text(
+              app.name ?? app.packageName,
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
-            );
-          },
-        ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          // Remove Button
+          loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED
+              ? GestureDetector(
+                  onTap: () {
+                    Provider.of<AppSelectingProvider>(context, listen: false)
+                        .removeApp(app.packageName);
+                  },
+                  child: SvgPicture.asset(
+                      'assets/images/dark_theme/removelist.svg'),
+                )
+              : GestureDetector(
+                  onTap: () => showMessage(
+                      "Please disconnect the current node to modify split tunneling settings."),
+                  child: SvgPicture.asset(
+                      'assets/images/dark_theme/removelist.svg',
+                      color: const Color(0xffA1A1A1).withOpacity(0.6))),
+        ],
+      ),
+    );
+  }),
+)
+        //  ListView.builder(
+        //   shrinkWrap: true, // important to avoid unbounded height
+        //   physics: const NeverScrollableScrollPhysics(), // disable inner scroll
+        //   itemCount: selectedApps.length,
+        //   itemBuilder: (context, index) {
+        //     final app = selectedApps[index];
+        //     return Container(
+        //       key: ValueKey(app.packageName),
+        //       padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5),
+        //       child: Row(
+        //         children: [
+        //           // App Icon
+        //           app.icon != null
+        //               ? Container(
+        //                   padding: const EdgeInsets.all(7),
+        //                   decoration: BoxDecoration(
+        //                     color:appModel.darkTheme ? Colors.white.withOpacity(0.05)  : Color(0xff3A4962).withOpacity(0.1),
+        //                     borderRadius: BorderRadius.circular(12),
+        //                     border: Border.all(
+        //                         color:appModel.darkTheme ? const Color(0xff3A496266).withOpacity(0.1): Colors.transparent),
+        //                   ),
+        //                   child: Image.memory(
+        //                     app.icon!,
+        //                     width: 25,
+        //                     height: 25,
+        //                     fit: BoxFit.cover,
+        //                     gaplessPlayback: true,
+        //                     cacheWidth: 25,
+        //                     cacheHeight: 25,
+        //                   ),
+        //                 )
+        //               : const Icon(Icons.android, size: 40, color: Colors.white
+        //               ),
+                
+        //           const SizedBox(width: 12),
+                
+        //           // App Name
+        //           Expanded(
+        //             child: Text(
+        //               app.name ?? app.packageName,
+        //               style: const TextStyle(
+        //                 fontFamily: 'Poppins',
+        //                 fontSize: 14,
+        //                 fontWeight: FontWeight.w500,
+        //               ),
+        //               overflow: TextOverflow.ellipsis,
+        //             ),
+        //           ),
+                
+        //           const SizedBox(width: 8),
+        //          loaderVideoProvider.conStatus  == ConnectionStatus.DISCONNECTED ?
+        //           // Remove Button
+        //           GestureDetector(
+        //             onTap: () {
+        //               Provider.of<AppSelectingProvider>(context, listen: false)
+        //                   .removeApp(app.packageName);
+        //             },
+        //             child: SvgPicture.asset(
+        //                 'assets/images/dark_theme/removelist.svg'),
+        //           ): GestureDetector(
+        //               onTap: ()=> showMessage("Please disconnect the current node to modify split tunneling settings."),
+        //               child: SvgPicture.asset('assets/images/dark_theme/removelist.svg', color: Color(0xffA1A1A1).withOpacity(0.6))),
+        //         ],
+        //       ),
+        //     );
+        //   },
+        // ),
       ),
             ),
           ) : SliverPadding(padding: EdgeInsets.all(0)),
@@ -635,71 +779,150 @@ class _AppListView extends StatelessWidget {
                     style: TextStyle(fontSize: 14,fontFamily: 'Poppins',color: Color(0xffA1A1AF)),
                   ),
                 )
-                : ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: searchedApps.length,
-                    itemBuilder: (context, index) {
-                      final app = searchedApps[index];
-                      return Container(
-                        key: ValueKey(app.packageName),
-                        padding: const EdgeInsets.symmetric( vertical: 5),
-                        child: Row(
-                          children: [
-                            // App Icon
-                            app.icon != null
-                                ? Container(
-                                    padding: const EdgeInsets.all(7),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.05),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                          color: const Color(0xff3A496266).withOpacity(0.1)),
-                                    ),
-                                    child: Image.memory(
-                                      app.icon!,
-                                      width: 25,
-                                      height: 25,
-                                      fit: BoxFit.cover,
-                                      gaplessPlayback: true,
-                                      cacheWidth: 25,
-                                      cacheHeight: 25,
-                                    ),
-                                  )
-                                : const Icon(Icons.android, size: 40, color: Colors.white),
-      
-                            const SizedBox(width: 12),
-      
-                            // App Name
-                            Expanded(
-                              child: Text(
-                                app.name ?? app.packageName,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontFamily: 'Poppins',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-      
-                            const SizedBox(width: 8),
-      
-                            // Add Button
-                            GestureDetector(
-                              onTap: () {
-                                Provider.of<AppSelectingProvider>(context, listen: false)
-                                    .addApp(app.packageName);
-                              },
-                              child: SvgPicture.asset(
-                                  'assets/images/dark_theme/addlist.svg'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                : 
+                Column(
+  children: List.generate(searchedApps.length, (index) {
+    final app = searchedApps[index];
+    return Container(
+      key: ValueKey(app.packageName),
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          // App Icon
+          app.icon != null
+              ? Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: appModel.darkTheme
+                        ? Colors.white.withOpacity(0.05)
+                        : const Color(0xff3A4962).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: appModel.darkTheme
+                            ? const Color(0xff3A496266).withOpacity(0.1)
+                            : Colors.transparent),
                   ),
+                  child: Image.memory(
+                    app.icon!,
+                    width: 25,
+                    height: 25,
+                    fit: BoxFit.cover,
+                    gaplessPlayback: true,
+                    cacheWidth: 25,
+                    cacheHeight: 25,
+                  ),
+                )
+              : const Icon(Icons.android, size: 40, color: Colors.white),
+          const SizedBox(width: 12),
+
+          // App Name
+          Expanded(
+            child: Text(
+              app.name ?? app.packageName,
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          // Add Button
+          loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED
+              ? GestureDetector(
+                  onTap: () {
+                    Provider.of<AppSelectingProvider>(context, listen: false)
+                        .addApp(app.packageName);
+                  },
+                  child: SvgPicture.asset(
+                      'assets/images/dark_theme/addlist.svg'),
+                )
+              : GestureDetector(
+                  onTap: () => showMessage(
+                      "Please disconnect the current node to modify split tunneling settings."),
+                  child: SvgPicture.asset(
+                      'assets/images/dark_theme/addlist.svg',
+                      color: const Color(0xff00DC00).withOpacity(0.18)),
+                ),
+        ],
+      ),
+    );
+  }),
+)
+                // ListView.builder(
+                //     shrinkWrap: true,
+                //     physics: const NeverScrollableScrollPhysics(),
+                //     itemCount: searchedApps.length,
+                //     itemBuilder: (context, index) {
+                //       final app = searchedApps[index];
+                //       return Container(
+                //         key: ValueKey(app.packageName),
+                //         padding: const EdgeInsets.symmetric( vertical: 5),
+                //         child: Row(
+                //           children: [
+                //             // App Icon
+                //             app.icon != null
+                //                 ? Container(
+                //                     padding: const EdgeInsets.all(7),
+                //                     decoration: BoxDecoration(
+                //                       color:appModel.darkTheme ? Colors.white.withOpacity(0.05) : Color(0xff3A4962).withOpacity(0.1),
+                //                       borderRadius: BorderRadius.circular(12),
+                //                       border: Border.all(
+                //                           color:appModel.darkTheme ? const Color(0xff3A496266).withOpacity(0.1) : Colors.transparent),
+                //                     ),
+                //                     child: Image.memory(
+                //                       app.icon!,
+                //                       width: 25,
+                //                       height: 25,
+                //                       fit: BoxFit.cover,
+                //                       gaplessPlayback: true,
+                //                       cacheWidth: 25,
+                //                       cacheHeight: 25,
+                //                     ),
+                //                   )
+                //                 : const Icon(Icons.android, size: 40, color: Colors.white
+                //                 ),
+                        
+                //             const SizedBox(width: 12),
+                        
+                //             // App Name
+                //             Expanded(
+                //               child: Text(
+                //                 app.name ?? app.packageName,
+                //                 style: const TextStyle(
+                //                   //color: Colors.white,
+                //                   fontFamily: 'Poppins',
+                //                   fontSize: 14,
+                //                   fontWeight: FontWeight.w500,
+                //                 ),
+                //                 overflow: TextOverflow.ellipsis,
+                //               ),
+                //             ),
+                        
+                //             const SizedBox(width: 8),
+                //          loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ?
+                //             // Add Button
+                //             GestureDetector(
+                //               onTap: () {
+                //                 Provider.of<AppSelectingProvider>(context, listen: false)
+                //                     .addApp(app.packageName);
+                //               },
+                //               child: SvgPicture.asset(
+                //                   'assets/images/dark_theme/addlist.svg'),
+                //             ):GestureDetector(
+                //                 onTap: ()=> showMessage("Please disconnect the current node to modify split tunneling settings."),
+                //                 child: SvgPicture.asset(
+                //                       'assets/images/dark_theme/addlist.svg',color:Color(0xff00DC00).withOpacity(0.18)//  Color(0xffA1A1A1).withOpacity(0.8),
+                //                       ),
+                //               )
+                //           ],
+                //         ),
+                //       );
+                //     },
+                //   ),
           ],
         ),
       ),

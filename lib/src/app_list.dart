@@ -772,7 +772,7 @@ class _AppListView extends StatelessWidget {
            searchedApps.isEmpty ? SizedBox.shrink() : const SizedBox(height: 16),
       
             // App List
-            searchedApps.isEmpty
+            searchedApps.isEmpty && searchController.text.trim().isNotEmpty
                 ? Padding(
                   padding: EdgeInsets.symmetric(vertical: 16.0),
                   child: Text(

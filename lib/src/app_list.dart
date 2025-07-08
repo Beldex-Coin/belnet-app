@@ -143,6 +143,7 @@ import 'package:provider/provider.dart';
 
 
 bool isEnabled = true;
+TextEditingController searchController = TextEditingController();
 
 
 class SplitTunnelingScreen extends StatefulWidget {
@@ -160,14 +161,22 @@ class _SplitTunnelingScreenState extends State<SplitTunnelingScreen> {
 bool isTosplitTunnel = false;
 
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   // Refresh app list in the background when screen opens
-  //   AppCache.instance.loadApps().then((_) {
-  //     if (mounted) setState(() {});
-  //   });
-  // }
+  @override
+  void initState() {
+    super.initState();
+    searchController.clear();
+    //  Provider.of<AppSelectingProvider>(context, listen: false)
+    //                           .updateSearchQuery('');
+     // Delay the provider update until the first frame is rendered
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    Provider.of<AppSelectingProvider>(context, listen: false)
+        .updateSearchQuery('');
+  });
+    // Refresh app list in the background when screen opens
+    // AppCache.instance.loadApps().then((_) {
+    //   if (mounted) setState(() {});
+    // });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +184,7 @@ bool isTosplitTunnel = false;
     // if(widget.allApps.isEmpty){
 
     // }
-   final allApps = AppCache.instance.apps;
+  // final allApps = AppCache.instance.apps;
    final appSelectingProvider = Provider.of<AppSelectingProvider>(context);
     return 
         SingleChildScrollView(

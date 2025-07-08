@@ -455,30 +455,100 @@ checkRunning();
   
 
   TextSpan _buildStyledLog(LogEntry log) {
-    final formattedTime = log.timestamp.millisecondsSinceEpoch.toString();
-    final fullMessage = "$formattedTime: ${log.message}";
-    final parts = fullMessage.split("Daemon");
+  final appModel = Provider.of<AppModel>(context, listen: false);
+  final dark = appModel.darkTheme;
 
-    if (parts.length == 2) {
-      return TextSpan(
-        style: TextStyle(fontSize: 11),
-        children: [
+  final timestamp = log.timestamp.millisecondsSinceEpoch.toString();
+  final message = log.message;
+  final daemonIndex = message.indexOf("Daemon");
 
-        TextSpan(text: parts[0], style: const TextStyle(color: Color(0xffACACAC))),
-        const TextSpan(text: "Daemon", style: TextStyle(color: Color(0xff00DC00), fontWeight: FontWeight.bold)),
-        TextSpan(text: parts[1] + "\n", style: const TextStyle(color: Colors.white)),
-      ]);
-    } else {
-      return TextSpan(
-        children: [
-          TextSpan(text: formattedTime,style: const TextStyle(color: Color(0xffACACAC),fontSize: 11)),
-          TextSpan(text: ": "+log.message + "\n", style: const TextStyle(color: Colors.white,fontSize: 11)
-)
-        ],
-        
-        );
-    }
+  List<TextSpan> spans = [];
+
+  // 1. Add timestamp (gray)
+  spans.add(
+    TextSpan(
+      text: "$timestamp: ",
+      style: const TextStyle(color: Color(0xffACACAC), fontSize: 11),
+    ),
+  );
+
+  if (daemonIndex != -1) {
+    // 2. Before "Daemon" (in message)
+    final beforeDaemon = message.substring(0, daemonIndex);
+    spans.add(
+      TextSpan(
+        text: beforeDaemon,
+        style: TextStyle(
+          color: dark ? Colors.white : Colors.black,
+          fontSize: 11,
+        ),
+      ),
+    );
+
+    // 3. The word "Daemon"
+    spans.add(
+      const TextSpan(
+        text: "Daemon",
+        style: TextStyle(
+          color: Color(0xff00DC00),
+          fontWeight: FontWeight.bold,
+          fontSize: 11,
+        ),
+      ),
+    );
+
+    // 4. After "Daemon"
+    final afterDaemon = message.substring(daemonIndex + "Daemon".length);
+    spans.add(
+      TextSpan(
+        text: "$afterDaemon\n",
+        style: TextStyle(
+          color: dark ? Colors.white : Colors.black,
+          fontSize: 11,
+        ),
+      ),
+    );
+  } else {
+    // No "Daemon" — regular log
+    spans.add(
+      TextSpan(
+        text: "$message\n",
+        style: TextStyle(
+          color: dark ? Colors.white : Colors.black,
+          fontSize: 11,
+        ),
+      ),
+    );
   }
+
+  return TextSpan(children: spans);
+}
+
+//   TextSpan _buildStyledLog(LogEntry log) {
+//     final formattedTime = log.timestamp.millisecondsSinceEpoch.toString();
+//     final fullMessage = "$formattedTime: ${log.message}";
+//     final parts = fullMessage.split("Daemon");
+//     final appModel = Provider.of<AppModel>(context,listen: false);
+//     if (parts.length == 2) {
+//       return TextSpan(
+//         style: TextStyle(fontSize: 11),
+//         children: [
+
+//         TextSpan(text: parts[0], style: const TextStyle(color: Color(0xffACACAC))),
+//         const TextSpan(text: "Daemon", style: TextStyle(color: Color(0xff00DC00), fontWeight: FontWeight.bold)),
+//         TextSpan(text: parts[1] + "\n", style: TextStyle(color:appModel.darkTheme ? Colors.white : Colors.black)),
+//       ]);
+//     } else {
+//       return TextSpan(
+//         children: [
+//           TextSpan(text: formattedTime,style: const TextStyle(color: Color(0xffACACAC),fontSize: 11)),
+//           TextSpan(text: ": "+log.message + "\n", style: TextStyle(color: appModel.darkTheme ? Colors.white : Colors.black,fontSize: 11)
+// )
+//         ],
+        
+//         );
+//     }
+//   }
 }
 
 

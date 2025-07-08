@@ -43,6 +43,8 @@ class AppCache {
     try {
       _apps = await InstalledApps.getInstalledApps(false, true);
       // Debug: Log fetched apps
+      _apps.removeWhere((app) => app.packageName == 'io.beldex.belnet');
+      _apps.removeWhere((app) => app.packageName == 'io.beldex.beldex_browser');
       print('Fetched ${_apps.length} apps:');
       for (var app in _apps) {
         print('App: ${app.name}, Package: ${app.packageName}');

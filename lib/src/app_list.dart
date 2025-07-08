@@ -283,13 +283,25 @@ class _AppListView extends StatelessWidget {
        final appSelectingProvider = Provider.of<AppSelectingProvider>(context);
 
     return GlassContainer.clearGlass(
-      height: MediaQuery.of(context).size.height*1.88/3,
-      margin: EdgeInsets.all(10),
+      height:double.infinity, //MediaQuery.of(context).size.height*1.90/3,
+      margin: EdgeInsets.only(top: 10,left:10,right:10),
       blur: 18.0,
-        color: Colors.transparent,
+        color: appModel.darkTheme ? Color(0xff080C29).withOpacity(0.7) : Color(0x33BEBEBE).withOpacity(0.02), //s.black.withOpacity(0.03),
         borderRadius: BorderRadius.circular(14),
         borderColor: Color(0xffA1A1AF),
         borderWidth: 0.3,
+        boxShadow:appModel.darkTheme ? [] : [
+                      BoxShadow(
+                  color: Color(0xff00FFDD).withOpacity(0.03) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
+                 
+                ),
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.5),
+                  spreadRadius: -01.0,
+                  blurRadius: 23.5,
+                  offset: Offset(-3.0, 4.5),
+                )
+                   ],
       // decoration: BoxDecoration(
       //   borderRadius: BorderRadius.circular(15),
       //   border: Border.all(color: Color(0xffA1A1AF),width: 0.1)
@@ -333,7 +345,7 @@ class _AppListView extends StatelessWidget {
                           'Include Apps (${selectedApps.length})',
                           style: TextStyle(fontFamily: 'Poppins',
               fontSize: 14,
-              color: Color(0xffA1A1AF),
+              color:appModel.darkTheme ? Color(0xffA1A1AF) : Color(0xff4D4D4D),
               fontWeight: FontWeight.w500,),
                         ),
                         
@@ -349,9 +361,9 @@ class _AppListView extends StatelessWidget {
             sliver: SliverToBoxAdapter(
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color:appModel.darkTheme ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xff3A496266).withOpacity(0.2)),
+          border: Border.all(color:appModel.darkTheme ? const Color(0xff3A496266).withOpacity(0.2) :Colors.transparent),
         ),
         padding: const EdgeInsets.all(8),
         child: ListView.builder(
@@ -521,9 +533,9 @@ class _AppListView extends StatelessWidget {
             sliver: SliverToBoxAdapter(
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color:appModel.darkTheme ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xff3A496266).withOpacity(0.2)),
+          border: Border.all(color:appModel.darkTheme ? const Color(0xff3A496266).withOpacity(0.2) : Colors.transparent),
         ),
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -906,8 +918,9 @@ class _AppListView extends StatelessWidget {
             },
           ),
         !appSelectingProvider.isSPEnabled ? GlassContainer.clearGlass(
-           blur: 1.1,
-      color: Colors.black54, //transparent,
+           blur:appModel.darkTheme ? 2.0 : 2.0, // 1.1,
+      color:appModel.darkTheme ? Color(0x333A4962).withOpacity(0.03) //Colors.black54
+       : Color(0x33BEBEBE).withOpacity(0.03), //s.grey.shade400.withOpacity(0.04), //transparent,(0xffBEBEBE).withOpacity(0.9) ,//
       borderRadius: BorderRadius.circular(14),
       borderColor: Colors.transparent,
          ): SizedBox()

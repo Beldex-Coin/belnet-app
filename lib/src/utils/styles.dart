@@ -8,7 +8,7 @@ ThemeData buildLightTheme() {
     cardColor: Colors.white,
     colorScheme: base.colorScheme.copyWith(
       background: const Color(0xffF9F9F9), // Replaces backgroundColor
-      primary: Colors.red,
+      primary: Color(0xff00DC00),
     ),
     textTheme: base.textTheme.copyWith(
       headlineMedium: const TextStyle(
@@ -27,7 +27,7 @@ ThemeData buildDarkTheme() {
     cardColor: Colors.grey[800],
     colorScheme: base.colorScheme.copyWith(
       background: const Color(0xff242430), // Replaces backgroundColor
-      primary: Colors.blue[900],
+      primary: Color(0xff007BFF),
     ),
     textTheme: base.textTheme.copyWith(
       headlineMedium: const TextStyle(

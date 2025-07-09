@@ -1,6 +1,9 @@
 import 'package:belnet_mobile/src/app_list.dart';
 import 'package:belnet_mobile/src/app_list_provider.dart';
+import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/widget/aboutpage.dart';
+import 'package:belnet_mobile/src/widget/nointernet_connection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_switch/flutter_switch.dart';
@@ -358,18 +361,27 @@ child:Row(
 );
   }
    void reportIssue() async {
+    if(_isReporting) return;
+
+    setState(() {
+      
+    });
+    _isReporting = true;
   final Uri emailUri = Uri(
     scheme: 'mailto',
-    path: 'stepan@beldex.io', // Replace with your target email
-    query: Uri.encodeFull('subject=Issue Report&body='),
+    path: 'support@beldex.io', // 
+    query: Uri.encodeFull('subject=Feedback Report: Belnet_Android&body='),
   );
 
   if (await canLaunchUrl(emailUri)) {
     await launchUrl(emailUri);
+  // setState(() {}); _isReporting = false;
   } else {
+  // setState(() { }); _isReporting = false;
     // Optionally, handle the error if no email app is available
     print('Could not launch email app');
   }
+  _isReporting = false;
 }
 
 

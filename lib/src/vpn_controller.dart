@@ -37,7 +37,7 @@ Future<void> toggleBelnet(BuildContext context,AppSelectingProvider appSelecting
   final nodeProvider = Provider.of<NodeProvider>(context,listen: false);
   final loaderVideoProvider = Provider.of<LoaderVideoProvider>(context,listen: false);
   final vpnConnectionProvider = Provider.of<VpnConnectionProvider>(context,listen: false);
-  final speedChartProvider = Provider.of<SpeedChartProvider>(context,listen: false);
+  //final speedChartProvider = Provider.of<SpeedChartProvider>(context,listen: false);
   final ipProvider = Provider.of<IpProvider>(context,listen: false);
   final logProvider = Provider.of<LogProvider>(context,listen: false);
   final appModel = Provider.of<AppModel>(context,listen:false);
@@ -45,9 +45,9 @@ Future<void> toggleBelnet(BuildContext context,AppSelectingProvider appSelecting
   resetStatevalue(introStateProvider);
  
  if (BelnetLib.isConnected) {
-    await _disconnectFromBelnet(vpnConnectionProvider,loaderVideoProvider,speedChartProvider,ipProvider,logProvider,introStateProvider,nodeProvider);
+    await _disconnectFromBelnet(vpnConnectionProvider,loaderVideoProvider,ipProvider,logProvider,introStateProvider,nodeProvider);
   } else {
-    await _connectToBelnet(context,appSelectingProvider,nodeProvider,loaderVideoProvider,vpnConnectionProvider,speedChartProvider,ipProvider,logProvider,appModel,introStateProvider ,dns:dns,isCustomeExitNode: isCustomeExitNode);
+    await _connectToBelnet(context,appSelectingProvider,nodeProvider,loaderVideoProvider,vpnConnectionProvider,ipProvider,logProvider,appModel,introStateProvider ,dns:dns,isCustomeExitNode: isCustomeExitNode);
   }
 
 
@@ -149,7 +149,7 @@ Future<void> _saveSettings(NodeProvider nodeProvider ,{String? exitvalue, String
 }
 
 
-Future<void> _disconnectFromBelnet(VpnConnectionProvider vpnConnectionProvider,LoaderVideoProvider loaderVideoProvider,SpeedChartProvider speedChartProvider,IpProvider ipProvider,LogProvider logProvider,IntroStateProvider introProvider,NodeProvider nodeProvider) async {
+Future<void> _disconnectFromBelnet(VpnConnectionProvider vpnConnectionProvider,LoaderVideoProvider loaderVideoProvider,IpProvider ipProvider,LogProvider logProvider,IntroStateProvider introProvider,NodeProvider nodeProvider) async {
   
  // setState(() => loading = true);
   bool disConnectValue = await BelnetLib.disconnectFromBelnet();
@@ -204,7 +204,7 @@ setForCustomExitnode(IpProvider ipProvider,IntroStateProvider introProvider,Node
 
 
 
-Future<void> _connectToBelnet(BuildContext context,AppSelectingProvider appSelectingProvider,NodeProvider nodeProvider,LoaderVideoProvider loaderVideoProvider,VpnConnectionProvider vpnConnectionProvider,SpeedChartProvider speedChartProvider,IpProvider ipProvider,LogProvider logProvider,AppModel appModel,IntroStateProvider introStateProvider ,{String? dns,bool isCustomeExitNode = false}) async {
+Future<void> _connectToBelnet(BuildContext context,AppSelectingProvider appSelectingProvider,NodeProvider nodeProvider,LoaderVideoProvider loaderVideoProvider,VpnConnectionProvider vpnConnectionProvider,IpProvider ipProvider,LogProvider logProvider,AppModel appModel,IntroStateProvider introStateProvider ,{String? dns,bool isCustomeExitNode = false}) async {
 
  if(introStateProvider.grantPermissionCount == 1){ // To avoid multiple vpn permission dialogs 
 
@@ -254,7 +254,7 @@ print('CustomExitnode checking end');
   //context.loaderOverlay.hide();
  // loaderVideoProvider.hideLoader();
  if(isCustomeExitNode){
- _checkingExitnodeAfterDelay(nodeProvider,logProvider,vpnConnectionProvider,loaderVideoProvider,speedChartProvider,ipProvider,appModel,introStateProvider);
+ _checkingExitnodeAfterDelay(nodeProvider,logProvider,vpnConnectionProvider,loaderVideoProvider,ipProvider,appModel,introStateProvider);
  }else{
   showNotification(appModel);
    ipProvider.startMonitoring();
@@ -357,7 +357,7 @@ bool f = false;
   
 }
 
-Future<void> _checkingExitnodeAfterDelay(NodeProvider nodeProvider,LogProvider logProvider,VpnConnectionProvider vpnConnectionProvider,LoaderVideoProvider loaderVideoProvider,SpeedChartProvider speedChartProvider,IpProvider ipProvider,AppModel appModel,IntroStateProvider introStateProvider) async {
+Future<void> _checkingExitnodeAfterDelay(NodeProvider nodeProvider,LogProvider logProvider,VpnConnectionProvider vpnConnectionProvider,LoaderVideoProvider loaderVideoProvider,IpProvider ipProvider,AppModel appModel,IntroStateProvider introStateProvider) async {
  //if(canValidateExit){
    if (introStateProvider.myExit) {
    // setState(() {

@@ -179,9 +179,11 @@ class Charts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 180,
         // color: Colors.yellow,
-        margin: EdgeInsets.only(top: 20.0),
+        //margin: EdgeInsets.only(top: 20.0),
         padding: EdgeInsets.only(
+          top: 20,
             //bottom: MediaQuery.of(context).size.height*0.10/3,
             left: 15.0),
         child: BelnetLib.isConnected
@@ -217,9 +219,9 @@ class Charts extends StatelessWidget {
                           decoration: BoxDecoration(
                               border: Border(
                                   left: BorderSide(
-                                    color: Colors.grey,
+                                    color: Colors.grey.withOpacity(0.6),
                                   ),
-                                  bottom: BorderSide(color: Colors.grey))),
+                                  bottom: BorderSide(color: Colors.grey.withOpacity(0.6)))),
                           child: Stack(
                             children: [
                               Sparkline(
@@ -309,7 +311,7 @@ class Charts extends StatelessWidget {
                   Positioned(
                     bottom: 0.0, right: 5.0,
                     left: MediaQuery.of(context).size.height * 0.05 / 3,
-                    top: MediaQuery.of(context).size.height * 0.54 / 3,
+                    top: MediaQuery.of(context).size.height * 0.46 / 3,
                     //width: double.infinity,
                     child: Container(
                       //color: Colors.black,
@@ -354,69 +356,69 @@ class Charts extends StatelessWidget {
                       ]),
                     ),
                   ),
+                  // Positioned(
+                  //     bottom: MediaQuery.of(context).size.height * 0.01 / 3,
+                  //     top: MediaQuery.of(context).size.height * 0.55 / 3,
+                  //     right: MediaQuery.of(context).size.height * 0.0 / 3,
+                  //     child: Container(
+                  //         //color: Colors.pink,
+                  //         // height: MediaQuery.of(context).size.height*0.20/3,
+                  //         //width: double.infinity,
+                  //         child: Row(
+                  //             mainAxisAlignment: MainAxisAlignment.end,
+                  //             children: [
+                  //           Container(
+                  //             height: 10.0,
+                  //             width: 10.0,
+                  //             decoration: BoxDecoration(
+                  //                 shape: BoxShape.circle,
+                  //                 color: Color(0xff23DC27)),
+                  //           ),
+                  //           Padding(
+                  //             padding:
+                  //                 const EdgeInsets.only(left: 8.0, right: 8.0),
+                  //             child: GestureDetector(
+                  //               onTap: () {
+                  //                 // Navigator.push(
+                  //                 //     context,
+                  //                 //     MaterialPageRoute(
+                  //                 //         builder: (context) =>
+                  //                 //             ChartPainter()));
+                  //               },
+                  //               child: Text(
+                  //                 "Download",
+                  //                 style: TextStyle(
+                  //                     fontSize:
+                  //                         MediaQuery.of(context).size.height *
+                  //                             0.04 /
+                  //                             3,
+                  //                     color: Color(0xff23DC27)),
+                  //               ),
+                  //             ),
+                  //           ),
+                  //           Container(
+                  //             height: 10.0,
+                  //             width: 10.0,
+                  //             decoration: BoxDecoration(
+                  //                 shape: BoxShape.circle,
+                  //                 color: Color(0xff1CA3FC)),
+                  //           ),
+                  //           Padding(
+                  //             padding:
+                  //                 const EdgeInsets.only(left: 8.0, right: 8.0),
+                  //             child: Text(
+                  //               "Upload",
+                  //               style: TextStyle(
+                  //                   fontSize:
+                  //                       MediaQuery.of(context).size.height *
+                  //                           0.04 /
+                  //                           3,
+                  //                   color: Color(0xff1CA3FC)),
+                  //             ),
+                  //           )
+                  //         ]))),
                   Positioned(
-                      bottom: MediaQuery.of(context).size.height * 0.01 / 3,
-                      top: MediaQuery.of(context).size.height * 0.55 / 3,
-                      right: MediaQuery.of(context).size.height * 0.0 / 3,
-                      child: Container(
-                          //color: Colors.pink,
-                          // height: MediaQuery.of(context).size.height*0.20/3,
-                          //width: double.infinity,
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                            Container(
-                              height: 10.0,
-                              width: 10.0,
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xff23DC27)),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 8.0, right: 8.0),
-                              child: GestureDetector(
-                                onTap: () {
-                                  // Navigator.push(
-                                  //     context,
-                                  //     MaterialPageRoute(
-                                  //         builder: (context) =>
-                                  //             ChartPainter()));
-                                },
-                                child: Text(
-                                  "Download",
-                                  style: TextStyle(
-                                      fontSize:
-                                          MediaQuery.of(context).size.height *
-                                              0.04 /
-                                              3,
-                                      color: Color(0xff23DC27)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              height: 10.0,
-                              width: 10.0,
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xff1CA3FC)),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 8.0, right: 8.0),
-                              child: Text(
-                                "Upload",
-                                style: TextStyle(
-                                    fontSize:
-                                        MediaQuery.of(context).size.height *
-                                            0.04 /
-                                            3,
-                                    color: Color(0xff1CA3FC)),
-                              ),
-                            )
-                          ]))),
-                  Positioned(
-                    bottom: MediaQuery.of(context).size.height * 0.15 / 3,
+                    bottom: MediaQuery.of(context).size.height * 0.10 / 3,
                     left: MediaQuery.of(context).size.height * 0.0 / 3,
                     child: Container(
                       height: MediaQuery.of(context).size.height * 0.60 / 3,
@@ -439,7 +441,7 @@ class Charts extends StatelessWidget {
                           ),
                           SizedBox(
                               height: MediaQuery.of(context).size.height *
-                                  0.15 /
+                                  0.14 /
                                   3),
                           Text(
                             "${mbForUp.toStringAsFixed(1)} Mb/s",
@@ -455,7 +457,7 @@ class Charts extends StatelessWidget {
                           ),
                           SizedBox(
                             height:
-                                MediaQuery.of(context).size.height * 0.15 / 3,
+                                MediaQuery.of(context).size.height * 0.14 / 3,
                           ),
                           Text(
                             "${mbForDown.toStringAsFixed(1)} Mb/s",
@@ -491,7 +493,7 @@ class Charts extends StatelessWidget {
                       // height:160,width:300,
                       child: Container(
                         height: MediaQuery.of(context).size.height *
-                            0.70 /
+                            0.60 /
                             3, //130,
                         padding: EdgeInsets.only(
                           bottom: MediaQuery.of(context).size.height * 0.08 / 3,
@@ -511,9 +513,9 @@ class Charts extends StatelessWidget {
                           decoration: BoxDecoration(
                               border: Border(
                                   left: BorderSide(
-                                    color: Colors.grey,
+                                    color: Colors.grey.withOpacity(0.6),
                                   ),
-                                  bottom: BorderSide(color: Colors.grey))),
+                                  bottom: BorderSide(color: Colors.grey.withOpacity(0.6)))),
                           child: Stack(
                             children: [],
                           ),
@@ -522,7 +524,7 @@ class Charts extends StatelessWidget {
                   Positioned(
                     bottom: 0.0, right: 5.0,
                     left: MediaQuery.of(context).size.height * 0.05 / 3,
-                    top: MediaQuery.of(context).size.height * 0.54 / 3,
+                    top: MediaQuery.of(context).size.height * 0.46 / 3,
                     //width: double.infinity,
                     child: Container(
                       //color: Colors.black,
@@ -563,67 +565,67 @@ class Charts extends StatelessWidget {
                       ]),
                     ),
                   ),
-                  Positioned(
-                      bottom: MediaQuery.of(context).size.height * 0.01 / 3,
-                      top: MediaQuery.of(context).size.height * 0.55 / 3,
-                      right: MediaQuery.of(context).size.height * 0.0 / 3,
-                      child: Container(
-                          //color: Colors.pink,
-                          // height: MediaQuery.of(context).size.height*0.20/3,
-                          //width: double.infinity,
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                            Container(
-                              height: 10.0,
-                              width: 10.0,
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xff56566F)),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 8.0, right: 8.0),
-                              child: GestureDetector(
-                                onTap: () {
-                                  // Navigator.push(
-                                  //     context,
-                                  //     MaterialPageRoute(
-                                  //         builder: (context) =>
-                                  //             ChartPainter()));
-                                },
-                                child: Text(
-                                  "Download",
-                                  style: TextStyle(
-                                      fontSize:
-                                          MediaQuery.of(context).size.height *
-                                              0.04 /
-                                              3,
-                                      color: Color(0xff56566F)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              height: 10.0,
-                              width: 10.0,
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xff56566F)),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 8.0, right: 8.0),
-                              child: Text(
-                                "upload",
-                                style: TextStyle(
-                                    fontSize:
-                                        MediaQuery.of(context).size.height *
-                                            0.04 /
-                                            3,
-                                    color: Color(0xff56566F)),
-                              ),
-                            )
-                          ]))),
+                  // Positioned(
+                  //     bottom: MediaQuery.of(context).size.height * 0.01 / 3,
+                  //     top: MediaQuery.of(context).size.height * 0.55 / 3,
+                  //     right: MediaQuery.of(context).size.height * 0.0 / 3,
+                  //     child: Container(
+                  //         //color: Colors.pink,
+                  //         // height: MediaQuery.of(context).size.height*0.20/3,
+                  //         //width: double.infinity,
+                  //         child: Row(
+                  //             mainAxisAlignment: MainAxisAlignment.end,
+                  //             children: [
+                  //           Container(
+                  //             height: 10.0,
+                  //             width: 10.0,
+                  //             decoration: BoxDecoration(
+                  //                 shape: BoxShape.circle,
+                  //                 color: Color(0xff56566F)),
+                  //           ),
+                  //           Padding(
+                  //             padding:
+                  //                 const EdgeInsets.only(left: 8.0, right: 8.0),
+                  //             child: GestureDetector(
+                  //               onTap: () {
+                  //                 // Navigator.push(
+                  //                 //     context,
+                  //                 //     MaterialPageRoute(
+                  //                 //         builder: (context) =>
+                  //                 //             ChartPainter()));
+                  //               },
+                  //               child: Text(
+                  //                 "Download",
+                  //                 style: TextStyle(
+                  //                     fontSize:
+                  //                         MediaQuery.of(context).size.height *
+                  //                             0.04 /
+                  //                             3,
+                  //                     color: Color(0xff56566F)),
+                  //               ),
+                  //             ),
+                  //           ),
+                  //           Container(
+                  //             height: 10.0,
+                  //             width: 10.0,
+                  //             decoration: BoxDecoration(
+                  //                 shape: BoxShape.circle,
+                  //                 color: Color(0xff56566F)),
+                  //           ),
+                  //           Padding(
+                  //             padding:
+                  //                 const EdgeInsets.only(left: 8.0, right: 8.0),
+                  //             child: Text(
+                  //               "upload",
+                  //               style: TextStyle(
+                  //                   fontSize:
+                  //                       MediaQuery.of(context).size.height *
+                  //                           0.04 /
+                  //                           3,
+                  //                   color: Color(0xff56566F)),
+                  //             ),
+                  //           )
+                  //         ]))),
                   Positioned(
                     bottom: MediaQuery.of(context).size.height * 0.15 / 3,
                     left: MediaQuery.of(context).size.height * 0.0 / 3,
@@ -644,7 +646,7 @@ class Charts extends StatelessWidget {
                           ),
                           SizedBox(
                               height: MediaQuery.of(context).size.height *
-                                  0.15 /
+                                  0.14 /
                                   3),
                           Text(
                             "0.0 Mb/s",
@@ -656,7 +658,7 @@ class Charts extends StatelessWidget {
                           ),
                           SizedBox(
                             height:
-                                MediaQuery.of(context).size.height * 0.15 / 3,
+                                MediaQuery.of(context).size.height * 0.14 / 3,
                           ),
                           Text(
                             "0.0 Mb/s",

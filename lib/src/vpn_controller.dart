@@ -157,6 +157,9 @@ Future<void> _disconnectFromBelnet(VpnConnectionProvider vpnConnectionProvider,L
 
   if (disConnectValue) {
     vpnConnectionProvider.cancelDelay();
+    ipProvider.stopIPMonitoring();
+   // speedChartProvider.stopMonitoring();
+      stopNotification();
       loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
       logProvider.addLog('Belnet Daemon stopped');
       logProvider.addLog('Belnet disconnected');
@@ -229,6 +232,8 @@ print('THE LOADER VALUE IS 1----> ${loaderVideoProvider.isLoading}');
           //loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
    // setState(() => loading = false);
     return;
+  }else{
+      introStateProvider.setGrantPermissionCount(1);
   }
    print('THE LOADER VALUE IS 22----> ${loaderVideoProvider.isLoading}');
     loaderVideoProvider.setLoading(true);

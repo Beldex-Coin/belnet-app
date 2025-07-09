@@ -3,11 +3,22 @@ import 'dart:io';
 import 'dart:math';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_mobile/displaylog.dart';
+import 'package:belnet_mobile/node_provider.dart';
+import 'package:belnet_mobile/src/app_list.dart';
+import 'package:belnet_mobile/src/app_list_provider.dart';
+import 'package:belnet_mobile/src/fetch_ip.dart';
 import 'package:belnet_mobile/src/model/exitnodeModel.dart';
 import 'package:belnet_mobile/src/model/exitnodeRepo.dart';
 import 'package:belnet_mobile/src/model/exitnodeCategoryModel.dart'
     as exitNodeModel;
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/providers/internet_checking_provider.dart';
+import 'package:belnet_mobile/src/providers/introstate_provider.dart';
+import 'package:belnet_mobile/src/providers/ip_provider.dart';
+import 'package:belnet_mobile/src/providers/loader_provider.dart';
+import 'package:belnet_mobile/src/providers/log_provider.dart';
+import 'package:belnet_mobile/src/providers/speed_chart_provider.dart';
+import 'package:belnet_mobile/src/providers/vpn_provider.dart';
 import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
 import 'package:belnet_mobile/src/widget/LineChartSample10.dart';
@@ -226,7 +237,12 @@ checkShowSpalsh()async{
         ),
         pr.ChangeNotifierProvider<NodeProvider>(create: (_)=> NodeProvider()..fetchNodes()),
         pr.ChangeNotifierProvider<VpnConnectionProvider>(create: (_)=> VpnConnectionProvider()),
-        pr.ChangeNotifierProvider<LoaderVideoProvider>(create: (_)=> LoaderVideoProvider()..initialize('assets/images/dark_theme/Loading_v1_slow.webm')),
+        pr.ChangeNotifierProvider<IpProvider>(create: (_)=> IpProvider()),
+        pr.ChangeNotifierProvider<LogProvider>(create: (_)=>LogProvider()),
+        pr.ChangeNotifierProvider<ConnectivityProvider>(create: (_)=> ConnectivityProvider()),
+        pr.ChangeNotifierProvider<IntroStateProvider>(create: (_)=>IntroStateProvider()),
+        pr.ChangeNotifierProvider<SpeedChartProvider>(create: (_)=> SpeedChartProvider()),
+        pr.ChangeNotifierProvider<LoaderVideoProvider>(create: (_)=> LoaderVideoProvider()..initialize(appModel.darkTheme ? 'assets/images/dark_theme/Loading_v1_slow.webm' : 'assets/images/light_theme/loading_white_theme.webm')),
                 pr.ChangeNotifierProvider<SettingsProvider>(create: (_) => SettingsProvider()),
         pr.ChangeNotifierProvider<AppSelectionProvider>(create: (_)=>AppSelectionProvider()..loadSelectedApps(),),
         pr.ChangeNotifierProvider<AppSelectingProvider>(create: (_)=>AppSelectingProvider())

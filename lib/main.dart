@@ -95,11 +95,11 @@ class BelnetApp extends StatefulWidget {
   State<BelnetApp> createState() => _BelnetAppState();
 }
 
-class _BelnetAppState extends State<BelnetApp> {
+class _BelnetAppState extends State<BelnetApp>  with WidgetsBindingObserver{
   // This widget is the root of your application.
 
   AppModel appModel = new AppModel();
-
+  bool canHideSplash = false;
   void _initAppTheme() async {
     appModel.darkTheme = await appModel.appPreference.getTheme();
   }
@@ -107,22 +107,46 @@ class _BelnetAppState extends State<BelnetApp> {
   @override
   void initState() {
     super.initState();
+    //SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    WidgetsBinding.instance.addObserver(this);
+
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       systemNavigationBarColor: Colors.transparent,
     ));
-    // AwesomeNotifications().setListeners(
-    //     onActionReceivedMethod: NotificationController.onActionReceivedMethod,
-    //     onDismissActionReceivedMethod:
-    //         NotificationController.onDismissActionReceivedMethod,
-    //     onNotificationDisplayedMethod:
-    //         NotificationController.onNotificationDisplayedMethod,
-    //     onNotificationCreatedMethod:
-    //         NotificationController.onNotificationCreatedMethod);
-    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack, overlays: [SystemUiOverlay.top]);
-    getRandomExitData();
+    checkShowSpalsh();
+   // getRandomExitData();
     _initAppTheme();
   }
+
+
+
+
+
+checkShowSpalsh()async{
+  setState(() { });
+  print('THE SPLASH SCREEN HIDE OR NOT');
+  var isRun = await BelnetLib.isRunning;
+  if(isRun){
+    setState(() {
+           canHideSplash = true;
+    });
+      print('THE SPLASH SCREEN HIDE OR NOT 11 $isRun --- $canHideSplash');
+    
+  }else{
+
+    canHideSplash = false;
+      print('THE SPLASH SCREEN HIDE OR NOT 22 $isRun --- $canHideSplash');
+
+  }
+}
+
+
+
+
+
+
+
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -180,6 +204,8 @@ class _BelnetAppState extends State<BelnetApp> {
 
 @override
   void dispose() {
+        WidgetsBinding.instance.removeObserver(this);
+
    // AwesomeNotifications().requestPermissionToSendNotifications()
     super.dispose();
   }
@@ -211,13 +237,26 @@ class _BelnetAppState extends State<BelnetApp> {
             title: 'Belnet App',
             debugShowCheckedModeBanner: false,
             theme: appModel.darkTheme ? buildDarkTheme() : buildLightTheme(),
-            home: SplashScreens(), //BelnetHomePage()
+            home: canHideSplash ? MainBottomNavbar() : SplashScreens(), //BelnetHomePage()
           );
         },
       ),
     );
-      }),
-    );
+
+    // return pr.ChangeNotifierProvider<AppModel>.value(
+    //   value: appModel,
+    //   child: pr.Consumer<AppModel>(builder: (context, value, child) {
+    //     return pr.ChangeNotifierProvider(
+    //       create: (context) => NotificationProvider(),
+    //       child: GetMaterialApp(
+    //         title: 'Belnet App',
+    //         debugShowCheckedModeBanner: false,
+    //         theme: appModel.darkTheme ? buildDarkTheme() : buildLightTheme(),
+    //           home: SplashScreens() //BelnetHomePage(),
+    //   ),
+    // );
+    //   }),
+    // );
   }
 }
 

@@ -17,6 +17,7 @@ import 'package:belnet_mobile/src/screens/home_screen.dart';
 import 'package:belnet_mobile/src/screens/settings_screen.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart';
 import 'package:belnet_mobile/src/widget/nointernet_connection.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 //import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -129,54 +130,16 @@ getStatus(LoaderVideoProvider loaderVideoProvider){
    }
 
 
+Future<int?> getAndroidSdkInt() async {
+  if (Platform.isAndroid) {
+    final deviceInfo = DeviceInfoPlugin();
+    final androidInfo = await deviceInfo.androidInfo;
+    return androidInfo.version.sdkInt;
+  }
+  return null;
+}
 
 
-
-
-int count = 0;
- void vpnStatus(BuildContext context,bool isConnected,LoaderVideoProvider loaderVideoProvider, VpnConnectionProvider vpnConnectionProvider)async{
-
-   bool val = await BelnetLib.isRunning;
-            print('Connecting12344 val $val -- $count');
-
-   setState(() {
-     
-   });
-   if(isConnected == false){
-   try{
-    
-   // AwesomeNotifications().cancel(10);
-   }catch(e){
-   }
-    
-   }
-   if (loaderVideoProvider.isLoading == true) {
-        //print('belnet is running $val');
-         print('Connecting1 val $val -- $count');
-        // Future.delayed(Duration(milliseconds: 600), () {
-        if (val == true) {
-          // print('belnet is disconnected111');
-          count = 1;
-        }
-        if (count == 1) {
-          print('Connecting 2 val $val -- $count');
-          if (val == false) {
-            print('Connecting 3 val $val -- $count');
-           await BelnetLib.disconnectFromBelnet();
-           setState(() {
-             
-           });
-           
-           count = 0;
-           vpnConnectionProvider.cancelDelay();
-          // context.loaderOverlay.hide();
-           //loaderVideoProvider.setLoading(false);
-               //loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
-          }
-        }
-        //});
-      }
- }
 
 
 
@@ -194,21 +157,42 @@ int count = 0;
       //AwesomeNotifications().cancel(10); // Cancel the notification with id 10
     }
     if(state == AppLifecycleState.resumed){
-      // var conStatus = await BelnetLib.isRunning;
-      // if(conStatus){
-      //   loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
-      // }else{
-      //   loaderVideoProvider.setLoading(false);
-      //   loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+      // if(loaderVideoProvider.conStatus == ConnectionStatus.CONNECTING){
+      //               print('VIDEO IS NOT INITIALIZED 1');
+      //     if(!loaderVideoProvider.isInitialized){
+      //       print('VIDEO IS NOT INITIALIZED  22');
+      //      loaderVideoProvider.initialize(appModel.darkTheme ? 'assets/images/dark_theme/Loading_v1_slow.webm' : 'assets/images/light_theme/loading_white_theme.webm');
+      //     }
+      // }///////////// it was hidden prev
+      // else{
+         final sdkInt = await getAndroidSdkInt();
+      if (sdkInt != null && sdkInt >= 34) {
+        // Android 14 (API 34) and 15+ detected while resuming
+        print("App resumed on Android SDK $sdkInt");
 
-      // }
-    }
+           var conStatus = await BelnetLib.isRunning;
+      if(conStatus){
+        //loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
+      }else{
+        if(introStateProvider.isFirstResume){
+          loaderVideoProvider.setLoading(false);
+        loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+         print('Notification stopped in resumed1 state');
+        stopNotification();
+        }
+        
+       //await AwesomeNotifications().cancelAll();
+      }
+      }
+      
+      } ////////////////////
+         print('Notification stopped in resumed2 state');
+    // stopNotification();
+    //}
   }catch(e){
 }
    
   }
-
-
 
 
   void _onItemTapped(int index) {

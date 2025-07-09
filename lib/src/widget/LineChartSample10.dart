@@ -59,6 +59,7 @@ class _ChartDataState extends State<ChartData> {
     if (appModel.downloadList.length >= _windowLen) {
       print("download list items are [${appModel.listDownloadItems}]");
       appModel.downloadList.removeAt(0);
+      appModel.downloadList.removeAt(1);
     }
     if (appModel.singleDownload != "")
       appModel.downloadList.add(stringBeforeSpace(appModel.singleDownload));
@@ -71,6 +72,7 @@ class _ChartDataState extends State<ChartData> {
     if (appModel.uploadList.length >= _windowLen) {
       print("upload list items are [${appModel.listUploadItems}]");
       appModel.uploadList.removeAt(0);
+      appModel.uploadList.removeAt(1);
     }
     if (appModel.singleUpload != "")
       appModel.uploadList.add(stringBeforeSpace(appModel.singleUpload));
@@ -132,6 +134,7 @@ class _ChartDataState extends State<ChartData> {
     myD.add(appModel.graphData2);
     myD.add(appModel.graphData3);
     myD.sort();
+    if(mounted)
     setState(() {
       mbForDown = myD[0];
     mbForUp = myD[1];
@@ -627,7 +630,7 @@ class Charts extends StatelessWidget {
                   //           )
                   //         ]))),
                   Positioned(
-                    bottom: MediaQuery.of(context).size.height * 0.15 / 3,
+                    bottom: MediaQuery.of(context).size.height * 0.10 / 3,
                     left: MediaQuery.of(context).size.height * 0.0 / 3,
                     child: Container(
                       height: MediaQuery.of(context).size.height * 0.60 / 3,

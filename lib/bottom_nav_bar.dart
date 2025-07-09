@@ -149,12 +149,31 @@ Future<int?> getAndroidSdkInt() async {
 
      // Safely use the provider with `context.read<T>()`
     if (!mounted) return;
-
     final loaderVideoProvider = context.read<LoaderVideoProvider>();
+    //final appModel = context.read<AppModel>();
+    final  introStateProvider = context.read<IntroStateProvider>();
+    // final vpnConnectionProvider = context.read<VpnConnectionProvider>();
+    // final speedChartProvider = context.read<SpeedChartProvider>();
+    //final
+    if(state == AppLifecycleState.paused){
+      print('Notification stopped in paused state');
+      stopNotification();
+    }
    if (state == AppLifecycleState.detached) {
-      //  exit(0);
-      //timer1?.cancel();
-      //AwesomeNotifications().cancel(10); // Cancel the notification with id 10
+              stopNotification();
+
+    if(introStateProvider.isCustomNode){
+      if(loaderVideoProvider.conStatus == ConnectionStatus.CONNECTING){
+       // disconnectFromBelnet(vpnConnectionProvider, loaderVideoProvider, speedChartProvider, ipProvider, logProvider, introStateProvider, nodeProvider)
+        exit(0);
+      }
+    }else if(loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED){
+      exit(0);
+    }else{
+      stopNotification();
+    }
+     print('Notification stopped in detached state');
+        //  stopNotification();
     }
     if(state == AppLifecycleState.resumed){
       // if(loaderVideoProvider.conStatus == ConnectionStatus.CONNECTING){
@@ -190,6 +209,7 @@ Future<int?> getAndroidSdkInt() async {
     // stopNotification();
     //}
   }catch(e){
+    print('$e');
 }
    
   }

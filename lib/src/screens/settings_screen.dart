@@ -103,10 +103,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
 
 // General Settings View
-class GeneralSettingsView extends StatelessWidget {
+class GeneralSettingsView extends StatefulWidget {
   final VoidCallback onSplitTunnelingTap;
 
   const GeneralSettingsView({super.key, required this.onSplitTunnelingTap});
+
+  @override
+  State<GeneralSettingsView> createState() => _GeneralSettingsViewState();
+}
+
+class _GeneralSettingsViewState extends State<GeneralSettingsView> {
+
+  
+   bool _isSharing = false;
+   bool _isReporting = false;
+
 
   @override
   Widget build(BuildContext context) {
@@ -317,9 +328,60 @@ child:Row(
   }
 }
 
-void invitePeople() {
+
+// void reportIssue() async {
+//   if (_isReporting) return;
+
+//   _isReporting = true; // Set immediately before any async call
+
+//   final Uri emailUri = Uri(
+//     scheme: 'mailto',
+//     path: 's@gmail.com',
+//     query: Uri.encodeFull('subject=Belnet_Android_Feedback Report&body='),
+//   );
+
+//   try {
+//     if (await canLaunchUrl(emailUri)) {
+//       await launchUrl(emailUri);
+//     } else {
+//       print('Could not launch email app');
+//     }
+//   } catch (e) {
+//     print('Error launching email: $e');
+//   } finally {
+//     if (mounted) {
+//       setState(() {
+//         _isReporting = false;
+//       });
+//     } else {
+//       _isReporting = false;
+//     }
+//   }
+// }
+
+
+
+
+
+
+
+void invitePeople() async{
+   if (_isSharing) return; // Ignore if already sharing
+   setState(() {
+     
+   });
+   _isSharing = true; // Set flag to block further clicks
   const String playStoreUrl = 'https://play.google.com/store/apps/details?id=io.beldex.belnet'; // Replace with your real Play Store URL
-  SharePlus.instance.share(ShareParams(text:'Check out this app: $playStoreUrl') ); //.share('Check out this app: $playStoreUrl');
+ final result = await SharePlus.instance.share(ShareParams(text:"Hey, I've been using BelNet to browse confidentially. Try it yourself! Download it at $playStoreUrl") ); //.share('Check out this app: $playStoreUrl');
+
+   _isSharing = false; 
+
+ if (result.status == ShareResultStatus.success) {
+      print('Shared successfully');
+    } else if (result.status == ShareResultStatus.dismissed) {
+      print('Share dismissed');
+    }
+
 }
 }
 

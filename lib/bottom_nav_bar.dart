@@ -5,11 +5,13 @@ import 'dart:ui';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/node_provider.dart';
+import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/providers/internet_checking_provider.dart';
 import 'package:belnet_mobile/src/providers/introstate_provider.dart';
 import 'package:belnet_mobile/src/providers/ip_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/providers/log_provider.dart';
+import 'package:belnet_mobile/src/providers/speed_chart_provider.dart';
 import 'package:belnet_mobile/src/providers/vpn_provider.dart';
 import 'package:belnet_mobile/src/screens/analytics_screen.dart';
 import 'package:belnet_mobile/src/screens/exit_node_screen.dart';
@@ -23,7 +25,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:glass_kit/glass_kit.dart';
 import 'package:loader_overlay/loader_overlay.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:upgrader/upgrader.dart';
 import 'package:video_player/video_player.dart';
 
 class MainBottomNavbar extends StatefulWidget {
@@ -143,7 +148,7 @@ Future<int?> getAndroidSdkInt() async {
 
 
 
- @override
+@override
   void didChangeAppLifecycleState(AppLifecycleState state)async {
   try{
 
@@ -263,6 +268,7 @@ Widget _getScreen(int index) {
      final selectedIndex = loaderProvider.selectedIndex;
      final connectivityProvider = Provider.of<ConnectivityProvider>(context);
     //loaderProvider.initialize('assets/loader.webm');
+    final appModel = Provider.of<AppModel>(context);
     return connectivityProvider.isConnected ? WillPopScope(
       onWillPop: () async {
 
@@ -320,305 +326,95 @@ Widget _getScreen(int index) {
       //     );
       //   },
         child:
-         Scaffold(
-          extendBody: true, // lets nav bar float over body
-          body: Stack(
-            children: [
-              // Background image
-              Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/dark_theme/BG.png'), // <-- your image
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-        
-              // // Active screen
-              // _screens[_selectedIndex],
-              // Inside your Stack:
-        AnimatedSwitcher(
-          duration: Duration(milliseconds: 200),
-          transitionBuilder: (child, animation) {
-          final offsetAnimation = Tween<Offset>(
-            begin: Offset(0.0, 0.1), // slightly from bottom
-            end: Offset.zero,
-          ).animate(animation);
-        
-          return SlideTransition(
-            position: offsetAnimation,
-            child: FadeTransition(
-        opacity: animation,
-        child: child,
+         SafeArea(
+          top:false,
+          bottom: true,
+           child: UpgradeAlert(
+            showIgnore: false,
+        showLater: false,
+            upgrader: Upgrader(
+              //debugLogging: true
             ),
-          );
-        },
-        
-          // transitionBuilder: (child, animation) {
-          //   return FadeTransition(
-          //     opacity: animation,
-          //     child: child,
-          //   );
-          // },
-          child:_getScreen(selectedIndex) // _screens[selectedIndex],
-        ),
-              // Positioned bottom nav bar
-              Align(
-                alignment: Alignment.bottomCenter,
-                child:MediaQuery.of(context).viewInsets.bottom == 0 ? CustomBottomNavBar(
-                  selectedIndex: selectedIndex,
-                  onItemTapped:loaderProvider.setIndex //_onItemTapped,
-                ): SizedBox.shrink(),
-              ),
-
-// Consumer<LoaderVideoProvider>(
-//   builder: (context, loaderProvider, _) {
-//     if (!loaderProvider.isLoading) return SizedBox(child: Text('HELLO HELLO HELLOOOOOOOOOO'),);
-
-//     return GlassContainer.clearGlass(
-//       height: double.infinity,
-//       width: double.infinity,
-//       color: Colors.black.withOpacity(0.6),
-//       borderColor: Colors.transparent,
-//       child: Center(
-//         child: Container(
-//           height: MediaQuery.of(context).size.height * 1.8 / 3,
-//           width: double.infinity,
-//           padding: const EdgeInsets.all(20),
-//           decoration: BoxDecoration(
-//             borderRadius: BorderRadius.circular(15.0),
-//           ),
-//           child:Stack(
-//                   children: [
-//                     ClipRRect(
-//                       borderRadius: BorderRadius.circular(15.0),
-//                       child: VideoPlayer(
-//                         loaderProvider.controller,
-//                         key: ValueKey(DateTime.now().millisecondsSinceEpoch),
-//                       ),
-//                     ),
-//                     Column(
-//                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                       children: [
-//                         const Padding(
-//                           padding: EdgeInsets.only(top: 15.0),
-//                           child: Text(
-//                             'Connecting',
-//                             style: TextStyle(
-//                               fontSize: 16,
-//                               fontFamily: 'Poppins',
-//                               fontWeight: FontWeight.w700,
-//                             ),
-//                           ),
-//                         ),
-//                         Column(
-//                           children: const [
-//                             Text(
-//                               'Getting you to the Node..',
-//                               style: TextStyle(
-//                                 color: Color(0xff41FF41),
-//                                 fontSize: 18,
-//                                 fontFamily: 'Poppins',
-//                                 fontWeight: FontWeight.w600,
-//                               ),
-//                             ),
-//                             Text(
-//                               'This may take some time',
-//                               style: TextStyle(
-//                                 color: Color(0xffACACAC),
-//                                 fontSize: 12,
-//                                 fontFamily: 'Poppins',
-//                               ),
-//                             ),
-//                             SizedBox(height: 15),
-//                           ],
-//                         ),
-//                       ],
-//                     ),
-//                   ],
-//                 )
-//               //: const CircularProgressIndicator(),
-//         ),
-//       ),
-//     );
-//   },
-// )
-
-
-  loaderProvider.isLoading ?  GlassContainer.clearGlass(
-        height: double.infinity,width: double.infinity,
-        color: Colors.black.withOpacity(0.6),
-        borderColor: Colors.transparent,
-        child:Center(
-            child: Container(
-              height: MediaQuery.of(context).size.height*1.8/3,
-               width: double.infinity,              
-               padding: EdgeInsets.all(20),
-               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15.0)
-               ),
-              child: Stack(
+             child: Scaffold(
+              extendBody: true, // lets nav bar float over body
+              body: Stack(
                 children: [
-                  ClipRRect(
-                    borderRadius:BorderRadius.circular(15.0) ,
-                    child: VideoPlayer(loaderProvider.controller,
-                     key: ValueKey(DateTime.now().millisecondsSinceEpoch)
-                    )),
-
-                   Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                     children: [
-                       Center(child: Padding(
-                         padding: const EdgeInsets.only(top: 15.0),
-                         child: Text('Connecting',style: TextStyle(fontSize: 16,fontFamily: 'Poppins',fontWeight: FontWeight.w700),),
-                       )),
-                      Center(
-                        child: Column(
-                          children: [
-                            Text('Getting you to the Node..',style: TextStyle(color: Color(0xff41FF41),fontSize: 18,fontFamily: 'Poppins',fontWeight: FontWeight.w600),),
-                            Text('This may take some time', style: TextStyle(color: Color(0xffACACAC),fontSize: 12,fontFamily: 'Poppins'),),
-                            SizedBox(height: 15,)
-                          ],
-                        ),
-                      )
-                     ],
-                   )
+                  // Background image
+                  Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image:appModel.darkTheme ? AssetImage('assets/images/dark_theme/Dark_background.png') :AssetImage('assets/images/light_theme/White__theme_background_v1.png') , // <-- your image
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+             loaderProvider.conStatus == ConnectionStatus.CONNECTED ? Container(
+                      child:appModel.darkTheme ? Lottie.asset('assets/images/dark_theme/Dots_v1(1).json',fit: BoxFit.cover) : Lottie.asset('assets/images/light_theme/Dots_wht_theme(2).json',fit: BoxFit.cover),
+                    ): SizedBox(),
+             
+                  
+                  loaderProvider.isLoading ? Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    child:appModel.darkTheme ? Lottie.asset('assets/images/dark_theme/Loading_dark_theme.json',repeat: false,fit: BoxFit.cover //dark_theme/Loading_dark_with_text.json',repeat: false //Loading_dark.json',repeat: false 
+                    ) : Lottie.asset('assets/images/light_theme/Loading_white_theme.json',repeat: false ,fit: BoxFit.cover//Loading_white_theme_with_text.json',repeat: false //Loading_white_theme_v1.json',repeat: false
+                    ),
+                   ):SizedBox.shrink(),
+                  // // Active screen
+                  // _screens[_selectedIndex],
+                  // Inside your Stack:
+                     AnimatedSwitcher(
+              duration: Duration(milliseconds: 200),
+              transitionBuilder: (child, animation) {
+              final offsetAnimation = Tween<Offset>(
+                begin: Offset(0.0, 0.1), // slightly from bottom
+                end: Offset.zero,
+              ).animate(animation);
+                     
+              return SlideTransition(
+                position: offsetAnimation,
+                child: FadeTransition(
+                     opacity: animation,
+                     child: child,
+                ),
+              );
+                     },
+                     
+              // transitionBuilder: (child, animation) {
+              //   return FadeTransition(
+              //     opacity: animation,
+              //     child: child,
+              //   );
+              // },
+              child:Padding(
+                padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+                child: _getScreen(selectedIndex),
+              ) // _screens[selectedIndex],
+                     ),
+                  // Positioned bottom nav bar
+                  // Align(
+                  //   alignment: Alignment.bottomCenter,
+                  //   child:MediaQuery.of(context).viewInsets.bottom == 0 ? CustomBottomNavBar(
+                  //     selectedIndex: selectedIndex,
+                  //     onItemTapped:loaderProvider.setIndex //_onItemTapped,
+                  //   ): SizedBox.shrink(),
+                  // ),
                 ],
-              )),
-          )
-    ):SizedBox(),
-
-
-
-
-
-
-// GlassContainer.clearGlass(
-//             height: double.infinity,width: double.infinity,
-//             color: Colors.black.withOpacity(0.5),
-//             borderColor: Colors.transparent,
-//             child: Center(
-//               child: Padding(
-//                 padding: const EdgeInsets.all(10.0),
-//                 child: Material(
-//                   borderRadius: BorderRadius.circular(15),
-//                   color: Colors.transparent,
-//                   child: Container(
-//                     width: double.infinity,
-//                     //margin: EdgeInsets.all(15),
-//                     padding: const EdgeInsets.all(10),
-//                     decoration: BoxDecoration(
-//                       border: Border.all(color: Color(0xffACACAC),width: 0.5),
-//                       borderRadius: BorderRadius.circular(10)
-//                     ),
-//                     // constraints: BoxConstraints(
-//                     //   maxWidth: 400, // optional for tablet/landscape sizing
-//                     //   maxHeight: 300,
-//                     // ),
-//                     child: Column(
-//                       mainAxisSize: MainAxisSize.min,
-//                       children: [
-
-//                         Row(
-//                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                           children: [
-//                             SvgPicture.asset('assets/images/dark_theme/close.svg',color: Colors.transparent,),
-//                             Text("Add Exit Node", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-//                             SvgPicture.asset('assets/images/dark_theme/close.svg')
-//                           ],
-//                         ),
-
-//                         SizedBox(height: 10),
-
-//                         Column(
-//                           mainAxisAlignment: MainAxisAlignment.start,
-//                           crossAxisAlignment: CrossAxisAlignment.baseline,
-//                           textBaseline: TextBaseline.alphabetic,
-//                           children: [
-//                             Text("Exit Node"),
-//                             Container(
-//                   height: 50,
-//                   width: double.infinity,
-//                   decoration: BoxDecoration(
-//                     color: Colors.white.withOpacity(0.05),
-//                     borderRadius: BorderRadius.circular(10),
-//                     border: Border.all(color: const Color(0xff3A496266).withOpacity(0.1)),
-//                   ),
-//                   child: TextField(
-//                     //controller: exitNodeController,
-//                     decoration: InputDecoration(
-//                       hintText: 'Enter Exit node',
-//                      // prefixIcon: const Icon(Icons.search),
-//                       border: InputBorder.none,
-//                       hintStyle: const TextStyle(
-//                         fontFamily: 'Poppins',
-//                         fontSize: 14,
-//                         fontWeight: FontWeight.w500,
-//                         color: Color(0xff5B5B69)
-//                       ),
-                
-//                     ),
-//                     onChanged: (value) {
-//                       // Provider.of<AppSelectingProvider>(context, listen: false)
-//                       //     .updateSearchQuery(value);
-//                     },
-//                   ),
-//                 ),
-//                 Text("Exit Node"),
-//                             Container(
-//                   height: 50,
-//                   width: double.infinity,
-//                   decoration: BoxDecoration(
-//                     color: Colors.white.withOpacity(0.05),
-//                     borderRadius: BorderRadius.circular(10),
-//                     border: Border.all(color: const Color(0xff3A496266).withOpacity(0.1)),
-//                   ),
-//                   child: TextField(
-//                     //controller: exitNodeController,
-//                     decoration: InputDecoration(
-//                       hintText: 'Enter Auth Code',
-//                      // prefixIcon: const Icon(Icons.search),
-//                       border: InputBorder.none,
-//                       hintStyle: const TextStyle(
-//                         fontFamily: 'Poppins',
-//                         fontSize: 14,
-//                         fontWeight: FontWeight.w500,
-//                         color: Color(0xff5B5B69)
-//                       ),
-                
-//                     ),
-//                     onChanged: (value) {
-//                       // Provider.of<AppSelectingProvider>(context, listen: false)
-//                       //     .updateSearchQuery(value);
-//                     },
-//                   ),
-//                 ),
-//                           ],
-//                         ),
-//                         SizedBox(height: 20),
-//                         ElevatedButton(
-//                           onPressed: () => Navigator.pop(context),
-//                           child: Text("Close"),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//             ),
-//           )
-
-
-
-
-
-
-            ],
-          ),
-        ),
+              ),
+              bottomNavigationBar: Align(
+                    alignment: Alignment.bottomCenter,
+                    child:MediaQuery.of(context).viewInsets.bottom == 0 ? CustomBottomNavBar(
+                      selectedIndex: selectedIndex,
+                      onItemTapped:loaderProvider.setIndex //_onItemTapped,
+                    ): SizedBox.shrink(),),
+                     ),
+           ),
+         ),
      // ),
     ) : NoInternetConnection();
   }
+
+
 }
 
 
@@ -630,28 +426,32 @@ class CustomBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+       final appModel = Provider.of<AppModel>(context);
+
     return Padding(
-      padding: EdgeInsets.only(bottom: 10), // little bottom space
-      child: ClipRRect(
+      padding: EdgeInsets.only(right:9,left: 9), // little bottom space
+      child:
+       ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
+          child: 
+          Container(
             padding: EdgeInsets.symmetric( vertical: 15),
              decoration: BoxDecoration(
-    color: Colors.white.withOpacity(0.05),
+    color: appModel.darkTheme ? Colors.white.withOpacity(0.05) : Color(0xffC0C0C0).withOpacity(0.2),
     borderRadius: BorderRadius.circular(12),
     //border: Border. //all(color: Color(0xff3A496266).withOpacity(0.1)),
   ),
            // color: Colors.black.withOpacity(0.3),
-            margin: EdgeInsets.symmetric(horizontal: 12),
+            //margin: EdgeInsets.symmetric(horizontal: 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildNavItem('assets/images/dark_theme/home.svg', 0,activeColor: Color(0xff00DC00)),
-                _buildNavItem('assets/images/dark_theme/Nodes.svg', 1,activeColor: Color(0xff00DC00)),
-                _buildNavItem('assets/images/dark_theme/Analytics.svg', 2,activeColor: Color(0xff00DC00)),
-                _buildNavItem('assets/images/dark_theme/Settings.svg', 3,activeColor: Color(0xff00DC00)),
+                _buildNavItem('assets/images/dark_theme/home.svg', 0,activeColor: Color(0xff00DC00),appModel: appModel),
+                _buildNavItem('assets/images/dark_theme/Nodes.svg', 1,activeColor: Color(0xff00DC00),appModel: appModel),
+                _buildNavItem('assets/images/dark_theme/Analytics.svg', 2,activeColor: Color(0xff00DC00),appModel: appModel),
+                _buildNavItem('assets/images/dark_theme/Settings.svg', 3,activeColor: Color(0xff00DC00),appModel: appModel),
               ],
             ),
           ),
@@ -660,18 +460,19 @@ class CustomBottomNavBar extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(String icon, int index, {Color activeColor = Colors.white}) {
+  Widget _buildNavItem(String icon, int index, {Color activeColor = Colors.white,AppModel? appModel}) {
     bool isSelected = selectedIndex == index;
     return GestureDetector(
       onTap: () => onItemTapped(index),
       child: Container(
         padding: EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color:isSelected ? Colors.white.withOpacity(0.11) : Colors.white.withOpacity(0.07), // Colors.grey.shade900.withOpacity(0.7),
+          color:isSelected ? appModel!.darkTheme ? Colors.white.withOpacity(0.12) 
+          : Colors.white : appModel!.darkTheme ? Color(0xff3A4962).withOpacity(0.3) : Color(0xffA1A1A1).withOpacity(0.3), // Colors.grey.shade900.withOpacity(0.7),
           shape: BoxShape.rectangle,
           borderRadius: BorderRadius.circular(10)
         ),
-        child: SvgPicture.asset(icon, color: isSelected ? activeColor : Colors.grey,height: 20,)
+        child: SvgPicture.asset(icon, color: isSelected ? activeColor : appModel.darkTheme ? Colors.grey : Color(0xff4D4D4D),height: 20,)
         // Icon(
         //   icon,
         //   color: isSelected ? activeColor : Colors.grey,
@@ -681,6 +482,8 @@ class CustomBottomNavBar extends StatelessWidget {
     );
   }
 }
+
+
 
 
 

@@ -1,0 +1,1 @@
+/home/guna/Documents/gabsid/projects/belnet/belnet-app/build/app/intermediates/cxx/Debug/2t71y4aw/obj/arm64-v8a

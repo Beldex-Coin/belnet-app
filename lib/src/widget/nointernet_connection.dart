@@ -1,5 +1,8 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:glass_kit/glass_kit.dart';
 import 'package:provider/provider.dart';
 
 import '../model/theme_set_provider.dart';
@@ -10,102 +13,165 @@ class NoInternetConnection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appModel = Provider.of<AppModel>(context);
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: appModel.darkTheme
-              ? [
-                  Color(0xFF242430),
-                  Color(0xFF1C1C26),
-                ]
-              : [
-                  Color(0xFFF9F9F9),
-                  Color(0xFFEBEBEB),
-                ],
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Container(
-            padding: EdgeInsets.only(
-                top: MediaQuery.of(context).size.height * 0.40 / 3),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                    height: MediaQuery.of(context).size.height * 1 / 3,
-                    width: MediaQuery.of(context).size.width * 1.3 / 3,
-                    child: SvgPicture.asset(
-                        'assets/images/icons8-wi-fi_disconnected (1).svg',
-                        color: appModel.darkTheme
-                            ? Color(0xff4D4D64)
-                            : Color(0xffC7C7C7),
-                        height: MediaQuery.of(context).size.height * 0.20 / 3)),
-                Container(
-                  padding: EdgeInsets.only(
-                    left: 15.0,
-                    right: 15.0,
-                  ),
-                  child: Center(
-                    child: Text(
-                      'No internet connection.',
-                      style: TextStyle(
-                          color: appModel.darkTheme
-                              ? Color(0xffA1A1C1)
-                              : Color(0xff56566F),
-                          fontWeight: FontWeight.w900,
-                          fontSize:
-                              MediaQuery.of(context).size.height * 0.08 / 3,
-                          fontFamily: 'Poppins'),
-                    ),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBody: true,
+      body: Stack(
+        children: [
+            Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image:appModel.darkTheme ? AssetImage('assets/images/dark_theme/Dark_background.png') :AssetImage('assets/images/light_theme/White__theme_background_v1.png'),
+                    fit: BoxFit.cover,
                   ),
                 ),
-                Container(
-                    //color: Colors.green,
+              ),
+          Container(
+              padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).size.height * 0.40 / 3),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Spacer(
+                    flex: 4,
+                  ),
+                  Container(
+                      height: MediaQuery.of(context).size.height * 1 / 3,
+                      width: MediaQuery.of(context).size.width * 1.3 / 3,
+                      child:appModel.darkTheme ? SvgPicture.asset('assets/images/dark_theme/no_connection.svg',height: MediaQuery.of(context).size.height * 0.20 / 3,color: Color(0xff8A8A9D).withOpacity(0.8),) : SvgPicture.asset('assets/images/light_theme/no_connection.svg',height: MediaQuery.of(context).size.height * 0.20 / 3,color: Color(0xff8FB2CE).withOpacity(0.7),)),
+                  Container(
                     padding: EdgeInsets.only(
-                        left: MediaQuery.of(context).size.height * 0.14 / 3,
-                        right: MediaQuery.of(context).size.height * 0.14 / 3,
-                        top: 5.0),
+                      left: 15.0,
+                      right: 15.0,
+                    ),
                     child: Center(
-                        child: Text(
-                            'You are not connected to the internet. Make sure WiFi/Mobile data is on.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: appModel.darkTheme
-                                    ? Color(0xffA1A1C1)
-                                    : Color(0xff56566F),
-                                fontFamily: 'Poppins')))),
-                Spacer(),
-                Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).size.height * 0.35 / 3),
-                  child: Container(
-                      height: MediaQuery.of(context).size.height * 0.20 / 3,
-                      width: MediaQuery.of(context).size.height * 0.70 / 3,
-                      decoration: BoxDecoration(
-                          color: Color(0xff00DC00),
-                          borderRadius: BorderRadius.all(Radius.circular(18.0)),
-                          border:
-                              Border.all(color: Color(0xff00DC00), width: 2)),
-                      child: TextButton(
-                        child: Text(
-                          'Retry',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'Poppins',
+                      child: Text(
+                        'No internet connection',
+                        style: TextStyle(
+                            color: appModel.darkTheme
+                                ? Color(0xffEBEBEB)
+                                : Color(0xff333333),
+                            fontWeight: FontWeight.w900,
                             fontSize:
-                                MediaQuery.of(context).size.height * 0.07 / 3,
-                            // fontWeight: FontWeight.w900
-                          ),
+                                MediaQuery.of(context).size.height * 0.09 / 3,
+                            fontFamily: 'Poppins'),
+                      ),
+                    ),
+                  ),
+                  Container(
+                      //color: Colors.green,
+                      padding: EdgeInsets.only(
+                          left: MediaQuery.of(context).size.height * 0.10 / 3,
+                          right: MediaQuery.of(context).size.height * 0.10 / 3,
+                          top: 5.0),
+                      child: Center(
+                          child: Text(
+                              'You are not connected to the internet. Make sure WiFi/Mobile data is on.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: appModel.darkTheme
+                                      ? Color(0xffACACAC)
+                                      : Color(0xff2E3E49),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w100,
+                                  fontFamily: 'Poppins')))),
+                  Spacer(flex: 3,),
+                appModel.darkTheme ?  Padding(
+                    padding: EdgeInsets.only(
+                        top: MediaQuery.of(context).size.height * 0.19 / 3,
+                        bottom: MediaQuery.of(context).size.height * 0.12 / 3,
+
                         ),
-                        onPressed: () {},
-                      )),
-                )
-              ],
-            )),
+
+                    child: GlassContainer.clearGlass(
+                        height: MediaQuery.of(context).size.height * 0.20 / 3,
+                        width: MediaQuery.of(context).size.height * 0.70 / 3,
+                       // decoration: BoxDecoration(
+                            color: Color(0xff00DC00).withOpacity(0.02),// Color(0xff00DC00),
+                            borderRadius: BorderRadius.all(Radius.circular(14.0)),
+                            borderColor:Color(0xff00DC00),
+                            borderWidth: 1,
+                               // Border.all(color: Color(0xff00DC00), width: 1)
+                               // ),
+                        child: TextButton(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.wifi,color: Color(0xff00DC00),),
+                              SizedBox(width: 8,),
+                              Text(
+                                'Retry',
+                                style: TextStyle(
+                                  color:Color(0xff00DC00),
+                                  fontFamily: 'Poppins',
+                                  fontSize:
+                                      MediaQuery.of(context).size.height * 0.07 / 3,
+                                  // fontWeight: FontWeight.w900
+                                ),
+                              ),
+                            ],
+                          ),
+                          onPressed: () {},
+                        )),
+                  ):Padding(
+                    padding: EdgeInsets.only(
+                        top: MediaQuery.of(context).size.height * 0.19 / 3,
+                        bottom: MediaQuery.of(context).size.height * 0.14 / 3,
+
+                        ),
+
+                    child: Container(
+                        height: MediaQuery.of(context).size.height * 0.20 / 3,
+                        width: MediaQuery.of(context).size.height * 0.70 / 3,
+                         decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12.0),
+                          border: Border.all(color:  Color(0xff00B400) //: Color(0xffACACAC)
+                          ,width: 0.6),
+                          //color: Colors.grey,
+                          // gradient: LinearGradient(
+                          //     colors: [const Color(0xff007ED1),const Color(0xff0093FF)]),
+                         
+                          boxShadow: [
+                             BoxShadow(
+                    color: Color(0xff00B400).withOpacity(0.2)                  
+                  ),
+                  BoxShadow(
+                    color: Colors.white,
+                    spreadRadius: -02.0,
+                    blurRadius: 13.5,
+                   // offset: Offset(-3.0, 4.5),
+                  )]),
+                        // decoration: BoxDecoration(
+                        //     color: Colors.transparent,// Color(0xff00DC00),
+                        //     borderRadius: BorderRadius.all(Radius.circular(14.0)),
+                        //     border:
+                        //         Border.all(color: Color(0xff00DC00), width: 1)),
+                        child: TextButton(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.wifi,color: Color(0xff00B400),),
+                              SizedBox(width: 8,),
+                              Text(
+                                'Retry',
+                                style: TextStyle(
+                                  color:Color(0xff00B400),
+                                  fontFamily: 'Poppins',
+                                  fontSize:
+                                      MediaQuery.of(context).size.height * 0.07 / 3,
+                                   fontWeight: FontWeight.w700
+                                ),
+                              ),
+                            ],
+                          ),
+                          onPressed: () {},
+                        )),
+                  )
+                ],
+              )),
+        ],
       ),
     );
   }

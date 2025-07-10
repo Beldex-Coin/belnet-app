@@ -1,28 +1,27 @@
 buildscript {
-    ext.kotlin_version = '1.7.10'
+    ext.kotlin_version = '2.0.20' // Updated for Java 17 support
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
-
     dependencies {
-		classpath "com.android.tools.build:gradle:7.4.2"
+        classpath 'com.android.tools.build:gradle:8.5.2' // Latest stable version
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.diffplug.spotless:spotless-plugin-gradle:6.25.0' // Added only here, not in plugins{}
     }
 }
 
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 }
 
 rootProject.buildDir = '../build'
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
     project.evaluationDependsOn(':app')
 }
 

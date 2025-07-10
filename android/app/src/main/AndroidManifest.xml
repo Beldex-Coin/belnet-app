@@ -17,6 +17,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <!-- Provide required visibility configuration for API level 30 and above -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 <queries>
   <!-- If your app checks for HTTPS support -->
   <intent>

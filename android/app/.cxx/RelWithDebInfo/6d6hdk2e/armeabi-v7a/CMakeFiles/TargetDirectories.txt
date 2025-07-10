@@ -1,0 +1,2 @@
+/home/guna/Documents/gabsid/projects/belnet/belnet-app/android/app/.cxx/RelWithDebInfo/6d6hdk2e/armeabi-v7a/CMakeFiles/edit_cache.dir
+/home/guna/Documents/gabsid/projects/belnet/belnet-app/android/app/.cxx/RelWithDebInfo/6d6hdk2e/armeabi-v7a/CMakeFiles/rebuild_cache.dir

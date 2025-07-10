@@ -1,103 +1,105 @@
-group "io.beldex.belnet_lib"
-version "1.0-SNAPSHOT"
-
-buildscript {
-	ext.kotlin_version = "1.7.10"
-	repositories {
-		google()
-		jcenter()
-		maven {
-			url "https://plugins.gradle.org/m2/"
-		}
-	}
-
-	dependencies {
-		classpath "com.android.tools.build:gradle:7.4.2"
-		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-		classpath "com.diffplug.spotless:spotless-plugin-gradle:5.14.0"
-	}
+plugins {
+    id "com.android.library"
+    id "kotlin-android"
+    id "com.diffplug.spotless" // Removed version here to prevent conflict
 }
 
-rootProject.allprojects {
-	repositories {
-		google()
-		jcenter()
-	}
-}
-apply plugin: "com.diffplug.spotless"
-apply plugin: "com.android.library"
-apply plugin: "kotlin-android"
-
-spotless {
-	java {
-		target "$projectDir/src/main/java/**/*.java"
-		importOrder() // standard import order
-		removeUnusedImports()
-		googleJavaFormat()
-		prettier()
-	}
-	groovyGradle {
-		importOrder()
-		target '*.gradle' // default target of groovyGradle
-		greclipse()
-	}
-
-	kotlin {
-		target "$projectDir/src/main/kotlin/**/*.kt"
-		ktfmt()    // has its own section below
-	}
-}
+group = "io.beldex.belnet_lib"
+version = "1.0-SNAPSHOT"
 
 android {
-	compileSdkVersion 34
+    namespace "io.beldex.belnet.lib"
+    compileSdk 35
+    ndkVersion "21.3.6528147"
 
-	ndkVersion '21.3.6528147'
-	sourceSets {
-		main.java.srcDirs += "src/main/java"
-		main.java.srcDirs += "src/main/kotlin"
-		main.jniLibs.srcDirs += "src/main/jniLibs"
-	}
-	defaultConfig {
-		minSdkVersion 21
-	}
-	lintOptions {
-		disable "InvalidPackage"
-	}
-	compileOptions {
-		sourceCompatibility JavaVersion.VERSION_1_8
-		targetCompatibility JavaVersion.VERSION_1_8
-	}
+    sourceSets {
+        main {
+            java.srcDirs += ["src/main/java", "src/main/kotlin"]
+            jniLibs.srcDirs += ["src/main/jniLibs"]
+        }
+    }
+
+    defaultConfig {
+        minSdk 23
+        targetSdk 35
+    }
+
+    lint {
+        disable "InvalidPackage"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+spotless {
+    java {
+        target "$projectDir/src/main/java/**/*.java"
+        importOrder()
+        removeUnusedImports()
+        googleJavaFormat()
+        prettier()
+    }
+    groovyGradle {
+        importOrder()
+        target "*.gradle"
+        greclipse()
+    }
+    kotlin {
+        target "$projectDir/src/main/kotlin/**/*.kt"
+        ktfmt()
+    }
 }
 
 dependencies {
-	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.20"
 }
 
-task cleanNativeLibs(type: Delete) {
-	delete "$projectDir/../external/belnet/build-android"
+tasks.register("cleanNativeLibs", Delete) {
+    delete "$projectDir/../external/belnet/build-android"
 }
 
-task compileNativeLibs(type: Exec) {
-	def f = new File("$projectDir/../external/belnet/contrib/android.sh")
-	if ( f.exists() ) {
-		workingDir "$projectDir/../external/belnet"
-		environment "NDK", project.android.ndkDirectory
-		executable "./contrib/android.sh"
-	} else {
-		executable "true"
-	}
+tasks.register("compileNativeLibs", Exec) {
+    def f = new File("$projectDir/../external/belnet/contrib/android.sh")
+    if (f.exists()) {
+        workingDir "$projectDir/../external/belnet"
+        environment "NDK", project.android.ndkDirectory
+        executable "./contrib/android.sh"
+    } else {
+        executable "true"
+    }
 }
 
-task ensureNativeLibs(type: Copy) {
-	from("$projectDir/../external/belnet/build-android") {
-		include 'out/*/*.so'
-		eachFile { fcd ->
-			fcd.relativePath = new RelativePath(true, fcd.relativePath.segments.drop(1))
-		}
-	}
-	into "$projectDir/src/main/jniLibs/"
+tasks.register("ensureNativeLibs", Copy) {
+    from("$projectDir/../external/belnet/build-android") {
+        include "out/*/*.so"
+        eachFile { fcd ->
+            fcd.relativePath = new RelativePath(true, fcd.relativePath.segments.drop(1))
+        }
+    }
+    into "$projectDir/src/main/jniLibs/"
 }
 
-ensureNativeLibs.dependsOn compileNativeLibs
-preBuild.dependsOn ensureNativeLibs
-clean.dependsOn cleanNativeLibs
+tasks.named("preBuild") {
+    dependsOn tasks.named("ensureNativeLibs")
+}
+
+tasks.named("ensureNativeLibs") {
+    dependsOn tasks.named("compileNativeLibs")
+}
+
+tasks.named("clean") {
+    dependsOn tasks.named("cleanNativeLibs")
+}

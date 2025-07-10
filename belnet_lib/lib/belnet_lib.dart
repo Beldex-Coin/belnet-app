@@ -11,6 +11,11 @@ class BelnetLib {
   static const EventChannel _isConnectedEventChannel =
       const EventChannel('belnet_lib_is_connected_event_channel');
 
+
+static const EventChannel disconnectEventChannel = EventChannel('belnet_lib_notification_disconnect_event_channel');
+
+
+
   static bool _isConnected = false;
 
   static bool get isConnected => _isConnected;
@@ -52,11 +57,12 @@ class BelnetLib {
 //conncting belnet
   static Future<bool> connectToBelnet(
       //"9.9.9.9"
+      List<String> packageNames,
       {String exitNode =
           "exit.bdx",
       String upstreamDNS = "9.9.9.9"}) async {
     final bool connect = await _methodChannel.invokeMethod(
-        'connect', {"exit_node": exitNode, "upstream_dns": upstreamDNS});
+        'connect', {"exit_node": exitNode, "upstream_dns": upstreamDNS, "package_names": packageNames});
 
     return connect;
   }

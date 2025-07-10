@@ -1,16 +1,7 @@
 package io.beldex.belnet_lib
 
-
-//import android.R.attr.name
-
-//import android.R.attr.name
-
-
-//import android.content.Context
-
 import android.annotation.SuppressLint
-import android.app.Activity.RESULT_OK
-import android.app.Notification
+import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ComponentName
@@ -19,19 +10,14 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.net.TrafficStats
 import android.net.VpnService
-
 import android.os.IBinder
 import android.os.SystemClock
 import android.util.Log
-import androidx.annotation.NonNull
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
-import io.flutter.embedding.engine.plugins.lifecycle.HiddenLifecycleReference
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -42,10 +28,14 @@ import network.beldex.belnet.ConnectionTools
 import kotlin.math.roundToLong
 
 
+
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
+
 /** BelnetLibPlugin */
-open class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
-    private var mShouldUnbind: Boolean = false
-    private var mBoundService: BelnetDaemon? = null
+class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
+    private var shouldUnbind: Boolean = false
+    private var boundService: BelnetDaemon? = null
     private var lastTimestamp = 0L
     private lateinit var activityBinding: ActivityPluginBinding
     private var sessionDownloaded = 0L
@@ -53,85 +43,106 @@ open class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private var lastTotalDownload = 0L
     private var lastTotalUpload = 0L
     private var sessionStart = 0L
-    private var logData:String = ""
-    lateinit var notificationManager: NotificationManager
-    lateinit var notificationChannel: NotificationChannel
-    lateinit var builder: Notification.Builder
-    lateinit var  myD:String
-    var mutableString : MutableLiveData<String> = MutableLiveData()
-    /// The MethodChannel that will the communication between Flutter and native Android
-    ///
-    /// This local reference serves to register the plugin with the Flutter Engine and unregister it
-    /// when the Flutter Engine is detached from the Activity
-    private lateinit var mMethodChannel: MethodChannel
-    private lateinit var mIsConnectedEventChannel: EventChannel
-
-    private var mEventSink: EventChannel.EventSink? = null
-    private var mIsConnectedObserver =
-            Observer<Boolean> { newIsConnected ->
-                // Propagate to the dart package.
-                mEventSink?.success(newIsConnected)
-            }
+    private lateinit var methodChannel: MethodChannel
+    private lateinit var isConnectedEventChannel: EventChannel
+    private var eventSink: EventChannel.EventSink? = null
+    private lateinit var notificationDisconnectEventChannel: EventChannel
+    private var disconnectEventSink: EventChannel.EventSink? = null
+     private lateinit var notificationDisconnectReceiver: BroadcastReceiver
 
 
-
-    private var mLifecycleOwner =
-            object : LifecycleOwner {
-                override fun getLifecycle(): Lifecycle {
-                    return (activityBinding.lifecycle as HiddenLifecycleReference).lifecycle
-                }
-            }
-
-    override fun onAttachedToEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-        System.loadLibrary("belnet-android")
-
-        mMethodChannel = MethodChannel(binding.binaryMessenger, "belnet_lib_method_channel")
-        mMethodChannel.setMethodCallHandler(this)
-
-        mIsConnectedEventChannel =
-                EventChannel(binding.binaryMessenger, "belnet_lib_is_connected_event_channel")
-        mIsConnectedEventChannel.setStreamHandler(
-                object : EventChannel.StreamHandler {
-                    override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-                        mEventSink = events
-                    }
-
-                    override fun onCancel(arguments: Any?) {
-                        mEventSink?.endOfStream()
-                        mEventSink = null
-                    }
-                }
-        )
-
+    // Observe the isConnected LiveData
+    private val isConnectedObserver = Observer<Boolean> { isConnected ->
+        eventSink?.success(isConnected)
     }
 
-    override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-        mMethodChannel.setMethodCallHandler(null)
+    override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        System.loadLibrary("belnet-android")
 
+        methodChannel = MethodChannel(binding.binaryMessenger, "belnet_lib_method_channel")
+        methodChannel.setMethodCallHandler(this)
+
+        isConnectedEventChannel = EventChannel(binding.binaryMessenger, "belnet_lib_is_connected_event_channel")
+        isConnectedEventChannel.setStreamHandler(
+            object : EventChannel.StreamHandler {
+                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                    eventSink = events
+                    // Start observing isConnected when the stream is listened to
+                    boundService?.isConnected()?.observe(activityBinding.activity as LifecycleOwner, isConnectedObserver)
+                }
+
+                override fun onCancel(arguments: Any?) {
+                    eventSink?.endOfStream()
+                    eventSink = null
+                    // Stop observing when the stream is canceled
+                    boundService?.isConnected()?.removeObserver(isConnectedObserver)
+                }
+            }
+        )
+
+
+
+
+
+        notificationDisconnectEventChannel = EventChannel(binding.binaryMessenger, "belnet_lib_notification_disconnect_event_channel")
+        notificationDisconnectEventChannel.setStreamHandler(
+            object : EventChannel.StreamHandler {
+                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                    disconnectEventSink = events
+                    notificationDisconnectReceiver = object : BroadcastReceiver() {
+                        override fun onReceive(context: Context?, intent: Intent?) {
+                            if (intent?.action == "com.belnet.NOTIFICATION_DISCONNECTED") {
+                                Log.d("BelnetLibPlugin", "Received notification disconnect broadcast")
+                                disconnectEventSink?.success("notification_disconnect")
+                            }
+                        }
+                    }
+                    val filter = IntentFilter("com.belnet.NOTIFICATION_DISCONNECTED")
+                    activityBinding.activity.registerReceiver(notificationDisconnectReceiver, filter)
+                }
+
+                override fun onCancel(arguments: Any?) {
+                    disconnectEventSink = null
+                    try {
+                        notificationDisconnectReceiver?.let {
+                            activityBinding.activity.unregisterReceiver(it)
+                        }
+                    } catch (e: Exception) {
+                        Log.e("BelnetLibPlugin", "Receiver already unregistered: ${e.message}")
+                    }
+                }
+            }
+        )
+    }
+
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        methodChannel.setMethodCallHandler(null)
+         try {
+            notificationDisconnectReceiver?.let {
+                activityBinding.activity.unregisterReceiver(it)
+            }
+        } catch (e: Exception) {
+            Log.e("BelnetLibPlugin", "Failed to unregister receiver: ${e.message}")  
+        }
         doUnbindService()
     }
 
     @SuppressLint("NewApi")
-    override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
+    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "prepare" -> {
                 val intent = VpnService.prepare(activityBinding.activity.applicationContext)
                 if (intent != null) {
-                    var listener: PluginRegistry.ActivityResultListener? = null
-                    listener =
-                            PluginRegistry.ActivityResultListener { req, res, _ ->
-                                if (req == 0 && res == RESULT_OK) {
-                                    result.success(true)
-                                } else {
-                                    result.success(false)
-                                }
-                                listener?.let { activityBinding.removeActivityResultListener(it) }
-                                true
-                            }
+                    val listener = object : PluginRegistry.ActivityResultListener {
+                        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+                            activityBinding.removeActivityResultListener(this)
+                            result.success(requestCode == 0 && resultCode == Activity.RESULT_OK)
+                            return true
+                        }
+                    }
                     activityBinding.addActivityResultListener(listener)
                     activityBinding.activity.startActivityForResult(intent, 0)
                 } else {
-                    // If intent is null, already prepared
                     result.success(true)
                 }
             }
@@ -142,143 +153,107 @@ open class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             "connect" -> {
                 val intent = VpnService.prepare(activityBinding.activity.applicationContext)
                 if (intent != null) {
-                    // Not prepared yet
                     result.success(false)
                     return
                 }
 
                 val exitNode = call.argument<String>("exit_node")
                 val upstreamDNS = call.argument<String>("upstream_dns")
+                val packageNames = call.argument<List<String>>("package_names")
 
-                val belnetIntent =
-                        Intent(
-                                activityBinding.activity.applicationContext,
-                                BelnetDaemon::class.java
-                        )
-                belnetIntent.action = BelnetDaemon.ACTION_CONNECT
-                belnetIntent.putExtra(BelnetDaemon.EXIT_NODE, exitNode)
-                belnetIntent.putExtra(BelnetDaemon.UPSTREAM_DNS, upstreamDNS)
+                val belnetIntent = Intent(activityBinding.activity.applicationContext, BelnetDaemon::class.java).apply {
+                    action = BelnetDaemon.ACTION_CONNECT
+                    putExtra(BelnetDaemon.EXIT_NODE, exitNode)
+                    putExtra(BelnetDaemon.UPSTREAM_DNS, upstreamDNS)
+                    packageNames?.let {
+                        putStringArrayListExtra(BelnetDaemon.ALLOWED_APPS, ArrayList(it))
+                    }
+                }
 
                 activityBinding.activity.applicationContext.startService(belnetIntent)
                 doBindService()
                 result.success(true)
             }
             "disconnect" -> {
-                var intent = VpnService.prepare(activityBinding.activity.applicationContext)
+                val intent = VpnService.prepare(activityBinding.activity.applicationContext)
                 if (intent != null) {
-                    // Not prepared yet
                     result.success(false)
                     return
                 }
-                val belnetIntent =
-                        Intent(
-                                activityBinding.activity.applicationContext,
-                                BelnetDaemon::class.java
-                        )
-               belnetIntent.action = BelnetDaemon.ACTION_DISCONNECT
-
+                val belnetIntent = Intent(activityBinding.activity.applicationContext, BelnetDaemon::class.java).apply {
+                    action = BelnetDaemon.ACTION_DISCONNECT
+                }
                 activityBinding.activity.applicationContext.startService(belnetIntent)
-
-            doBindService()
-                Log.d("Test","inside disconnect function")
-
+                doBindService()
+                Log.d("BelnetLibPlugin", "Disconnect called")
                 result.success(true)
             }
             "isRunning" -> {
-                if (mBoundService != null) {
-                    result.success(mBoundService!!.IsRunning())
-                } else {
-                    result.success(false)
-                }
+                result.success(boundService?.IsRunning() ?: false)
             }
             "getStatus" -> {
-                if (mBoundService != null) {
-                    result.success(mBoundService!!.DumpStatus())
-                    Log.d("Test","mBoundService is " + mBoundService)
-                } else {
-                    result.success(false)
-                }
+                result.success(boundService?.DumpStatus() ?: false)
+                Log.d("BelnetLibPlugin", "getStatus: ${boundService?.DumpStatus()}")
             }
-             "getUploadSpeed" -> {
-                     val timestamp = SystemClock.elapsedRealtime()
-                     val elapsedMillis = timestamp - lastTimestamp
-                     val elapsedSeconds = elapsedMillis / 1000f
+            "getUploadSpeed" -> {
+                val timestamp = SystemClock.elapsedRealtime()
+                val elapsedMillis = timestamp - lastTimestamp
+                val elapsedSeconds = elapsedMillis / 1000f
 
-                     // Speeds need to be divided by two due to TrafficStats calculating both phone and VPN
-                     // interfaces which leads to doubled data. NetworkStatsManager may have solved this
-                     // problem but is only available from marshmallow.
-                     val totalUpload = TrafficStats.getTotalTxBytes()
-                     val uploaded = (totalUpload - lastTotalUpload).coerceAtLeast(0) / 2
+                val totalUpload = TrafficStats.getTotalTxBytes()
+                val uploaded = (totalUpload - lastTotalUpload).coerceAtLeast(0) / 2
+                val uploadSpeed = (uploaded / elapsedSeconds).roundToLong()
 
-                     val uploadSpeed = (uploaded / elapsedSeconds).roundToLong()
+                sessionUploaded += uploaded
+                val uploadString = ConnectionTools.bytesToSize(uploadSpeed) + "ps"
+                result.success(uploadString)
 
-                     sessionUploaded += uploaded
-                     val sessionTimeSeconds = (timestamp - sessionStart).toInt() / 1000
-                 var sessionUploadString = ConnectionTools.bytesToSize(sessionUploaded)
-                 var uploadSpeedString = ConnectionTools.bytesToSize(uploadSpeed) +"ps"
-              //  UpdateNetwork(true).callfunctionContinuesly(uploadSpeedString)
-
-                 val uploadString = ConnectionTools.bytesToSize(uploadSpeed) +"ps"
-                 result.success(uploadString)
-
-                // callFunction(uploadString);
-                     lastTotalUpload = totalUpload
-                     lastTimestamp = timestamp
-
-             }
+                lastTotalUpload = totalUpload
+                lastTimestamp = timestamp
+            }
             "getDownloadSpeed" -> {
                 val timestamp = SystemClock.elapsedRealtime()
                 val elapsedMillis = timestamp - lastTimestamp
                 val elapsedSeconds = elapsedMillis / 1000f
 
-                // Speeds need to be divided by two due to TrafficStats calculating both phone and VPN
-                // interfaces which leads to doubled data. NetworkStatsManager may have solved this
-                // problem but is only available from marshmallow.
                 val totalDownload = TrafficStats.getTotalRxBytes()
                 val totalUpload = TrafficStats.getTotalTxBytes()
                 val downloaded = (totalDownload - lastTotalDownload).coerceAtLeast(0) / 2
                 val uploaded = (totalUpload - lastTotalUpload).coerceAtLeast(0) / 2
                 val downloadSpeed = (downloaded / elapsedSeconds).roundToLong()
-                val uploadSpeed = (uploaded / elapsedSeconds).roundToLong()
 
                 sessionDownloaded += downloaded
                 sessionUploaded += uploaded
 
-                val sessionTimeSeconds = (timestamp - sessionStart).toInt() / 1000
                 val downloadString = ConnectionTools.bytesToSize(downloadSpeed) + "ps"
-                Log.d("TagDownload", "This is downloadString$downloadString")
+                Log.d("BelnetLibPlugin", "Download speed: $downloadString")
                 result.success(downloadString)
-
 
                 lastTotalDownload = totalDownload
                 lastTotalUpload = totalUpload
                 lastTimestamp = timestamp
             }
-            "getDataStatus"->{
-                if (mBoundService != null) {
-                    result.success(mBoundService!!.GetStatus())
-                    Log.d("Test","mBoundService is " + mBoundService!!.GetStatus())
-                } else {
-                    result.success(false)
-                }
+            "getDataStatus" -> {
+                if (boundService == null) {
+        Log.w("BelnetLibPlugin", "getDataStatus: Service not bound")
+        result.success(false)
+        return
+    }
+
+    try {
+        val status = boundService?.GetStatus()
+        Log.d("BelnetLibPlugin", "getDataStatus: $status")
+        result.success(status)
+    } catch (e: Exception) {
+        Log.e("BelnetLibPlugin", "Exception in getDataStatus", e)
+        result.success(false)
+    }
+               // result.success(boundService?.GetStatus() ?: false)
+               // Log.d("BelnetLibPlugin", "getDataStatus: ${boundService?.GetStatus()}")
             }
-//             "logData" ->{
-
-//                 Log.d("Testings","")
-//                var datas = logDataToFrontend("")
-
-// //             myD = LogDisplayForUi("").displayData()
-// //             Log.d("Dis data",myD)
-//                 result.success(datas)
-//             }
-             "disconnectForNotification" -> {
-                 if(mBoundService != null){
-
-                     result.success(true)
-                 }else{
-                     result.success(false)
-                 }
-             }
+            "disconnectForNotification" -> {
+                result.success(boundService != null)
+            }
             else -> result.notImplemented()
         }
     }
@@ -286,9 +261,23 @@ open class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activityBinding = binding
         doBindService()
+
+        //         // Register for notification disconnect broadcast
+        // notificationDisconnectReceiver = object : BroadcastReceiver() {
+        //     override fun onReceive(context: Context?, intent: Intent?) {
+        //         if (intent?.action == "com.belnet.NOTIFICATION_DISCONNECTED") {
+        //             Log.d("BelnetLibPlugin", "Received notification disconnect broadcast")
+        //             eventSink?.success("notification_clicked")
+        //         }
+        //     }
+        // }
+        // val filter = IntentFilter("com.belnet.NOTIFICATION_DISCONNECTED")
+        // activityBinding.activity.registerReceiver(notificationDisconnectReceiver, filter)
     }
 
     override fun onDetachedFromActivity() {
+        doUnbindService()
+        //activityBinding.activity.unregisterReceiver(notificationDisconnectReceiver)
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
@@ -296,76 +285,59 @@ open class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         doBindService()
     }
 
-    override fun onDetachedFromActivityForConfigChanges() {}
+    override fun onDetachedFromActivityForConfigChanges() {
+        doUnbindService()
+        //activityBinding.activity.unregisterReceiver(notificationDisconnectReceiver)
+    }
 
-    private val mConnection: ServiceConnection =
-            object : ServiceConnection {
-                override fun onServiceConnected(className: ComponentName, service: IBinder) {
-                    mBoundService = (service as BelnetDaemon.LocalBinder).getService()
+    private val connection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            boundService = (service as BelnetDaemon.LocalBinder).getService()
+            // Observe isConnected LiveData when service is bound
+            boundService?.isConnected()?.observe(activityBinding.activity as LifecycleOwner, isConnectedObserver)
+        }
 
-                    mBoundService?.isConnected()?.observe(mLifecycleOwner, mIsConnectedObserver)
-                }
+        override fun onServiceDisconnected(className: ComponentName) {
+            boundService = null
+        }
+    }
 
-                override fun onServiceDisconnected(className: ComponentName) {
-                    mBoundService = null
-
-                }
-            }
-
-    fun doBindService() {
+    private fun doBindService() {
         if (activityBinding.activity.applicationContext.bindService(
-                        Intent(
-                                activityBinding.activity.applicationContext,
-                                BelnetDaemon::class.java
-                        ),
-                        mConnection,
-                        Context.BIND_AUTO_CREATE
-                )
-        ) {
-            mShouldUnbind = true
-        } else {
-            Log.e(
-                    BelnetDaemon.LOG_TAG,
-                    "Error: The requested service doesn't exist, or this client isn't allowed access to it."
+                Intent(activityBinding.activity.applicationContext, BelnetDaemon::class.java),
+                connection,
+                Context.BIND_AUTO_CREATE
             )
+        ) {
+            shouldUnbind = true
+        } else {
+            Log.e(BelnetDaemon.LOG_TAG, "Failed to bind service: Service doesn't exist or access denied")
         }
     }
 
-    fun doUnbindService() {
-        if (mShouldUnbind) {
-            activityBinding.activity.applicationContext.unbindService(mConnection)
-            mShouldUnbind = false
+    private fun doUnbindService() {
+        if (shouldUnbind) {
+            boundService?.isConnected()?.removeObserver(isConnectedObserver)
+            activityBinding.activity.applicationContext.unbindService(connection)
+            shouldUnbind = false
         }
     }
 
+    fun logDataToFrontend(sampleData: String): String {
+        Log.d("BelnetLibPlugin", "logDataToFrontend: $sampleData")
+        return sampleData
+    }
 
-    fun logDataToFrontend(sampleData : String):String{
-     logData = sampleData
-     Log.d("backtracking",logData)
-      return logData
+    fun disConnectButtonCall() {
+        Log.d("BelnetLibPlugin", "disConnectButtonCall invoked")
+        val intent = VpnService.prepare(activityBinding.activity.applicationContext) ?: run {
+            val belnetIntent = Intent(activityBinding.activity.applicationContext, BelnetDaemon::class.java).apply {
+                action = BelnetDaemon.ACTION_DISCONNECT
+            }
+            activityBinding.activity.applicationContext.startService(belnetIntent)
+            doBindService()
+            return
+        }
+        Log.w("BelnetLibPlugin", "VPN not prepared for disconnect")
+    }
 }
-
-   fun disConnectButtonCall(){
-       Log.e("call","this disconnectButtonCall")
-       var intent = VpnService.prepare(activityBinding.activity.applicationContext)
-       if (intent != null) {
-           // Not prepared yet
-           //result.success(false)
-          // return
-       }
-       val belnetIntent =
-           Intent(
-               activityBinding.activity.applicationContext,
-               BelnetDaemon::class.java
-           )
-       belnetIntent.action = BelnetDaemon.ACTION_DISCONNECT
-
-       activityBinding.activity.applicationContext.startService(belnetIntent)
-
-       doBindService()
-   }
-
-
-}
-
-

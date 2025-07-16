@@ -389,7 +389,12 @@ class _AppListView extends StatelessWidget {
               print('Selector rebuilding');
               final selectedApps = allApps
                   .where((app) => data.$1.contains(app.packageName))
-                  .toList();
+                  .toList()
+                  ..sort((a, b) {
+        final nameA = a.name?.toLowerCase() ?? '';
+        final nameB = b.name?.toLowerCase() ?? '';
+        return nameA.compareTo(nameB);
+      });
               final installedApps = allApps
                   .where((app) => !data.$1.contains(app.packageName))
                   .toList();
@@ -404,7 +409,12 @@ class _AppListView extends StatelessWidget {
                           (app.name?.toLowerCase().contains(searchQuery) ?? false) ||
                           app.packageName.toLowerCase().contains(searchQuery))
                       .toList();
-          
+              // 🔽 Sort alphabetically by app name (case-insensitive)
+               searchedApps.sort((a, b) {
+               final nameA = a.name?.toLowerCase() ?? '';
+               final nameB = b.name?.toLowerCase() ?? '';
+               return nameA.compareTo(nameB);
+             });
               return CustomScrollView(
                 slivers: [
                  selectedApps.length > 0 ? SliverPadding(

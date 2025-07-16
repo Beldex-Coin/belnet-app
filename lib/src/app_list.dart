@@ -475,8 +475,9 @@ class _AppListView extends StatelessWidget {
                     height: 27,
                     fit: BoxFit.cover,
                     gaplessPlayback: true,
-                    cacheWidth: 25,
-                    cacheHeight: 25,
+                     filterQuality: FilterQuality.high,
+                    // cacheWidth: 25,
+                    // cacheHeight: 25,
                   ),
                 )
               : const Icon(Icons.android, size: 40, color: Colors.white),

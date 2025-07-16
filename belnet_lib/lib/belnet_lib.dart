@@ -137,5 +137,9 @@ static Future<bool> isDisconnectForBelnetNotification() async {
     return disconnect;
   }
 
+static Future<dynamic> getInstalledApps()async{
+    final List<dynamic> result = await _methodChannel.invokeMethod('getInstalledAppsWithInternetPermission');
+    return result;
+}
 
 }

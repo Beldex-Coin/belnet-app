@@ -32,6 +32,27 @@ import kotlin.math.roundToLong
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
 
+
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.util.Base64
+import java.io.ByteArrayOutputStream
+import android.content.pm.ApplicationInfo
+
+import kotlinx.coroutines.*
+import android.os.Handler
+import android.os.Looper
+
+
+import android.graphics.drawable.AdaptiveIconDrawable
+import android.net.ConnectivityManager
+import android.os.Build
+import android.app.usage.NetworkStats
+import android.app.usage.NetworkStatsManager
+import androidx.core.graphics.drawable.toBitmap
+import android.graphics.drawable.BitmapDrawable
+
 /** BelnetLibPlugin */
 class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private var shouldUnbind: Boolean = false
@@ -251,6 +272,68 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                // result.success(boundService?.GetStatus() ?: false)
                // Log.d("BelnetLibPlugin", "getDataStatus: ${boundService?.GetStatus()}")
             }
+            "getInstalledAppsWithInternetPermission" -> {
+               CoroutineScope(Dispatchers.Default).launch {
+                val pm = activityBinding.activity.packageManager
+    val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
+    val resultList = mutableListOf<Map<String, Any?>>()
+
+    for (app in apps) {
+        try {
+            // Skip background-only services
+            val launchIntent = pm.getLaunchIntentForPackage(app.packageName)
+            if (launchIntent == null) continue
+
+            // Check if app explicitly requested INTERNET permission
+            val packageInfo = pm.getPackageInfo(app.packageName, PackageManager.GET_PERMISSIONS)
+            val requestedPermissions = packageInfo.requestedPermissions?.toList() ?: emptyList()
+
+            val explicitlyRequestedInternet = "android.permission.INTERNET" in requestedPermissions
+            val hasInternetPermission = pm.checkPermission(
+                android.Manifest.permission.INTERNET, app.packageName
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (!explicitlyRequestedInternet || !hasInternetPermission) continue
+
+            val appName = pm.getApplicationLabel(app).toString()
+            val packageName = app.packageName
+            val isSystemApp = (app.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+
+            val drawable = pm.getApplicationIcon(app)
+
+            // Ensure sharp icons (avoid blurry upscaling)
+            val bitmap = when (drawable) {
+                is BitmapDrawable -> drawable.bitmap
+                else -> drawable.toBitmap(
+                    width = drawable.intrinsicWidth.takeIf { it > 0 } ?: 192,
+                    height = drawable.intrinsicHeight.takeIf { it > 0 } ?: 192,
+                    config = Bitmap.Config.ARGB_8888
+                )
+            }
+
+            val stream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+            val iconBase64 = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
+
+            resultList.add(
+                mapOf(
+                    "appName" to appName,
+                    "packageName" to packageName,
+                    "isSystemApp" to isSystemApp,
+                    "icon" to iconBase64
+                )
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            continue
+        }
+    }
+
+    withContext(Dispatchers.Main) {
+        result.success(resultList)
+    }
+        }
+           }
             "disconnectForNotification" -> {
                 result.success(boundService != null)
             }

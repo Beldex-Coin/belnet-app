@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:belnet_mobile/src/app_list_provider.dart';
+import 'package:belnet_mobile/src/model/installed_apps_model.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/utils/show_toast.dart';
@@ -153,7 +154,7 @@ TextEditingController searchController = TextEditingController();
 
 
 class SplitTunnelingScreen extends StatefulWidget {
-  final List<AppInfo> allApps;
+  final List<AppInfos> allApps;
 
   const SplitTunnelingScreen({super.key, required this.allApps});
 
@@ -315,12 +316,12 @@ bool isTosplitTunnel = false;
 }
 
 class _AppListView extends StatelessWidget {
-  final List<AppInfo> allApps;
+  final List<AppInfos> allApps;
 
   const _AppListView({required this.allApps});
    
   // Helper method to estimate if an app is a system app based on package name
-  bool _isSystemApp(AppInfo app) {
+  bool _isSystemApp(AppInfos app) {
     final packageName = app.packageName.toLowerCase();
     const systemPrefixes = [
       'com.android.',

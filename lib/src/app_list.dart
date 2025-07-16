@@ -458,7 +458,7 @@ class _AppListView extends StatelessWidget {
           // App Icon
           app.icon != null
               ? Container(
-                  padding: const EdgeInsets.all(7),
+                  padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
                     color: appModel.darkTheme
                         ? Colors.white.withOpacity(0.05)
@@ -471,8 +471,8 @@ class _AppListView extends StatelessWidget {
                   ),
                   child: Image.memory(
                     app.icon!,
-                    width: 25,
-                    height: 25,
+                    width: 27,
+                    height: 27,
                     fit: BoxFit.cover,
                     gaplessPlayback: true,
                     cacheWidth: 25,
@@ -803,7 +803,7 @@ class _AppListView extends StatelessWidget {
           // App Icon
           app.icon != null
               ? Container(
-                  padding: const EdgeInsets.all(7),
+                  padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
                     color: appModel.darkTheme
                         ? Colors.white.withOpacity(0.05)
@@ -816,12 +816,13 @@ class _AppListView extends StatelessWidget {
                   ),
                   child: Image.memory(
                     app.icon!,
-                    width: 25,
-                    height: 25,
+                    width: 27,
+                    height: 27,
                     fit: BoxFit.cover,
                     gaplessPlayback: true,
-                    cacheWidth: 25,
-                    cacheHeight: 25,
+                     filterQuality: FilterQuality.high,
+                    // cacheWidth: 25,
+                    // cacheHeight: 25,
                   ),
                 )
               : const Icon(Icons.android, size: 40, color: Colors.white),

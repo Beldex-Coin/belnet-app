@@ -224,7 +224,7 @@ String capitalizeFirstLetter(String value) {
           backgroundColor: Colors.transparent,
           leading: Padding(
               padding: const EdgeInsets.symmetric(vertical:  10.0,horizontal: 15),
-              child: Text('1.3.0',style: TextStyle(fontFamily: 'Poppins',color: appModel.darkTheme ? Colors.white : Color(0xff4D4D4D)),),
+              child: Text('1.3.1',style: TextStyle(fontFamily: 'Poppins',color: appModel.darkTheme ? Colors.white : Color(0xff4D4D4D)),),
             ),
           leadingWidth: 100,
           actions: [

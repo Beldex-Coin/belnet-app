@@ -210,7 +210,7 @@ checkShowSpalsh()async{
         pr.ChangeNotifierProvider<ConnectivityProvider>(create: (_)=> ConnectivityProvider()),
         pr.ChangeNotifierProvider<IntroStateProvider>(create: (_)=>IntroStateProvider()),
         //pr.ChangeNotifierProvider<SpeedChartProvider>(create: (_)=> SpeedChartProvider()),
-        pr.ChangeNotifierProvider<LoaderVideoProvider>(create: (_)=> LoaderVideoProvider()..initialize(appModel.darkTheme ? 'assets/images/dark_theme/Loading_v1_slow.webm' : 'assets/images/light_theme/loading_white_theme.webm')),
+        pr.ChangeNotifierProvider<LoaderVideoProvider>(create: (_)=> LoaderVideoProvider()..initialize('')),
                 pr.ChangeNotifierProvider<SettingsProvider>(create: (_) => SettingsProvider()),
         pr.ChangeNotifierProvider<AppSelectionProvider>(create: (_)=>AppSelectionProvider()..loadSelectedApps(),),
         pr.ChangeNotifierProvider<AppSelectingProvider>(create: (_)=>AppSelectingProvider())

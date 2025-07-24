@@ -552,7 +552,7 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                               child: Text(
                               "OK",
                               style: TextStyle(
-                                   color:(_authCodeError == null && _exitNodeError == null) ? Colors.black: Color(0xffACACAC), //isSet ?
+                                   color:(_authCodeError == null && _exitNodeError == null) ? Colors.black: Color(0xff5B5B69), //isSet ?
                                   //     Colors.white, // : Color(0xff56566F),
                                   fontFamily: "Poppins",
                                   fontSize: 17,

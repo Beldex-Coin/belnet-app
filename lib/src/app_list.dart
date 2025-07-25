@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:belnet_mobile/src/app_list_provider.dart';
+import 'package:belnet_mobile/src/model/installed_apps_model.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/utils/show_toast.dart';
@@ -153,7 +154,7 @@ TextEditingController searchController = TextEditingController();
 
 
 class SplitTunnelingScreen extends StatefulWidget {
-  final List<AppInfo> allApps;
+  final List<AppInfos> allApps;
 
   const SplitTunnelingScreen({super.key, required this.allApps});
 
@@ -315,12 +316,12 @@ bool isTosplitTunnel = false;
 }
 
 class _AppListView extends StatelessWidget {
-  final List<AppInfo> allApps;
+  final List<AppInfos> allApps;
 
   const _AppListView({required this.allApps});
    
   // Helper method to estimate if an app is a system app based on package name
-  bool _isSystemApp(AppInfo app) {
+  bool _isSystemApp(AppInfos app) {
     final packageName = app.packageName.toLowerCase();
     const systemPrefixes = [
       'com.android.',
@@ -388,7 +389,12 @@ class _AppListView extends StatelessWidget {
               print('Selector rebuilding');
               final selectedApps = allApps
                   .where((app) => data.$1.contains(app.packageName))
-                  .toList();
+                  .toList()
+                  ..sort((a, b) {
+        final nameA = a.name?.toLowerCase() ?? '';
+        final nameB = b.name?.toLowerCase() ?? '';
+        return nameA.compareTo(nameB);
+      });
               final installedApps = allApps
                   .where((app) => !data.$1.contains(app.packageName))
                   .toList();
@@ -403,7 +409,12 @@ class _AppListView extends StatelessWidget {
                           (app.name?.toLowerCase().contains(searchQuery) ?? false) ||
                           app.packageName.toLowerCase().contains(searchQuery))
                       .toList();
-          
+              // 🔽 Sort alphabetically by app name (case-insensitive)
+               searchedApps.sort((a, b) {
+               final nameA = a.name?.toLowerCase() ?? '';
+               final nameB = b.name?.toLowerCase() ?? '';
+               return nameA.compareTo(nameB);
+             });
               return CustomScrollView(
                 slivers: [
                  selectedApps.length > 0 ? SliverPadding(
@@ -447,7 +458,7 @@ class _AppListView extends StatelessWidget {
           // App Icon
           app.icon != null
               ? Container(
-                  padding: const EdgeInsets.all(7),
+                  padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
                     color: appModel.darkTheme
                         ? Colors.white.withOpacity(0.05)
@@ -460,12 +471,13 @@ class _AppListView extends StatelessWidget {
                   ),
                   child: Image.memory(
                     app.icon!,
-                    width: 25,
-                    height: 25,
+                    width: 27,
+                    height: 27,
                     fit: BoxFit.cover,
                     gaplessPlayback: true,
-                    cacheWidth: 25,
-                    cacheHeight: 25,
+                     filterQuality: FilterQuality.high,
+                    // cacheWidth: 25,
+                    // cacheHeight: 25,
                   ),
                 )
               : const Icon(Icons.android, size: 40, color: Colors.white),
@@ -792,7 +804,7 @@ class _AppListView extends StatelessWidget {
           // App Icon
           app.icon != null
               ? Container(
-                  padding: const EdgeInsets.all(7),
+                  padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
                     color: appModel.darkTheme
                         ? Colors.white.withOpacity(0.05)
@@ -805,12 +817,13 @@ class _AppListView extends StatelessWidget {
                   ),
                   child: Image.memory(
                     app.icon!,
-                    width: 25,
-                    height: 25,
+                    width: 27,
+                    height: 27,
                     fit: BoxFit.cover,
                     gaplessPlayback: true,
-                    cacheWidth: 25,
-                    cacheHeight: 25,
+                     filterQuality: FilterQuality.high,
+                    // cacheWidth: 25,
+                    // cacheHeight: 25,
                   ),
                 )
               : const Icon(Icons.android, size: 40, color: Colors.white),

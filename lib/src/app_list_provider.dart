@@ -1,6 +1,8 @@
+import 'package:belnet_lib/belnet_lib.dart';
+import 'package:belnet_mobile/src/model/installed_apps_model.dart';
 import 'package:flutter/material.dart';
-import 'package:installed_apps/app_info.dart';
-import 'package:installed_apps/installed_apps.dart';
+//import 'package:installed_apps/app_info.dart';
+//import 'package:installed_apps/installed_apps.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppSelectionProvider with ChangeNotifier {
@@ -31,31 +33,58 @@ class AppSelectionProvider with ChangeNotifier {
 
 
 // Singleton to cache app list
+// class AppCache {
+//   static final AppCache instance = AppCache._internal();
+//   List<AppInfo> _apps = [];
+
+//   AppCache._internal();
+
+//   List<AppInfo> get apps => _apps;
+
+//   Future<void> loadApps() async {
+//     try {
+//       _apps = await InstalledApps.getInstalledApps(false, true);
+//       // Debug: Log fetched apps
+//       _apps.removeWhere((app) => app.packageName == 'io.beldex.belnet');
+//       _apps.removeWhere((app) => app.packageName == 'io.beldex.beldex_browser');
+//       print('Fetched ${_apps.length} apps:');
+//       for (var app in _apps) {
+//         print('App: ${app.name}, Package: ${app.packageName}');
+//       }
+//     } catch (e) {
+//       _apps = [];
+//       print('Error fetching apps: $e');
+//     }
+//   }
+// }
+
 class AppCache {
   static final AppCache instance = AppCache._internal();
-  List<AppInfo> _apps = [];
+  List<AppInfos> _apps = [];
 
   AppCache._internal();
 
-  List<AppInfo> get apps => _apps;
+  List<AppInfos> get apps => _apps;
 
   Future<void> loadApps() async {
     try {
-      _apps = await InstalledApps.getInstalledApps(false, true);
-      // Debug: Log fetched apps
-      _apps.removeWhere((app) => app.packageName == 'io.beldex.belnet');
-      _apps.removeWhere((app) => app.packageName == 'io.beldex.beldex_browser');
-      print('Fetched ${_apps.length} apps:');
-      for (var app in _apps) {
-        print('App: ${app.name}, Package: ${app.packageName}');
-      }
+      final List<dynamic> result = await BelnetLib.getInstalledApps(); //_channel.invokeMethod('getInstalledAppsWithInternetPermission');
+      final List<AppInfos> fetchedApps = result.map((map) => AppInfos.fromMap(map)).toList();
+
+      // Filter out your own apps
+      fetchedApps.removeWhere((app) =>
+          app.packageName == 'io.beldex.belnet' ||
+          app.packageName == 'io.beldex.beldex_browser');
+
+      _apps = fetchedApps;
+
+      print('Fetched ${_apps.length} apps with INTERNET permission');
     } catch (e) {
       _apps = [];
       print('Error fetching apps: $e');
     }
   }
 }
-
 
 class AppSelectingProvider with ChangeNotifier {
   List<String> _selectedApps = [];

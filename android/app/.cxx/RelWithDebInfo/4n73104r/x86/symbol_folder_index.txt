@@ -1,0 +1,1 @@
+/home/guna/Documents/gabsid/projects/belnet/belnet-app/build/app/intermediates/cxx/RelWithDebInfo/4n73104r/obj/x86

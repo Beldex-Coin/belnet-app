@@ -129,7 +129,10 @@ static const EventChannel disconnectEventChannel = EventChannel('belnet_lib_noti
     if (status.isNotEmpty) return jsonDecode(status);
     return null;
   }
-
+static Future<dynamic>  unmapExitNode(String swapNode) async {
+    final dynamic isUnmap = await _methodChannel.invokeMethod('getMap',{"swap_node": swapNode});
+    return isUnmap;
+  }
 
 static Future<bool> isDisconnectForBelnetNotification() async {
     final bool disconnect = await _methodChannel.invokeMethod('disconnectForNotification');

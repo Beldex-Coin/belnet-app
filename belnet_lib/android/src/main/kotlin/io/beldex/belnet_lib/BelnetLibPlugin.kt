@@ -272,6 +272,15 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                // result.success(boundService?.GetStatus() ?: false)
                // Log.d("BelnetLibPlugin", "getDataStatus: ${boundService?.GetStatus()}")
             }
+
+       "getMap" -> {
+                val swapNode = call.argument<String>("swap_node")
+                Log.d("Test", "Swap Node from un map")
+                result.success(boundService?.unmappingNode(swapNode) ?: false)
+            }
+
+
+
             "getInstalledAppsWithInternetPermission" -> {
                CoroutineScope(Dispatchers.Default).launch {
                 val pm = activityBinding.activity.packageManager

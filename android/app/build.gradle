@@ -22,14 +22,14 @@ def flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "
 
 android {
     namespace "io.beldex.belnet"
-    compileSdk 35
-    ndkVersion "21.3.6528147"
+    compileSdkVersion 35
+    ndkVersion '28.1.13356709'
 
     sourceSets {
         main.java.srcDirs += "src/main/kotlin"
     }
 
-    lint {
+    lintOptions {
         disable "Instantiatable", "InvalidPackage"
     }
 
@@ -39,7 +39,7 @@ android {
         targetSdk 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        manifestPlaceholders = [applicationName: "android.app.Application"]
+        //manifestPlaceholders = [applicationName: "android.app.Application"]
     }
 
     compileOptions {
@@ -52,11 +52,11 @@ android {
     }
 
     // Enforce Java 17 with JVM toolchain
-    kotlin {
-        jvmToolchain {
-            languageVersion.set(JavaLanguageVersion.of(17))
-        }
-    }
+    // kotlin {
+    //     jvmToolchain {
+    //         languageVersion.set(JavaLanguageVersion.of(17))
+    //     }
+    // }
 
     buildTypes {
         release {
@@ -75,10 +75,10 @@ flutter {
 }
 
 dependencies {
-    implementation project(':belnet_lib') // Include belnet_lib module
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:2.0.20" // Updated to support Java 17
-    implementation "com.airbnb.android:lottie:6.4.0"
-    implementation "androidx.constraintlayout:constraintlayout:2.1.4"
+    // implementation project(':belnet_lib') // Include belnet_lib module
+    // implementation "org.jetbrains.kotlin:kotlin-stdlib:2.0.20" // Updated to support Java 17
+    // implementation "com.airbnb.android:lottie:6.4.0"
+    // implementation "androidx.constraintlayout:constraintlayout:2.1.4"
     // Uncomment if needed:
     // implementation "androidx.core:core-splashscreen:1.0.1"
     // implementation "com.google.android.play:core:2.1.0"

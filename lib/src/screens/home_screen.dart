@@ -51,7 +51,7 @@ late ChartDataController chartController;
  bool isInitialAddExitNode = false;
 
 
-
+ String swapText = 'Swap to exit.bdx';
 
 
 
@@ -224,7 +224,7 @@ String capitalizeFirstLetter(String value) {
           backgroundColor: Colors.transparent,
           leading: Padding(
               padding: const EdgeInsets.symmetric(vertical:  10.0,horizontal: 15),
-              child: Text('1.3.1',style: TextStyle(fontFamily: 'Poppins',color: appModel.darkTheme ? Colors.white : Color(0xff4D4D4D)),),
+              child: Text('1.3.2',style: TextStyle(fontFamily: 'Poppins',color: appModel.darkTheme ? Colors.white : Color(0xff4D4D4D)),),
             ),
           leadingWidth: 100,
           actions: [
@@ -318,6 +318,9 @@ String capitalizeFirstLetter(String value) {
             : loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? SvgPicture.asset('assets/images/dark_theme/add_exit_node_dark.svg',height: 55,) : SizedBox.shrink()
            :  
             !introProvider.showButton ? SvgPicture.asset('assets/images/light_theme/add_exit_node_wht_theme_disabled.svg',height: 55,) : loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? SvgPicture.asset('assets/images/light_theme/add_exit_node_wht theme.svg',height: 55,) : SizedBox.shrink(),
+
+
+          
       // GlassContainer.clearGlass(
       //             width: 164,
       //              height: 50,

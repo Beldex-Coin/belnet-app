@@ -104,6 +104,9 @@ public class BelnetDaemon extends VpnService{
   //public final void stopSelf();
   public native String GetStatus();
 
+   public native String Unmap(String exitvalue);
+  public native String Status();
+
   ByteBuffer impl = null;
   ParcelFileDescriptor iface;
   int m_FD = -1;
@@ -111,6 +114,9 @@ public class BelnetDaemon extends VpnService{
 
   private Timer mUpdateIsConnectedTimer;
   private MutableLiveData<Boolean> isConnected = new MutableLiveData<Boolean>();
+
+
+    String results;
 
   @Override
   public void onCreate() {
@@ -399,6 +405,17 @@ public class BelnetDaemon extends VpnService{
   private void updateIsConnected() {
     isConnected.postValue(IsRunning() && VpnService.prepare(BelnetDaemon.this) == null);
   }
+
+  
+  public String unmappingNode(String newNode){  
+    new Thread(
+      () -> {
+        results = Unmap(newNode);
+      })
+      .start();
+
+     return results;
+   }
 
   /**
    * Class for clients to access. Because we know this service always runs in the

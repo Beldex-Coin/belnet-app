@@ -1,0 +1,2 @@
+/home/guna/Documents/gabsid/projects/belnet/belnet-app/android/app/.cxx/RelWithDebInfo/4n73104r/x86_64/CMakeFiles/edit_cache.dir
+/home/guna/Documents/gabsid/projects/belnet/belnet-app/android/app/.cxx/RelWithDebInfo/4n73104r/x86_64/CMakeFiles/rebuild_cache.dir

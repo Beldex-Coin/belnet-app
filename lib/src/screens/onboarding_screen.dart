@@ -44,7 +44,7 @@ class OnboardingScreen extends StatelessWidget {
                           Column(
                             children: [
                               SvgPicture.asset('assets/images/belnet_logo_dark_theme.svg'),
-                              Text('1.3.1')
+                              Text('1.3.2')
                             ],
                           ),
                           Spacer(flex: 5,),

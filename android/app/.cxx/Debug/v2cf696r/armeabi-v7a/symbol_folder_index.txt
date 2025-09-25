@@ -1,0 +1,1 @@
+/home/guna/Documents/gabsid/projects/belnet/belnet-app/build/app/intermediates/cxx/Debug/v2cf696r/obj/armeabi-v7a

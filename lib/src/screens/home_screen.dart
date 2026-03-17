@@ -209,6 +209,7 @@ String capitalizeFirstLetter(String value) {
     final nodeProvider = Provider.of<NodeProvider>(context);
     final appSelectingProvider = Provider.of<AppSelectingProvider>(context);
     final loaderVideoProvider = Provider.of<LoaderVideoProvider>(context);
+    final logprovider = Provider.of<LogProvider>(context);
   //  final speedChartProvider = Provider.of<SpeedChartProvider>(context);
     final appModel = Provider.of<AppModel>(context);
     final mHeight = MediaQuery.of(context).size.height;
@@ -321,6 +322,9 @@ String capitalizeFirstLetter(String value) {
 
 
           
+
+         
+
       // GlassContainer.clearGlass(
       //             width: 164,
       //              height: 50,
@@ -443,6 +447,27 @@ String capitalizeFirstLetter(String value) {
             //         ),
             // ),
                   ):SizedBox.shrink(),  
+                 loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED// && !introProvider.isCustomNode
+                  ? SizedBox(height: 15,):SizedBox.shrink(),
+                 loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED //&& !introProvider.isCustomNode 
+                 ? GestureDetector(
+                    onTap: //(){
+                      widget.onNavigateToExitNodes,
+                      // introProvider.setIsCustomNode(false);
+                      // swapRandomExitnode(loaderVideoProvider,logprovider,nodeProvider);
+                    //},
+                    child: GlassContainer.clearGlass(
+                      height: 50,width: 160,
+                      
+                      //decoration: BoxDecoration(
+                        color: appModel.darkTheme ? Color(0xff80808A).withOpacity(0.01) : Colors.white.withOpacity(0.6), //Colors.transparent,
+                        borderColor: Color(0xff00DC00),
+                         //border: Border.all(color: Color(0xff00DC00)),
+                         borderRadius: BorderRadius.circular(25),
+                      //),
+                      child: Center(child: Text('Change Node',style: TextStyle(color: Color(0xff00DC00),fontWeight: FontWeight.w600,fontSize: 16),)),
+                    ),
+                  ): SizedBox.shrink()
                 ],
               ),
           Column(

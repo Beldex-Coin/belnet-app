@@ -542,6 +542,22 @@ String stringBeforeSpace(String value) {
 
 
 
+ swapRandomExitnode(LoaderVideoProvider loaderVideoProvider,LogProvider logProvider,NodeProvider nodeProvider,VpnConnectionProvider vpnConnectionProvider)async{
+  loaderVideoProvider.setLoading(true);
+    logProvider.addLog('Checking random node for swap');
+     loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTING);
+  //await nodeProvider.selectRandomNode();
+  await _saveSettings(nodeProvider);
+  logProvider.addLog('Connecting to ${Settings.getInstance()!.exitNode!} --- ');
+  BelnetLib.unmapExitNode(Settings.getInstance()!.exitNode!);
+  vpnConnectionProvider.startConnectionDelay((){
+ // Future.delayed(Duration(seconds: 5),(){
+loaderVideoProvider.setLoading(false);
+    logProvider.addLog('Connected to ${Settings.getInstance()!.exitNode!}');
+     loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
+  });
+
+ }
 
 
 

@@ -552,9 +552,11 @@ String stringBeforeSpace(String value) {
   BelnetLib.unmapExitNode(Settings.getInstance()!.exitNode!);
   vpnConnectionProvider.startConnectionDelay((){
  // Future.delayed(Duration(seconds: 5),(){
+ 
 loaderVideoProvider.setLoading(false);
     logProvider.addLog('Connected to ${Settings.getInstance()!.exitNode!}');
      loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
+ showMessage('Exit node switched successfully');
   });
 
  }

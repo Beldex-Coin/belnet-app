@@ -20,7 +20,7 @@ class DataRepo{
 
 
 Future<List<ExitNodeDataList>> getListData() async {
-    var response = await http.get(Uri.parse('https://belnet-exitnode.s3.ap-south-1.amazonaws.com/exitnode-bns-list/exitnode-bns-list.json'
+    var response = await http.get(Uri.parse('https://belnet-exitnode.s3.ap-south-1.amazonaws.com/exitnode-bns-list/exitnode_info_list.json' //'https://belnet-exitnode.s3.ap-south-1.amazonaws.com/exitnode-bns-list/exitnode-bns-list.json'
       //'https://testdeb.beldex.dev/Beldex-Projects/Belnet/android/exitlist/testdeb-exinode-bns-list.json'
         //'https://deb.beldex.io/Beldex-projects/Belnet/exitnodelist.json'
         )); //  https://deb.beldex.io/Beldex-projects/Belnet/modeljson.json

@@ -5,7 +5,9 @@ import 'dart:ui';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/node_provider.dart';
+import 'package:belnet_mobile/src/app_list_provider.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/providers/auto_connect_provider.dart';
 import 'package:belnet_mobile/src/providers/internet_checking_provider.dart';
 import 'package:belnet_mobile/src/providers/introstate_provider.dart';
 import 'package:belnet_mobile/src/providers/ip_provider.dart';
@@ -57,6 +59,10 @@ bool isBelConnect = false;
     final logProvider = Provider.of<LogProvider>(context,listen: false);
     final ipProvider = Provider.of<IpProvider>(context,listen: false);
     final introStateProvider = Provider.of<IntroStateProvider>(context,listen: false);
+
+    final autoConnectProvider = Provider.of<AutoConnectProvider>(context,listen: false);
+    final appSelectingProvider = Provider.of<AppSelectingProvider>(context,listen: false);
+
      // final vpnConnectionProvider = Provider.of<VpnConnectionProvider>(context,listen: false);
       
    _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
@@ -64,11 +70,12 @@ bool isBelConnect = false;
           isBelConnect = isConnected;
         }));
        
-        checkNode(nodeProvider,loaderVideoProvider,logProvider,ipProvider,introStateProvider);
+        checkNode(nodeProvider,loaderVideoProvider,logProvider,ipProvider,introStateProvider,autoConnectProvider,appSelectingProvider);
+
   }
 
 
-checkNode(NodeProvider nodeProvider,LoaderVideoProvider loaderVideoProvider,LogProvider logProvider,IpProvider ipProvider,IntroStateProvider introProvider)async{
+checkNode(NodeProvider nodeProvider,LoaderVideoProvider loaderVideoProvider,LogProvider logProvider,IpProvider ipProvider,IntroStateProvider introProvider,AutoConnectProvider autoConnectProvider,AppSelectingProvider appSelectingProvider)async{
   //print('inside the bottom nav bar ${nodeProvider.nodeData.length}');
   try{
 var value = await BelnetLib.isRunning;
@@ -79,8 +86,11 @@ var value = await BelnetLib.isRunning;
        logProvider.addLog('Exit node set by Daemon: Connected to ${nodeProvider.selectedExitNodeName}');
       // nodeProvider.selectRandomNode();
   }else{
+    if(autoConnectProvider.autoConnect){
+      introProvider.resetAndShowButtonWithDelay();
+    }
     checkIsCustomNode(ipProvider,introProvider);
-     nodeProvider.selectRandomNode();
+     nodeProvider.selectRandomNode(autoConnectProvider,context,appSelectingProvider);
       //print('inside the bottom nav bar else statement');
      //Future.delayed(Duration(milliseconds: 200),(){
         //  nodeProvider.selectRandomNode();
@@ -233,8 +243,18 @@ Widget _getScreen(int index) {
   switch (index) {
     case 0:
       return HomeScreen(
-        onNavigateToExitNodes: () {
-          Provider.of<LoaderVideoProvider>(context, listen: false).setIndex(1);
+        onNavigateToExitNodes: (fromChangeNode) {
+         // Provider.of<LoaderVideoProvider>(context, listen: false).setIndex(1);
+         final provider =
+          Provider.of<LoaderVideoProvider>(context, listen: false);
+
+      if (fromChangeNode) {
+        provider.isFromChangeNode(true); // set TRUE
+      }else{
+        provider.resetChangeNode();
+      }
+
+      provider.setIndex(1); // navigate
         },
       );
     case 1:
@@ -244,7 +264,7 @@ Widget _getScreen(int index) {
     case 3:
       return SettingsScreen();
     default:
-      return HomeScreen(onNavigateToExitNodes: () {});
+      return HomeScreen(onNavigateToExitNodes: (fromChangeNode) {});
   }
 }
 
@@ -276,6 +296,7 @@ Widget _getScreen(int index) {
       // Block back navigation while loading
       return false;
     }
+    loaderProvider.resetChangeNode();
      if (selectedIndex != 0) {
           // Not on Home -> Go back to Home
           loaderProvider.setIndex(0);
@@ -404,8 +425,14 @@ Widget _getScreen(int index) {
               bottomNavigationBar: Align(
                     alignment: Alignment.bottomCenter,
                     child:MediaQuery.of(context).viewInsets.bottom == 0 ? CustomBottomNavBar(
-                      selectedIndex: selectedIndex,
-                      onItemTapped:loaderProvider.setIndex //_onItemTapped,
+                      selectedIndex: loaderProvider. selectedIndex,
+                      onItemTapped:(index){
+                          //  If leaving ExitNodesScreen → reset flag
+                    if (loaderProvider.selectedIndex == 1 && index != 1) {
+                       loaderProvider.resetChangeNode();
+                      }
+                      loaderProvider.setIndex(index);
+                      } //loaderProvider.setIndex //_onItemTapped,
                     ): SizedBox.shrink(),),
                      ),
            ),

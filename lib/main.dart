@@ -4,6 +4,7 @@ import 'package:belnet_mobile/node_provider.dart';
 import 'package:belnet_mobile/src/app_list_provider.dart';
 import 'package:belnet_mobile/src/model/exitnodeCategoryModel.dart' as exitNodeModel;
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/providers/auto_connect_provider.dart';
 import 'package:belnet_mobile/src/providers/internet_checking_provider.dart';
 import 'package:belnet_mobile/src/providers/introstate_provider.dart';
 import 'package:belnet_mobile/src/providers/ip_provider.dart';
@@ -213,7 +214,8 @@ checkShowSpalsh()async{
         pr.ChangeNotifierProvider<LoaderVideoProvider>(create: (_)=> LoaderVideoProvider()..initialize('')),
                 pr.ChangeNotifierProvider<SettingsProvider>(create: (_) => SettingsProvider()),
         pr.ChangeNotifierProvider<AppSelectionProvider>(create: (_)=>AppSelectionProvider()..loadSelectedApps(),),
-        pr.ChangeNotifierProvider<AppSelectingProvider>(create: (_)=>AppSelectingProvider())
+        pr.ChangeNotifierProvider<AppSelectingProvider>(create: (_)=>AppSelectingProvider()),
+        pr.ChangeNotifierProvider<AutoConnectProvider>(create: (_)=> AutoConnectProvider()..loadAutoConnect())
       ],
       child: pr.Consumer<AppModel>(
         builder: (context, appModel, child) {

@@ -4,6 +4,8 @@ import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/providers/introstate_provider.dart';
 import 'package:belnet_mobile/src/providers/ip_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
+import 'package:belnet_mobile/src/providers/log_provider.dart';
+import 'package:belnet_mobile/src/providers/vpn_provider.dart';
 import 'package:belnet_mobile/src/screens/add_exitnode_screen.dart';
 import 'package:belnet_mobile/src/utils/show_toast.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart';
@@ -356,6 +358,8 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
     final nodeProvider = Provider.of<NodeProvider>(context);
     final loaderVideoProvider =  Provider.of<LoaderVideoProvider>(context);
     final appModel = Provider.of<AppModel>(context);
+    final logProvider = Provider.of<LogProvider>(context);
+    final vpnConnectionProvider = Provider.of<VpnConnectionProvider>(context);
      final introStateProvider = Provider.of<IntroStateProvider>(context);
      final ipProvider = Provider.of<IpProvider>(context);
     if (nodeProvider.isLoading) {
@@ -733,12 +737,174 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
           ...nodes.map((node) {
             final isSelected = nodeProvider.selectedExitNodeName == node['name']; //nodeProvider.selectedNodeId == node['id'];
             return GestureDetector(
-              onTap:isConnect || loaderVideoProvider.conStatus == ConnectionStatus.CONNECTING ? ()=> showMessage('Please disconnect the current node to select the new node') : (){
-                nodeProvider.selectNode(node['id'],node['name'],country);
+              onTap:(){ //isConnect ||
+              if(loaderVideoProvider.conStatus == ConnectionStatus.CONNECTING){
+                 showMessage('Please disconnect the current node to select the new node');
+                  return;
+              }
+                
+               if(isConnect && isSelected && loaderVideoProvider.fromChangeNode){
+                showMessage('This node is already selected.Please select another one from the list');
+                return;
+               }
+               if(isConnect && !isSelected && !loaderVideoProvider.fromChangeNode){
+                showMessage('Please disconnect the current node to select the new node');
+                return;
+               }
+               
+                if(isConnect && !isSelected && loaderVideoProvider.fromChangeNode){
+                    
+                   showDialog(
+  context: context,
+  builder: (context) {
+    return GlassContainer.clearGlass(
+                                         color: appModel.darkTheme ? Colors.black.withOpacity(0.3) : Color(0x80FFFFFF), //s.white.withOpacity(0.8),
+                                         blur:appModel.darkTheme ? 10.0 : kBlur,
+                                         borderColor: Colors.transparent,
+      child: Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        backgroundColor: Colors.transparent,
+         insetPadding: EdgeInsets.symmetric(horizontal: 20),
+        child: GlassContainer.clearGlass(
+          width: MediaQuery.of(context).size.width,
+          height: 200,
+          color: appModel.darkTheme ?Colors.transparent// black.withOpacity(0.7)
+           :const Color(0xffF5F5F5).withOpacity(0.6),
+          //decoration: BoxDecoration(
+           // borderColor: Border.all(color: Color(0xffACACAC).withOpacity(0.5)),
+           // borderRadius: BorderRadius.circular(14),
+         // ),
+         borderColor:appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.5) : const Color(0xffACACAC),
+          borderWidth:appModel.darkTheme ? 1.0 : 0.3,
+          borderRadius: BorderRadius.circular(14.0),
+          boxShadow: appModel.darkTheme ? [] : [
+            
+                          BoxShadow(
+                  color: Color(0xFF00FFDD).withOpacity(0.3) ,// Colors.black12,,
+                 
+                ),
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.7),
+                  spreadRadius: -01.0,
+                  blurRadius: 23.5,
+                  offset: Offset(-3.0, 4.5),
+                )
+                        
+          ],
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("Switch Node", style: TextStyle(fontSize: 20,fontWeight: FontWeight.w600,fontFamily: 'Poppins')),
+                SizedBox(height: 10),
+                Text("Do you want to switch with the selected node?",textAlign: TextAlign.center,style: TextStyle(fontSize: 17,fontFamily: 'Poppins'),),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      // child: 
+                      // ElevatedButton(
+                      //   onPressed: () {
+                      //     Navigator.pop(context);
+                      //   },
+                        child: GestureDetector(
+                          onTap: ()=>Navigator.pop(context),
+                          child: GlassContainer.clearGlass(
+                                         color:appModel.darkTheme? Colors.grey.withOpacity(0.05) :Color(0xffACACAC).withOpacity(0.9), //s.white.withOpacity(0.8),
+                                         blur:appModel.darkTheme ? 10.0 : 20.0,
+                                         borderRadius: BorderRadius.circular(10),
+                                         gradient: LinearGradient(
+      colors: [
+        Color(0xFFD9DDDE),
+        Color(0xFFCCD3D6),
+      ],
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+    ),
+                                         borderColor: Colors.transparent,
+                            height: 45,
+                          //  decoration: BoxDecoration(color:Colors.grey.withOpacity(0.3)),
+                            child: Center(child: Text("Cancel",style: TextStyle(color: Color(0xffACACAC),fontSize: 15,fontWeight: FontWeight.w700),))),
+                        ),
+                     // ),
+                    ),SizedBox(width: 8,),
+                    Expanded(
+                      child: GestureDetector(
+                                        onTap: () {
+                      Navigator.pop(context); // close dialogbox
+                          nodeProvider.selectNode(node['id'],node['name'],country);
+                         swapRandomExitnode(loaderVideoProvider,logProvider,nodeProvider,vpnConnectionProvider);
+                      loaderVideoProvider.setIndex(0); // move to home screen
+                      introStateProvider.setIsCustomNode(false);
+                        loaderVideoProvider.resetChangeNode();
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                           color:  Colors.grey.withOpacity(0.05),
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(color: Color(0xff00DC00),width: 0.4),
+                                            boxShadow: appModel.darkTheme ? [] : [
+                             BoxShadow(
+                    color: Color(0xff00B400).withOpacity(0.2) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
+                   
+                  ),
+                  BoxShadow(
+                    color: Colors.white,
+                    spreadRadius: -01.0,
+                    blurRadius: 23.5,
+                    offset: Offset(-3.0, 4.5),
+                  )
+                          //   appModel.darkTheme
+                          //       ? BoxShadow(
+                          //           color: Colors.black,
+                          //           offset: Offset(0, 1),
+                          //           //spreadRadius: 0,
+                          //           blurRadius: 2.0)
+                          //       : BoxShadow(
+                          //           color: Color(0xff6E6E6E),
+                          //           offset: Offset(0, 1),
+                          //           blurRadius: 2.0)
+                           ],
+                                          ),
+                                        // color: Colors.grey.withOpacity(0.05), //s.white.withOpacity(0.8),
+                                         
+                                        //  blur: 10.0,
+                                        //  borderRadius: BorderRadius.circular(10),
+                                        //  borderColor: Color(0xff00DC00),
+                                          height: 45,
+                                          //decoration: BoxDecoration(border: Border.all(color: Color(0xff00DC00))),
+                                          child: Center(child: Text("OK",style: TextStyle(fontSize: 15,fontWeight: FontWeight.w700)))),
+                                      ),
+                    )
+                  ],
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+                //    nodeProvider.selectNode(node['id'],node['name'],country);
+                //    swapRandomExitnode(loaderVideoProvider,logProvider,nodeProvider,vpnConnectionProvider);
+                // loaderVideoProvider.setIndex(0); // move to home screen
+                // introStateProvider.setIsCustomNode(false);
+
+                }else if(!isConnect){
+                    nodeProvider.selectNode(node['id'],node['name'],country);
                 loaderVideoProvider.setIndex(0); // move to home screen
                  // print('IT IS CLICKED');
                  introStateProvider.setIsCustomNode(false);
                  ipProvider.resetCustomValue();
+                }
+                
+               
     
               },
               child: GlassContainer.clearGlass(

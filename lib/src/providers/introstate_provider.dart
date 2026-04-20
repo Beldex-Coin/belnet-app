@@ -1,3 +1,4 @@
+import 'package:belnet_lib/belnet_lib.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -83,6 +84,34 @@ Future<void> _loadStoredIsCustomNode() async {
     await prefs.setBool('showButton', true);
     notifyListeners();
   }
+
+
+Future<void> resetAndShowButtonWithDelay() async {
+
+  if(BelnetLib.isConnected == false){
+       SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  // Set to false
+  _showButton = false;
+  await prefs.setBool('showButton', false);
+  notifyListeners();
+
+  // Wait for 2 seconds
+  await Future.delayed(const Duration(seconds: 4));
+
+  // Set back to true
+  _showButton = true;
+  await prefs.setBool('showButton', true);
+  notifyListeners();
+  }
+
+}
+
+
+
+
+
+
 
   //Fitst app resume on higher version
 

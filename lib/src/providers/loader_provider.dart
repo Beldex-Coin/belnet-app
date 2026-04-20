@@ -15,6 +15,24 @@ class LoaderVideoProvider with ChangeNotifier {
  bool _belnetIsConnect = false;
  bool get belnetIsConnect => _belnetIsConnect;
 
+
+
+bool _fromChangeNode = false;
+
+bool get fromChangeNode => _fromChangeNode;
+
+void isFromChangeNode(bool value){
+  _fromChangeNode = value;
+  notifyListeners();
+}
+
+void resetChangeNode() {
+    _fromChangeNode = false;
+    notifyListeners();
+  }
+
+
+
  void setbelnetIsConnected(bool value){
   _belnetIsConnect = value;
   notifyListeners();

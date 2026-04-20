@@ -737,14 +737,22 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
           ...nodes.map((node) {
             final isSelected = nodeProvider.selectedExitNodeName == node['name']; //nodeProvider.selectedNodeId == node['id'];
             return GestureDetector(
-              onTap://isConnect ||
-               loaderVideoProvider.conStatus == ConnectionStatus.CONNECTING ? ()=> showMessage('Please disconnect the current node to select the new node') : (){
+              onTap:(){ //isConnect ||
+              if(loaderVideoProvider.conStatus == ConnectionStatus.CONNECTING){
+                 showMessage('Please disconnect the current node to select the new node');
+                  return;
+              }
                 
-               if(isConnect && isSelected){
-                showMessage('This exit node is already connected.Please select another one');
+               if(isConnect && isSelected && loaderVideoProvider.fromChangeNode){
+                showMessage('This node is already selected.Please select another one from the list');
+                return;
+               }
+               if(isConnect && !isSelected && !loaderVideoProvider.fromChangeNode){
+                showMessage('Please disconnect the current node to select the new node');
+                return;
                }
                
-                if(isConnect && !isSelected){
+                if(isConnect && !isSelected && loaderVideoProvider.fromChangeNode){
                     
                    showDialog(
   context: context,
@@ -790,9 +798,9 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text("Switch Node", style: TextStyle(fontSize: 20,fontWeight: FontWeight.w600)),
+                Text("Switch Node", style: TextStyle(fontSize: 20,fontWeight: FontWeight.w600,fontFamily: 'Poppins')),
                 SizedBox(height: 10),
-                Text("Do you want to switch with the selected node?",textAlign: TextAlign.center,style: TextStyle(fontSize: 17),),
+                Text("Do you want to switch with the selected node?",textAlign: TextAlign.center,style: TextStyle(fontSize: 17,fontFamily: 'Poppins'),),
                 SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -806,9 +814,17 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
                         child: GestureDetector(
                           onTap: ()=>Navigator.pop(context),
                           child: GlassContainer.clearGlass(
-                                         color:appModel.darkTheme? Colors.grey.withOpacity(0.05) : Color(0xffACACAC).withOpacity(0.09), //s.white.withOpacity(0.8),
-                                         blur: 10.0,
+                                         color:appModel.darkTheme? Colors.grey.withOpacity(0.05) :Color(0xffACACAC).withOpacity(0.9), //s.white.withOpacity(0.8),
+                                         blur:appModel.darkTheme ? 10.0 : 20.0,
                                          borderRadius: BorderRadius.circular(10),
+                                         gradient: LinearGradient(
+      colors: [
+        Color(0xFFD9DDDE),
+        Color(0xFFCCD3D6),
+      ],
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+    ),
                                          borderColor: Colors.transparent,
                             height: 45,
                           //  decoration: BoxDecoration(color:Colors.grey.withOpacity(0.3)),
@@ -824,11 +840,13 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
                          swapRandomExitnode(loaderVideoProvider,logProvider,nodeProvider,vpnConnectionProvider);
                       loaderVideoProvider.setIndex(0); // move to home screen
                       introStateProvider.setIsCustomNode(false);
+                        loaderVideoProvider.resetChangeNode();
                                         },
                                         child: Container(
                                           decoration: BoxDecoration(
+                                           color:  Colors.grey.withOpacity(0.05),
                                             borderRadius: BorderRadius.circular(10),
-                                            border: Border.all(color: Color(0xff00DC00)),
+                                            border: Border.all(color: Color(0xff00DC00),width: 0.4),
                                             boxShadow: appModel.darkTheme ? [] : [
                              BoxShadow(
                     color: Color(0xff00B400).withOpacity(0.2) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,

@@ -22,8 +22,8 @@ import 'package:glass_kit/glass_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 class HomeScreen extends StatefulWidget {
-  final VoidCallback onNavigateToExitNodes;
-
+  //final VoidCallback onNavigateToExitNodes;
+final Function(bool) onNavigateToExitNodes;
   const HomeScreen({super.key, required this.onNavigateToExitNodes});
 
   @override
@@ -451,8 +451,10 @@ String capitalizeFirstLetter(String value) {
                   ? SizedBox(height: 15,):SizedBox.shrink(),
                  loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED //&& !introProvider.isCustomNode 
                  ? GestureDetector(
-                    onTap: //(){
-                      widget.onNavigateToExitNodes,
+                    onTap:(){
+                      widget.onNavigateToExitNodes(true);
+                    }, //(){
+                      
                       // introProvider.setIsCustomNode(false);
                       // swapRandomExitnode(loaderVideoProvider,logprovider,nodeProvider);
                     //},
@@ -475,7 +477,7 @@ String capitalizeFirstLetter(String value) {
                   SlideTransition(
                     position: _offsetAnimation,
                     child: GestureDetector(
-                      onTap:loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? widget.onNavigateToExitNodes : null,
+                      onTap:loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? (){ widget.onNavigateToExitNodes(false);} : null,
                       child: GlassContainer.clearGlass(
                           height: MediaQuery.of(context).size.height*0.37/3,
                           width: double.infinity,

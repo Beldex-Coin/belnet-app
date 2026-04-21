@@ -1,7 +1,10 @@
 import 'package:belnet_mobile/src/app_list.dart';
 import 'package:belnet_mobile/src/app_list_provider.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/providers/auto_connect_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
+import 'package:belnet_mobile/src/utils/show_toast.dart';
+import 'package:belnet_mobile/src/vpn_controller.dart';
 import 'package:belnet_mobile/src/widget/aboutpage.dart';
 import 'package:belnet_mobile/src/widget/nointernet_connection.dart';
 import 'package:flutter/material.dart';
@@ -149,6 +152,7 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
         final appSelectingProvider = Provider.of<AppSelectingProvider>(context);
         final appModel = Provider.of<AppModel>(context);
         final loaderVideoProvider = Provider.of<LoaderVideoProvider>(context);
+        final autoConnectProvider = Provider.of<AutoConnectProvider>(context);
     return Column(
       children: [
 
@@ -283,7 +287,85 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
              ),
            ),
            SizedBox(height: 8,),
+           GlassContainer.clearGlass(
+             height: 50,width: double.infinity,
+              blur: 21.0,
+                   color:appModel.darkTheme ? 
+                   Colors.grey.shade600.withOpacity(0.06) : Colors.grey.withOpacity(0.2), 
+                   borderRadius: BorderRadius.circular(14),
+                   borderColor: Colors.transparent,
+                   padding: EdgeInsets.symmetric(horizontal: 10),
+            child: Row(
+             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+             children: [
+               Row(
+                 children: [
+                   SvgPicture.asset('assets/images/dark_theme/autocon.svg'),
+                   Padding(
+            padding: EdgeInsets.only(left: 5),
+            child: Text('Auto-connect',style: TextStyle(fontFamily: 'Poppins',fontSize: 14),))
+                 ],
+               ),
+               loaderVideoProvider.conStatus == ConnectionStatus.CONNECTING ?
+                    
+                      FlutterSwitch(
+                        width: 45.0,
+                        height: 24.0,
+                        toggleSize: 19.0,
+                        value: autoConnectProvider.autoConnect,
+                        borderRadius: 30.0,
+                        padding: 2.0,
+                        //activeIcon: SvgPicture.asset('assets/images/'),
+                        activeToggleColor: Color(0xff00DC00).withOpacity(0.5), // We’ll apply gradient manually
+                        inactiveToggleColor: Color(0xff929492).withOpacity(0.5),
+                        //switchBorder: Border.all(width: 0.2),
+                        activeSwitchBorder: Border.all(
+                            color: Color(0xffA1A1AF), width: 0.3),
+                        inactiveSwitchBorder:
+                            Border.all(color: Color(0xffA1A1AF), width: 0.3),
+                        activeColor: Colors.transparent, // Make track transparent
+                        inactiveColor: Colors.transparent,
+                        
+                        onToggle: (value)=>null,
+                          //showMessage("This Setting cannot be change while connecting to vpn");
+                        //},
+                                    ):
+               FlutterSwitch(
+                width: 45.0,
+                height: 24.0,
+                toggleSize: 19.0,
+                value:  autoConnectProvider.autoConnect ,// true,//showSystemApps,
+                borderRadius: 30.0,
+                padding: 2.0,
+                //activeIcon: SvgPicture.asset('assets/images/'),
+                activeToggleColor: Color(0xff00DC00), // We’ll apply gradient manually
+                inactiveToggleColor: Color(0xff929492),
+                //switchBorder: Border.all(width: 0.2),
+                activeSwitchBorder: Border.all(
+                    color: Color(0xffA1A1AF), width: 0.3),
+                inactiveSwitchBorder:
+                    Border.all(color: Color(0xffA1A1AF), width: 0.3),
+                activeColor: Colors.transparent, // Make track transparent
+                inactiveColor: Colors.transparent,
+                // toggleGradient: LinearGradient(
+                //   colors: [Colors.greenAccent, Colors.green],
+                //   begin: Alignment.topLeft,
+                //   end: Alignment.bottomRight,
+                // ),
+                onToggle: (value) {
+                  autoConnectProvider.setAutoConnect(value);
+                 // appModel.darkTheme = value;
+                  //loaderVideoProvider.initialize(appModel.darkTheme ? 'assets/images/dark_theme/Loading_v1_slow.webm' : 'assets/images/light_theme/loading_white_theme.webm');
            
+                  //Provider.of<AppSelectingProvider>(context, listen: false).toggleSystemApps(value);
+                },
+              ),
+             ],
+            ),
+           ),
+           
+           SizedBox(height: 8,),
+  
            SettingOptionContainer(onPressed:invitePeople,height: 50,name:'Invite People',icon:'assets/images/dark_theme/Invite People.svg',isArrow: false,),
            
            

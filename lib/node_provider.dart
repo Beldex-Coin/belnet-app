@@ -1,6 +1,11 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:belnet_lib/belnet_lib.dart';
+import 'package:belnet_mobile/src/app_list_provider.dart';
+import 'package:belnet_mobile/src/model/exitnodeRepo.dart';
+import 'package:belnet_mobile/src/providers/auto_connect_provider.dart';
+import 'package:belnet_mobile/src/vpn_controller.dart';
+import 'package:belnet_mobile/src/widget/random_nearest_node_selection.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -70,8 +75,9 @@ Future<void> fetchNodes() async {
     }
   }else{
    try {
-    final response = await http.get(Uri.parse(
-        'https://testdeb.beldex.dev/Beldex-Projects/Belnet/android/exitlist/exitnode-bns-list.json'));
+    final response = await http.get(Uri.parse('https://belnet-exitnode.s3.ap-south-1.amazonaws.com/exitnode-bns-list/exitnode_info_list.json'
+       // 'https://belnet-exitnode.s3.ap-south-1.amazonaws.com/exitnode-bns-list/exitnode-bns-list.json'
+        ));
 
     if (response.statusCode == 200) {
       _nodeData = json.decode(response.body);
@@ -228,53 +234,101 @@ Map<String, Map<String, dynamic>> groupByCountryWithIcon(String type) {
 
 
 /// Select Ranndom node automatically
-Future<void> selectRandomNode() async {
+Future<void> selectRandomNode(AutoConnectProvider autoConnectProvider, BuildContext context,AppSelectingProvider appSelectingProvider) async {
     print('inside the bottom nav bar 11 ${nodeData.length}');
 
-try {
-      final response = await http.get(Uri.parse('https://testdeb.beldex.dev/Beldex-Projects/Belnet/android/exitlist/exitnode-bns-list.json'));
+final isVpnPermit = await BelnetLib.isPrepared;
+ try{
 
-      if (response.statusCode == 200) {
-        nodeRandomData = json.decode(response.body);
-       
-//if (nodeRandomData.isEmpty) return;
-  print('inside the bottom nav bar 22');
+   final nodeLists = await DataRepo().getListData();
 
-  // Collect all nodes from all types into one flat list
-  final List<dynamic> allNodes = [];
+ final node = await findNearestNode(
+      nodeLists: nodeLists,
+      autoConnectProvider: autoConnectProvider,
+    );
 
-  for (var item in nodeRandomData) {
-    if (item.containsKey('node') && item['node'] is List && item['node'].isNotEmpty) {
-      allNodes.addAll(item['node']);
-    }
-  }
+    print("Selected Node -> ${node["id"]} ${node["name"]} ${node["country"]}");
 
-  if (allNodes.isEmpty) return;
+    await selectNode(
+      node["id"],
+      node["name"],
+      node["country"],
+    );
+  
+   if (autoConnectProvider.autoConnect && BelnetLib.isConnected == false) {
+      // print('USER BAB ONE --> ${nearest}');
+      // setState(() {
+        
+      // });
+      if(node.isNotEmpty){
+             // print('USER BAB TWO --> ${nearest}');
+        if(isVpnPermit)
+          toggleBelnet(context,appSelectingProvider,dns: '9.9.9.9',isCustomeExitNode: false);
+                     // print('USER BAB Three --> ${nearest}');
 
-  final random = Random();
-  final randomNode = allNodes[random.nextInt(allNodes.length)];
-
-  final int id = randomNode['id'];
-  final String name = randomNode['name'];
-  final String country = randomNode['country'];
-   print('inside the bottom nav bar 333');
-     print('inside the bottom nav bar $id -- $name $country');
-
-  await selectNode(id, name, country);
-
-
-
-
-
-      } else {
-        throw Exception('Failed to load data');
+       // toggleBelnet(vpnProvider, loadingProvider);
       }
-    } catch (e) {
-      print(' Error while loading node list API $e');
-      // isLoading = false;
-      // hasError = true;
-      // notifyListeners();
+     // setForAutoConnect();
+     // if(isVpnPermit)
+     // toggleBelnet(vpnProvider, loadingProvider);
     }
+
+
+ }catch(e){
+
+ }
+
+
+
+
+
+
+
+
+// try {
+//       final response = await http.get(Uri.parse('https://belnet-exitnode.s3.ap-south-1.amazonaws.com/exitnode-bns-list/exitnode-bns-list.json'));
+
+//       if (response.statusCode == 200) {
+//         nodeRandomData = json.decode(response.body);
+       
+// //if (nodeRandomData.isEmpty) return;
+//   print('inside the bottom nav bar 22');
+
+//   // Collect all nodes from all types into one flat list
+//   final List<dynamic> allNodes = [];
+
+//   for (var item in nodeRandomData) {
+//     if (item.containsKey('node') && item['node'] is List && item['node'].isNotEmpty) {
+//       allNodes.addAll(item['node']);
+//     }
+//   }
+
+//   if (allNodes.isEmpty) return;
+
+//   final random = Random();
+//   final randomNode = allNodes[random.nextInt(allNodes.length)];
+
+//   final int id = randomNode['id'];
+//   final String name = randomNode['name'];
+//   final String country = randomNode['country'];
+//    print('inside the bottom nav bar 333');
+//      print('inside the bottom nav bar $id -- $name $country');
+
+//   await selectNode(id, name, country);
+
+
+
+
+
+//       } else {
+//         throw Exception('Failed to load data');
+//       }
+//     } catch (e) {
+//       print(' Error while loading node list API $e');
+//       // isLoading = false;
+//       // hasError = true;
+//       // notifyListeners();
+//     }
 
 
 

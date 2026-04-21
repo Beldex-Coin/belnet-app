@@ -14,6 +14,7 @@ import 'package:belnet_mobile/src/settings.dart';
 import 'package:belnet_mobile/src/utils/show_toast.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:glass_kit/glass_kit.dart';
 import 'package:provider/provider.dart';
@@ -134,10 +135,15 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
               child: TextField(
                 cursorColor: Color(0xff00B400),
                 controller: _exitNodeController,
+                maxLength: 56, // shows counter + restricts input
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(56),
+                 ],
                 style: TextStyle(color: Color(0xff00DC00)),
                 decoration: InputDecoration(
                   hintText: 'Exit Node',
                  border: InputBorder.none,
+                 counterText: "",
                   hintStyle: TextStyle(color: Colors.grey,fontSize: 12),
                   // errorText: _exitNodeError,
                   // error: Container(
@@ -201,10 +207,17 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
               child: TextField(
                 cursorColor: Color(0xff00B400),
                 controller: _authCodeController,
+                maxLength: 15, // shows counter + restricts input
+                inputFormatters: [
+                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*\.?\d*\.?\d*$')),
+                  //LengthLimitingTextInputFormatter(15),
+                 ],
                 style: TextStyle(color:Color(0xff00A3FF)),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
                   hintText: 'DNS',
                  border: InputBorder.none,
+                 counterText: "",
                   hintStyle: TextStyle(color: Colors.grey,fontSize: 12),
                   
                   // errorText: _exitNodeError,

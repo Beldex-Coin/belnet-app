@@ -22,8 +22,8 @@ import 'package:glass_kit/glass_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 class HomeScreen extends StatefulWidget {
-  final VoidCallback onNavigateToExitNodes;
-
+  //final VoidCallback onNavigateToExitNodes;
+final Function(bool) onNavigateToExitNodes;
   const HomeScreen({super.key, required this.onNavigateToExitNodes});
 
   @override
@@ -209,6 +209,7 @@ String capitalizeFirstLetter(String value) {
     final nodeProvider = Provider.of<NodeProvider>(context);
     final appSelectingProvider = Provider.of<AppSelectingProvider>(context);
     final loaderVideoProvider = Provider.of<LoaderVideoProvider>(context);
+    final logprovider = Provider.of<LogProvider>(context);
   //  final speedChartProvider = Provider.of<SpeedChartProvider>(context);
     final appModel = Provider.of<AppModel>(context);
     final mHeight = MediaQuery.of(context).size.height;
@@ -224,7 +225,7 @@ String capitalizeFirstLetter(String value) {
           backgroundColor: Colors.transparent,
           leading: Padding(
               padding: const EdgeInsets.symmetric(vertical:  10.0,horizontal: 15),
-              child: Text('1.3.2',style: TextStyle(fontFamily: 'Poppins',color: appModel.darkTheme ? Colors.white : Color(0xff4D4D4D)),),
+              child: Text('1.4.0',style: TextStyle(fontFamily: 'Poppins',color: appModel.darkTheme ? Colors.white : Color(0xff4D4D4D)),),
             ),
           leadingWidth: 100,
           actions: [
@@ -321,6 +322,9 @@ String capitalizeFirstLetter(String value) {
 
 
           
+
+         
+
       // GlassContainer.clearGlass(
       //             width: 164,
       //              height: 50,
@@ -443,6 +447,29 @@ String capitalizeFirstLetter(String value) {
             //         ),
             // ),
                   ):SizedBox.shrink(),  
+                 loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED// && !introProvider.isCustomNode
+                  ? SizedBox(height: 15,):SizedBox.shrink(),
+                 loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED //&& !introProvider.isCustomNode 
+                 ? GestureDetector(
+                    onTap:(){
+                      widget.onNavigateToExitNodes(true);
+                    }, //(){
+                      
+                      // introProvider.setIsCustomNode(false);
+                      // swapRandomExitnode(loaderVideoProvider,logprovider,nodeProvider);
+                    //},
+                    child: GlassContainer.clearGlass(
+                      height: 50,width: 160,
+                      
+                      //decoration: BoxDecoration(
+                        color: appModel.darkTheme ? Color(0xff80808A).withOpacity(0.01) : Colors.white.withOpacity(0.6), //Colors.transparent,
+                        borderColor: Color(0xff00DC00),
+                         //border: Border.all(color: Color(0xff00DC00)),
+                         borderRadius: BorderRadius.circular(25),
+                      //),
+                      child: Center(child: Text('Change Node',style: TextStyle(color: Color(0xff00DC00),fontWeight: FontWeight.w600,fontSize: 16),)),
+                    ),
+                  ): SizedBox.shrink()
                 ],
               ),
           Column(
@@ -450,7 +477,7 @@ String capitalizeFirstLetter(String value) {
                   SlideTransition(
                     position: _offsetAnimation,
                     child: GestureDetector(
-                      onTap:loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? widget.onNavigateToExitNodes : null,
+                      onTap:loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? (){ widget.onNavigateToExitNodes(false);} : null,
                       child: GlassContainer.clearGlass(
                           height: MediaQuery.of(context).size.height*0.37/3,
                           width: double.infinity,

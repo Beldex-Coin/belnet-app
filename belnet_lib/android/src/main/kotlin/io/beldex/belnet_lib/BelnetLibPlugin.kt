@@ -50,8 +50,10 @@ import android.net.ConnectivityManager
 import android.os.Build
 import android.app.usage.NetworkStats
 import android.app.usage.NetworkStatsManager
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import android.graphics.drawable.BitmapDrawable
+import org.json.JSONObject
 
 /** BelnetLibPlugin */
 class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
@@ -70,6 +72,14 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var notificationDisconnectEventChannel: EventChannel
     private var disconnectEventSink: EventChannel.EventSink? = null
      private lateinit var notificationDisconnectReceiver: BroadcastReceiver
+    private lateinit var networkChangeEventChannel: EventChannel
+    private var networkChangeEventSink: EventChannel.EventSink? = null
+    private var networkChangeReceiver: BroadcastReceiver? = null
+    private lateinit var statusEventChannel: EventChannel
+    private var statusEventSink: EventChannel.EventSink? = null
+    private var statusHandler: Handler? = null
+    private var statusRunnable: Runnable? = null
+    private val speedMeter = SpeedMeter()
 
 
     // Observe the isConnected LiveData
@@ -134,6 +144,125 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 }
             }
         )
+
+        // Underlying-network change events from BelnetDaemon (Wi-Fi <-> mobile
+        // handover). The Flutter side uses this to run an immediate tunnel
+        // health probe instead of waiting for the next periodic one.
+        networkChangeEventChannel = EventChannel(binding.binaryMessenger, "belnet_lib_network_change_event_channel")
+        networkChangeEventChannel.setStreamHandler(
+            object : EventChannel.StreamHandler {
+                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                    networkChangeEventSink = events
+                    networkChangeReceiver = object : BroadcastReceiver() {
+                        override fun onReceive(context: Context?, intent: Intent?) {
+                            if (intent?.action == BelnetDaemon.ACTION_NETWORK_CHANGED) {
+                                Log.d("BelnetLibPlugin", "Received network change broadcast")
+                                networkChangeEventSink?.success("network_changed")
+                            }
+                        }
+                    }
+                    val filter = IntentFilter(BelnetDaemon.ACTION_NETWORK_CHANGED)
+                    ContextCompat.registerReceiver(
+                        activityBinding.activity,
+                        networkChangeReceiver,
+                        filter,
+                        ContextCompat.RECEIVER_NOT_EXPORTED
+                    )
+                }
+
+                override fun onCancel(arguments: Any?) {
+                    networkChangeEventSink = null
+                    try {
+                        networkChangeReceiver?.let {
+                            activityBinding.activity.unregisterReceiver(it)
+                        }
+                    } catch (e: Exception) {
+                        Log.e("BelnetLibPlugin", "network change receiver already unregistered: ${e.message}")
+                    }
+                    networkChangeReceiver = null
+                }
+            }
+        )
+
+        // Consolidated status feed: one 1 Hz tick doing ONE GetStatus() JNI
+        // call and ONE TrafficStats sample, pushed to Dart. Replaces the six
+        // independent Dart timers that each crossed the platform channel
+        // every 1-2 seconds.
+        statusEventChannel = EventChannel(binding.binaryMessenger, "belnet_lib_status_event_channel")
+        statusEventChannel.setStreamHandler(
+            object : EventChannel.StreamHandler {
+                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                    statusEventSink = events
+                    statusHandler = Handler(Looper.getMainLooper())
+                    statusRunnable = object : Runnable {
+                        override fun run() {
+                            emitStatus()
+                            statusHandler?.postDelayed(this, 1000)
+                        }
+                    }
+                    statusHandler?.post(statusRunnable!!)
+                }
+
+                override fun onCancel(arguments: Any?) {
+                    statusRunnable?.let { statusHandler?.removeCallbacks(it) }
+                    statusRunnable = null
+                    statusHandler = null
+                    statusEventSink = null
+                }
+            }
+        )
+    }
+
+    private fun emitStatus() {
+        val sink = statusEventSink ?: return
+        val speeds = speedMeter.sample()
+        val payload = JSONObject()
+        try {
+            val raw = boundService?.GetStatus()
+            payload.put(
+                "status",
+                if (raw.isNullOrEmpty()) JSONObject.NULL else JSONObject(raw)
+            )
+        } catch (e: Exception) {
+            payload.put("status", JSONObject.NULL)
+        }
+        payload.put("upload", speeds.first)
+        payload.put("download", speeds.second)
+        payload.put("isRunning", boundService?.IsRunning() ?: false)
+        sink.success(payload.toString())
+    }
+
+    /**
+     * Device-level throughput sampling shared by the status feed and the
+     * legacy getUploadSpeed/getDownloadSpeed handlers. Values are halved
+     * because with the VPN active TrafficStats counts every payload byte
+     * twice (once on the tun device, once on the physical interface).
+     */
+    private class SpeedMeter {
+        private var lastTimestamp = 0L
+        private var lastRx = 0L
+        private var lastTx = 0L
+
+        /** Returns Pair(uploadBytesPerSec, downloadBytesPerSec). */
+        fun sample(): Pair<Long, Long> {
+            val now = SystemClock.elapsedRealtime()
+            val rx = TrafficStats.getTotalRxBytes()
+            val tx = TrafficStats.getTotalTxBytes()
+            if (lastTimestamp == 0L) {
+                lastTimestamp = now
+                lastRx = rx
+                lastTx = tx
+                return Pair(0L, 0L)
+            }
+            val dt = (now - lastTimestamp) / 1000f
+            if (dt <= 0f) return Pair(0L, 0L)
+            val up = (((tx - lastTx).coerceAtLeast(0) / 2) / dt).roundToLong()
+            val down = (((rx - lastRx).coerceAtLeast(0) / 2) / dt).roundToLong()
+            lastTimestamp = now
+            lastRx = rx
+            lastTx = tx
+            return Pair(up, down)
+        }
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -181,11 +310,17 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 val exitNode = call.argument<String>("exit_node")
                 val upstreamDNS = call.argument<String>("upstream_dns")
                 val packageNames = call.argument<List<String>>("package_names")
+                val logLevel = call.argument<String>("log_level")
+                val mtu = call.argument<Int>("mtu")
+                val routeIpv6 = call.argument<Boolean>("route_ipv6")
 
                 val belnetIntent = Intent(activityBinding.activity.applicationContext, BelnetDaemon::class.java).apply {
                     action = BelnetDaemon.ACTION_CONNECT
                     putExtra(BelnetDaemon.EXIT_NODE, exitNode)
                     putExtra(BelnetDaemon.UPSTREAM_DNS, upstreamDNS)
+                    putExtra(BelnetDaemon.LOG_LEVEL, logLevel ?: "warn")
+                    putExtra(BelnetDaemon.MTU, mtu ?: 1500)
+                    putExtra(BelnetDaemon.ROUTE_IPV6, routeIpv6 ?: true)
                     packageNames?.let {
                         putStringArrayListExtra(BelnetDaemon.ALLOWED_APPS, ArrayList(it))
                     }
@@ -213,8 +348,10 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 result.success(boundService?.IsRunning() ?: false)
             }
             "getStatus" -> {
-                result.success(boundService?.DumpStatus() ?: false)
-                Log.d("BelnetLibPlugin", "getStatus: ${boundService?.DumpStatus()}")
+                // Return null (not false) when unbound, and do NOT call
+                // DumpStatus() a second time just for logging - it serializes
+                // the full daemon status through JNI on every poll.
+                result.success(boundService?.DumpStatus())
             }
             "getUploadSpeed" -> {
                 val timestamp = SystemClock.elapsedRealtime()
@@ -255,28 +392,42 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 lastTimestamp = timestamp
             }
             "getDataStatus" -> {
-                if (boundService == null) {
-        Log.w("BelnetLibPlugin", "getDataStatus: Service not bound")
-        result.success(false)
-        return
-    }
-
-    try {
-        val status = boundService?.GetStatus()
-        Log.d("BelnetLibPlugin", "getDataStatus: $status")
-        result.success(status)
-    } catch (e: Exception) {
-        Log.e("BelnetLibPlugin", "Exception in getDataStatus", e)
-        result.success(false)
-    }
-               // result.success(boundService?.GetStatus() ?: false)
-               // Log.d("BelnetLibPlugin", "getDataStatus: ${boundService?.GetStatus()}")
+                // Used by the Dart-side connection status polling. Must return
+                // null (never `false`) when the service is not bound so the
+                // Dart layer keeps polling instead of crashing on a cast.
+                val service = boundService
+                if (service == null) {
+                    Log.w("BelnetLibPlugin", "getDataStatus: Service not bound yet")
+                    result.success(null)
+                    return
+                }
+                try {
+                    result.success(service.GetStatus())
+                } catch (e: Exception) {
+                    Log.e("BelnetLibPlugin", "Exception in getDataStatus", e)
+                    result.success(null)
+                }
             }
 
        "getMap" -> {
+                // Exit-node remap. The native call is asynchronous; only
+                // reply once the JNI Unmap completes (delivered on the main
+                // thread). Reply null when the service is not bound so the
+                // Dart side treats it as "not confirmed" and keeps polling.
                 val swapNode = call.argument<String>("swap_node")
-                Log.d("Test", "Swap Node from un map")
-                result.success(boundService?.unmappingNode(swapNode) ?: false)
+                val service = boundService
+                if (service == null || swapNode == null) {
+                    Log.w("BelnetLibPlugin", "getMap: service not bound or no swap_node")
+                    result.success(null)
+                    return
+                }
+                var replied = false
+                service.unmappingNode(swapNode) { value ->
+                    if (!replied) {
+                        replied = true
+                        result.success(value)
+                    }
+                }
             }
 
 

@@ -45,6 +45,10 @@ android {
 
 dependencies {
 	//implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+	// Explicit dep for ContextCompat / NotificationCompat used by the plugin
+	// and BelnetDaemon (previously resolved only transitively).
+	implementation "androidx.core:core-ktx:1.13.1"
+	implementation "androidx.lifecycle:lifecycle-livedata:2.8.7"
 }
 
 task cleanNativeLibs(type: Delete) {

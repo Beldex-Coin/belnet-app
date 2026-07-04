@@ -11,6 +11,7 @@ import 'package:belnet_mobile/src/providers/ip_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/providers/log_provider.dart';
 import 'package:belnet_mobile/src/providers/speed_chart_provider.dart';
+import 'package:belnet_mobile/src/providers/tunnel_health_provider.dart';
 import 'package:belnet_mobile/src/providers/vpn_provider.dart';
 import 'package:belnet_mobile/src/screens/add_exitnode_screen.dart';
 import 'package:belnet_mobile/src/utils/show_toast.dart';
@@ -115,6 +116,7 @@ void initState() {
       // Handle your logic
       try{
        vpnConnectionProvider.cancelDelay();
+      Provider.of<TunnelHealthProvider>(context, listen: false).stop();
       loaderVideoProvider.setLoading(false);
       loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
       logProvider.addLog('Belnet Daemon stopped');

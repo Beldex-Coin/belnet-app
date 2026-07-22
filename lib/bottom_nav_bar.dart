@@ -364,7 +364,7 @@ Widget _getScreen(int index) {
                   Container(
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image:appModel.darkTheme ? AssetImage('assets/images/dark_theme/Dark_background.png') :AssetImage('assets/images/light_theme/White__theme_background_v1.png') , // <-- your image
+                        image:appModel.darkTheme ? AssetImage('assets/images/dark_theme/BG_dark_theme.png') :AssetImage('assets/images/light_theme/BG_wht_theme.png') ,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -374,11 +374,11 @@ Widget _getScreen(int index) {
                     ): SizedBox(),
              
                   
-                  loaderProvider.isLoading ? Container(
+                  loaderProvider.isLoading && loaderProvider.conStatus == ConnectionStatus.CONNECTING ? Container(
                     width: MediaQuery.of(context).size.width,
                     height: MediaQuery.of(context).size.height,
-                    child:appModel.darkTheme ? Lottie.asset('assets/images/dark_theme/Loading_dark_theme.json',repeat: false,fit: BoxFit.cover //dark_theme/Loading_dark_with_text.json',repeat: false //Loading_dark.json',repeat: false 
-                    ) : Lottie.asset('assets/images/light_theme/Loading_white_theme.json',repeat: false ,fit: BoxFit.cover//Loading_white_theme_with_text.json',repeat: false //Loading_white_theme_v1.json',repeat: false
+                    child:appModel.darkTheme ? Lottie.asset('assets/images/light_theme/Loading_white.json',repeat: false,fit: BoxFit.cover //dark_theme/Loading_dark_with_text.json',repeat: false //Loading_dark.json',repeat: false 
+                    ) : Lottie.asset('assets/images/light_theme/Loading_white.json',repeat: false ,fit: BoxFit.cover//Loading_white_theme_with_text.json',repeat: false //Loading_white_theme_v1.json',repeat: false
                     ),
                    ):SizedBox.shrink(),
                   // // Active screen
@@ -459,7 +459,6 @@ class CustomBottomNavBar extends StatelessWidget {
       padding: EdgeInsets.only(right:9,left: 9), // little bottom space
       child:
        ClipRRect(
-        borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: 
@@ -467,7 +466,6 @@ class CustomBottomNavBar extends StatelessWidget {
             padding: EdgeInsets.symmetric( vertical: 15),
              decoration: BoxDecoration(
     color: appModel.darkTheme ? Colors.white.withOpacity(0.05) : Color(0xffC0C0C0).withOpacity(0.2),
-    borderRadius: BorderRadius.circular(12),
     //border: Border. //all(color: Color(0xff3A496266).withOpacity(0.1)),
   ),
            // color: Colors.black.withOpacity(0.3),
@@ -494,12 +492,12 @@ class CustomBottomNavBar extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color:isSelected ? appModel!.darkTheme ? Colors.white.withOpacity(0.12) 
-          : Colors.white : appModel!.darkTheme ? Color(0xff3A4962).withOpacity(0.3) : Color(0xffA1A1A1).withOpacity(0.3), // Colors.grey.shade900.withOpacity(0.7),
+          color:isSelected ? 
+           Colors.white 
+          : appModel!.darkTheme ? Color(0xff555555).withOpacity(0.2) : Color(0xffA1A1A1).withOpacity(0.3), // Colors.grey.shade900.withOpacity(0.7),
           shape: BoxShape.rectangle,
-          borderRadius: BorderRadius.circular(10)
         ),
-        child: SvgPicture.asset(icon, color: isSelected ? activeColor : appModel.darkTheme ? Colors.grey : Color(0xff4D4D4D),height: 20,)
+        child: SvgPicture.asset(icon, color: isSelected ? Colors.black : appModel!.darkTheme ? Colors.grey : Color(0xff4D4D4D),height: 20,)
         // Icon(
         //   icon,
         //   color: isSelected ? activeColor : Colors.grey,

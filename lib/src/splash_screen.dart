@@ -57,6 +57,7 @@ void _goToNextScreen()async {
      SharedPreferences prefs = await SharedPreferences.getInstance();
   bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
    //getStatus(context);
+    
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => isFirstLaunch ? OnboardingScreen() : MainBottomNavbar() //BelnetHomePage()
       ),
@@ -120,38 +121,15 @@ void _goToNextScreen()async {
       Scaffold(
         extendBody: true,
       backgroundColor: Colors.black,// Color(0xff1C1C26),
-         body:Center(
-          child: Image.asset('assets/images/dark_theme/Splash_1.gif',
+         body: Center(
+          child:// Lottie.asset('assets/images/dark_theme/Splash screen_new.json')
+          Image.asset('assets/images/dark_theme/Splash_1.gif',
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
           fit: BoxFit.cover,
           ),
          )
-        //  _videoController.value.isInitialized
-        //    ?
-        //    SizedBox.expand(
-        //       child: FittedBox(
-        //         fit: BoxFit.cover,
-        //         child: SizedBox(
-        //           width: _videoController.value.size.width,
-        //           height: _videoController.value.size.height,
-        //           child: VideoPlayer(_videoController),
-        //         ),
-        //       ),
-        //     )
-        //   : 
-        //   Center(child: Image.asset('assets/images/belnet_ic.png',)),
-    //      Center(
-    //   child: Container(
-    //     child: Lottie.asset('assets/images/Splash_belnet_1 (1).json',    //belnet_splash.json
-    //         controller: _controller, onLoaded: (composition) {
-    //       _controller!
-    //         ..duration = composition.duration
-    //         ..forward().whenComplete(() => Navigator.pushReplacement(context,
-    //             MaterialPageRoute(builder: (context) => MainBottomNavbar())));
-    //     }),
-    //   ),
-    // ),
+       
     );
   }
 }

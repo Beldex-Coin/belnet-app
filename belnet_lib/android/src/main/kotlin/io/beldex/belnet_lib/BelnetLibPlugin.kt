@@ -331,15 +331,23 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 result.success(true)
             }
             "disconnect" -> {
-                val intent = VpnService.prepare(activityBinding.activity.applicationContext)
-                if (intent != null) {
-                    result.success(false)
-                    return
-                }
-                val belnetIntent = Intent(activityBinding.activity.applicationContext, BelnetDaemon::class.java).apply {
+                // val intent = VpnService.prepare(activityBinding.activity.applicationContext)
+                // if (intent != null) {
+                //     result.success(false)
+                //     return
+                // }
+                // val belnetIntent = Intent(activityBinding.activity.applicationContext, BelnetDaemon::class.java).apply {
+                //     action = BelnetDaemon.ACTION_DISCONNECT
+                // }
+                // activityBinding.activity.applicationContext.startService(belnetIntent)
+                // doBindService()
+                // Log.d("BelnetLibPlugin", "Disconnect called")
+                // result.success(true)
+                val ctx = activityBinding.activity.applicationContext
+                val belnetIntent = Intent(ctx, BelnetDaemon::class.java).apply {
                     action = BelnetDaemon.ACTION_DISCONNECT
                 }
-                activityBinding.activity.applicationContext.startService(belnetIntent)
+                ctx.startService(belnetIntent)
                 doBindService()
                 Log.d("BelnetLibPlugin", "Disconnect called")
                 result.success(true)

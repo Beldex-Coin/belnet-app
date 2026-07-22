@@ -264,7 +264,7 @@ public class BelnetDaemon extends VpnService{
       Log.d("callingbelnetDeamon","true");
      // isCalling = false;
       disconnect();
-      stopSelf();
+      //stopSelf();
      //clearNotifications();
 
       return START_NOT_STICKY;
@@ -503,19 +503,85 @@ public class BelnetDaemon extends VpnService{
   }
 
   private void disconnect() {
-    if (IsRunning()) {
-      Stop();
-      // stopSelf();
-      stopForeground(true);
+    boolean running = false;
+    try {
+      running = IsRunning();
+    } catch (Throwable t) {
+      Log.e(LOG_TAG, "IsRunning() threw during disconnect: " + t);
     }
+    if (running) {
+      try {
+        Stop();
+      } catch (Throwable t) {
+        Log.e(LOG_TAG, "Stop() threw during disconnect: " + t);
+      }
+    }
+
+    // Make sure the tun interface actually goes down.
+    //
+    // The system VPN (and its status-bar key icon) only disappears once the
+    // tun fd is closed. That fd was detachFd()'d to the native daemon in
+    // connect(); the daemon closes it during a *successful* graceful
+    // shutdown, but:
+    //   - if the daemon never finished starting (failed / timed-out connect,
+    //     i.e. the "Could not establish Belnet connection" path), IsRunning()
+    //     is false, Stop() was skipped above, and nothing ever closes it;
+    //   - if the daemon's shutdown hangs (no built paths / no connectivity),
+    //     Mainloop() never returns and the fd again never gets closed.
+    // In both cases the VPN key icon stayed in the status bar forever while
+    // the app already showed "Disconnected". So: give the graceful shutdown
+    // a short window, then close the fd ourselves (guarded by a /proc check
+    // so we never touch an fd the daemon already closed).
+    final int fd = m_FD;
+    m_FD = -1;
+    iface = null;
+    if (fd >= 0) {
+      if (!running) {
+        // Daemon never ran: the fd is definitely leaked; close it right away.
+        closeTunFd(fd);
+      } else {
+        new Thread(
+            () -> {
+              // Wait up to 4s for the daemon to stop gracefully.
+              for (int i = 0; i < 16; i++) {
+                try {
+                  if (!IsRunning())
+                    break;
+                } catch (Throwable t) {
+                  break;
+                }
+                SystemClock.sleep(250);
+              }
+              closeTunFd(fd);
+            },
+            "belnet-tun-teardown")
+            .start();
+      }
+    }
+
+    stopForeground(true);
     cancelSpeedNotification();
-    // if (impl != null) {
-    //   //Free(impl);
-    //   impl = null;
-    // }
-
     updateIsConnected();
+  }
 
+/**
+   * Close {@code fd} if (and only if) it still refers to the tun device.
+   * The native daemon may already have closed it during a graceful shutdown
+   * (after which the number could even have been recycled for an unrelated
+   * file), so verify what the fd points at via /proc/self/fd before closing.
+   */
+  private static synchronized void closeTunFd(int fd) {
+    try {
+      String link = android.system.Os.readlink("/proc/self/fd/" + fd);
+      if (link == null || !link.contains("tun")) {
+        Log.e(LOG_TAG, "tun fd " + fd + " already closed/recycled (" + link + "); leaving it alone");
+        return;
+      }
+      ParcelFileDescriptor.adoptFd(fd).close();
+      Log.e(LOG_TAG, "tun fd " + fd + " force-closed; VPN interface torn down");
+    } catch (Exception e) {
+      Log.e(LOG_TAG, "tun fd " + fd + " already closed: " + e);
+    }
   }
 
   public MutableLiveData<Boolean> isConnected() {
@@ -539,6 +605,15 @@ public class BelnetDaemon extends VpnService{
           int pathsBuilt = status.optInt("numPathsBuilt", 0);
           JSONObject exitMap = status.optJSONObject("exitMap");
           ready = flag && pathsBuilt > 0 && exitMap != null && exitMap.length() > 0;
+
+           Log.e(
+    LOG_TAG,
+    "updateIsConnected: running=" + running +
+    ", flag=" + flag +
+    ", ready=" + ready +
+    ", pathsBuilt=" + pathsBuilt +
+    ", exitMap=" + exitMap
+);
         }
       } catch (JSONException e) {
         Log.w(LOG_TAG, "updateIsConnected: could not parse daemon status: " + e);

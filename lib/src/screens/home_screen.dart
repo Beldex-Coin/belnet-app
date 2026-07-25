@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:glass_kit/glass_kit.dart';
+import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 class HomeScreen extends StatefulWidget {
@@ -246,7 +247,6 @@ String capitalizeFirstLetter(String value) {
               margin: EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
                 color:appModel.darkTheme? Colors.grey.withOpacity(0.1):Color(0xffA1A1A1).withOpacity(0.2),
-               borderRadius: BorderRadius.circular(10)
               ),
               child:appModel.darkTheme? SvgPicture.asset('assets/images/dark_theme/light_Theme.svg'):SvgPicture.asset('assets/images/light_theme/dark_theme.svg') ),
          )
@@ -263,7 +263,8 @@ String capitalizeFirstLetter(String value) {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(bottom: 30.0),
-                    child: SvgPicture.asset('assets/images/dark_theme/Belnet_logo_new.svg',height:MediaQuery.of(context).size.height*0.20/3),
+                    child:appModel.darkTheme ?  SvgPicture.asset('assets/images/dark_theme/home_logo_dark_theme.svg',height:40 //MediaQuery.of(context).size.height*0.20/3
+                    ) :  SvgPicture.asset('assets/images/light_theme/home_logo_white_theme.svg',height:40),
                   ),
                   
                   // GestureDetector(
@@ -294,161 +295,142 @@ String capitalizeFirstLetter(String value) {
                        ? 
                        //appModel.darkTheme ? SvgPicture.asset('assets/images/dark_theme/disconnect.svg') : SvgPicture.asset('assets/images/light_theme/disconnect.svg') : appModel.darkTheme ? SvgPicture.asset('assets/images/dark_theme/connect.svg') : SvgPicture.asset('assets/images/light_theme/connect.svg')),
                              appModel.darkTheme ?
-                              SvgPicture.asset('assets/images/dark_theme/disconnect1_dark.svg') 
-                              : SvgPicture.asset('assets/images/light_theme/disconnect_wht_theme.svg') 
+                              SvgPicture.asset('assets/images/dark_theme/disconnect.svg') 
+                              : SvgPicture.asset('assets/images/light_theme/disconnect 1.svg') 
                               : appModel.darkTheme 
-                              ? SvgPicture.asset('assets/images/dark_theme/Connnect1_dark.svg',) 
+                              ? SvgPicture.asset('assets/images/dark_theme/connect.svg',) 
                               : SvgPicture.asset('assets/images/light_theme/connect_wht_theme.svg')
                               ),
                                  
                   ):SizedBox.shrink(),
                   SizedBox(height: 15),
       
-      loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ? appModel.darkTheme ? Image.asset('assets/images/dark_theme/connected.png',height: 40,) :
-                  Image.asset('assets/images/light_theme/connected_wht_theme.png',height: 40,) : SizedBox.shrink(),
+      loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ? 
+    
+      GlassContainer.clearGlass(
+        height: 40,width: 100,
+        color:  appModel.darkTheme ?  Color(0xff333333).withOpacity(0.2): Color(0xffFFFFFF),
+        borderColor: Colors.transparent,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Connected', style: TextStyle(color: Color(0xff00DC00),fontFamily: 'Poppins',fontSize: 12,),),
+            SizedBox(width: 4,),
+            Container(
+              height: 7,width: 7,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(0xff00DC00)
+              ),
+            )
+          ],
+        ),
+      )
+      
+      // Image.asset('assets/images/dark_theme/connected.png',height: 40,) :
+      //             Image.asset('assets/images/light_theme/connected_wht_theme.png',height: 40,) 
+      : SizedBox.shrink(),
       
       
       
-         !loaderProvider.isLoading ?
-                  GestureDetector(
-                    onTap:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED || !introProvider.showButton ? null :  ()=>  showCustomDialog(context,appModel),
+
+
+      
+      //    !loaderProvider.isLoading ?
+      //             GestureDetector(
+      //               onTap:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED || !introProvider.showButton ? null :  ()=>  showCustomDialog(context,appModel),
                   
-                    child: 
-                    appModel.darkTheme ? 
-       // loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ||
-         !introProvider.showButton ?
-              SvgPicture.asset('assets/images/dark_theme/add_exit_node_disabled.svg',height: 55,)
-            : loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? SvgPicture.asset('assets/images/dark_theme/add_exit_node_dark.svg',height: 55,) : SizedBox.shrink()
-           :  
-            !introProvider.showButton ? SvgPicture.asset('assets/images/light_theme/add_exit_node_wht_theme_disabled.svg',height: 55,) : loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? SvgPicture.asset('assets/images/light_theme/add_exit_node_wht theme.svg',height: 55,) : SizedBox.shrink(),
+      //               child: 
+      //               appModel.darkTheme ? 
+      //  // loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ||
+      //    !introProvider.showButton ?
+      //         SvgPicture.asset('assets/images/dark_theme/add_exit_node_disabled.svg',height: 55,)
+      //       : loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? SvgPicture.asset('assets/images/dark_theme/add_exit_node_dark.svg',height: 55,) : SizedBox.shrink()
+      //      :  
+      //       !introProvider.showButton ? SvgPicture.asset('assets/images/light_theme/add_exit_node_wht_theme_disabled.svg',height: 55,) : loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? SvgPicture.asset('assets/images/light_theme/add_exit_node_wht theme.svg',height: 55,) : SizedBox.shrink(),
+
+      //             ):SizedBox.shrink(),  
 
 
-          
-
-         
-
-      // GlassContainer.clearGlass(
-      //             width: 164,
-      //              height: 50,
-      //             //decoration: BoxDecoration(
-      //               color: Color(0xff80808A).withOpacity(0.01),
-      //               borderRadius: BorderRadius.circular(40),
-      //                  borderColor:  Color(0xff4D4D4D).withOpacity(0.5),
-      //               borderWidth: 2, 
-      //             child: 
-      //             Row(
-      //                     mainAxisAlignment: MainAxisAlignment.center,
-      //                     children: [
-      
-      //                       SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color: Color(0xff4D4D4D).withOpacity(0.9)), // Color(0xFF00B400)),
-      //                     Padding(
-      //                       padding: const EdgeInsets.only(left:8.0),
-      //                       child: Text('Add Exit Node',style: TextStyle(color: Color(0xff4D4D4D).withOpacity(0.9)
-      //                       ,fontFamily: 'Poppins',fontWeight: FontWeight.w600,fontSize: 12),),
-      //                     )
-                        
-      //                     ],
-      //                   ),
-      //           ):
-      //                   Stack(
-      //                           alignment: Alignment.center,
-      //                           children: [
-      //                             // Outer container for the gradient border
-      //                             Container(
-      //                               width: 164,
-      //                               height: 50,
-      //                               decoration: BoxDecoration(
-      //                                 borderRadius: BorderRadius.circular(44),
-      //                                 border: Border.all(color: Color(0xfff00DC00),width: 0.3),
-      //                                 gradient: LinearGradient(
-      //                   colors: [
-      //                     Color(0xFF464663), // Gradient start color
-      //                     Color(0xFF00DC00).withOpacity(0.6), // Gradient end color
-      //                   ],
-      //                   begin: Alignment.topLeft,
-      //                   end: Alignment.bottomRight,
-      //                                 ),
-      //                               ),
-      //                             ),
-      //                             // Inner container for the background and inner shadow
-      //                             ClipRRect(
-      //                               borderRadius: BorderRadius.circular(44),
-      //                               child: Container(
-      //                                 width: 162, // Slightly smaller to account for the 1px border
-      //                                 height: 48,
-      //                                 decoration: BoxDecoration(
-      //                   color: Color(0xff3A496266), // Colors.transparent, //(0xFF3A4962).withOpacity(0.4), // Background color with 40% opacity
-      //                   borderRadius: BorderRadius.circular(44),
-      //                   boxShadow: [
-      //                     BoxShadow(
-      //                       //color: Color(0xFF0094FF), // Inner shadow color
-      //                       offset: Offset(-3, 3), // X: -2, Y: 2
-      //                       blurRadius: 16, // Blur: 12
-      //                       spreadRadius: -2, // Negative spread to create inner shadow
-      //                     ),
-      //                   ],
-      //                                 ),
-      //                                 child: Row(
-      //                   mainAxisAlignment: MainAxisAlignment.center,
-      //                   children: [
-      //                     SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color: Color(0xFF00DC00)),
-      //                     Padding(
-      //                       padding: const EdgeInsets.only(left:8.0),
-      //                       child: Text('Add Exit Node',style: TextStyle(color: Color(0xFF00DC00),fontFamily: 'Poppins',fontWeight: FontWeight.w600,fontSize: 12),),
-      //                     )
-      //                   ],
-      //                                 ),
-      //                               ),
-      //                             ),
-      //                           ],
-      //                               )
-            //                     :
-            //                     Container(
-            //   width: 164,
-            //    height: 50,
-            //   decoration: BoxDecoration(
-            //     borderRadius: BorderRadius.circular(20),
-            //     border: Border.all(
-            //        color:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED || !introProvider.showButton ?  Color(0xff4D4D4D).withOpacity(0.3) :Color(0xFF00B400),
-            //        //  selectedType == 'Beldex Official' && type == 'Beldex Official'
-            //       //         ? Color(0xFF00DC00)
-            //       //         : selectedType == 'Contributor exit node' && type == 'Contributor exit node'
-            //       //             ? Color(0xFF0094FF)
-            //       //             : Colors.transparent,
-            //       //Color(0xFF0094FF)
-                
-            //     width: 1),
-            //     boxShadow: 
-            //      [
-            //                 BoxShadow(
-            //         color: Color(0xFF00B400).withOpacity(0.1) ,// Colors.black12,,
-                   
-            //       ),
-            //       BoxShadow(
-            //         color: Colors.white,
-            //         spreadRadius: -01.0,
-            //         blurRadius: 23.5,
-            //         offset: Offset(-3.0, 4.5),
-            //       )
+                Visibility(
+                  visible: loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED,
+                  child: GestureDetector(
+                    onTap:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED || !introProvider.showButton ? null :  ()=>  showCustomDialog(context,appModel),
+                    child: appModel.darkTheme ?
+                    
+                    Container(
+                      //height: 60,
+                      // constraints: BoxConstraints(),
+                      decoration: BoxDecoration(
+                        color:!introProvider.showButton ? Color(0xff222222) : Color(0xff333333),
+                        gradient:!introProvider.showButton ? null : LinearGradient(colors: [
+                          Color(0xff1A1A1A),
+                          Color(0xff1A1A1A),
+                          Color(0xff333333),
                           
-            //     ]
-            //   ),
-            //   child: 
-            //   Row(
-            //           mainAxisAlignment: MainAxisAlignment.center,
-            //           children: [
-      
-            //             SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED || !introProvider.showButton ? Color(0xff4D4D4D).withOpacity(0.3) : Color(0xFF00B400)), // Color(0xFF00B400)),
-            //           Padding(
-            //             padding: const EdgeInsets.only(left:8.0),
-            //             child: Text('Add Exit Node',style: TextStyle(color:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED || !introProvider.showButton ? Color(0xff4D4D4D).withOpacity(0.3) : Color(0xFF00B400)
-            //             ,fontFamily: 'Poppins',fontWeight: FontWeight.w600,fontSize: 12),),
-            //           )
+                          
+                        ]),
+                        border: !introProvider.showButton ? appModel.darkTheme ? GradientBoxBorder(gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                           end: Alignment.bottomRight,
+                          colors:[
+                           Color(0xff444444),
+                           Color(0xff444444),
+                           Color(0xff8D8D8D)
+                        ] )) : Border.all(color:Color(0xff444444) ) : GradientBoxBorder(gradient: 
+                        LinearGradient(
+                           begin: Alignment.topLeft,
+                           end: Alignment.bottomRight,
+                          colors: [
+                           Color(0xff464663),
+                           Color(0xff00DC00)
+                        ]))
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 16,horizontal: 26),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                            SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color: !introProvider.showButton ? Color(0xff737373) : Color(0xff00DC00)),
+                            SizedBox(width: 5,),
+                            Text('Add Exit Node',style: TextStyle(color: !introProvider.showButton ? Color(0xff737373) : Color(0xff00DC00),fontFamily: 'Poppins',fontWeight: FontWeight.w600),)
+                        ],
+                      ),
+                    ):
+                    Container(
+                    //height: 60,
+                    // constraints: BoxConstraints(),
+                    decoration: BoxDecoration(
+                      color://!introProvider.showButton ? Color(0xff222222) :
+                       Color(0xffFFFFFF),
+                      gradient:!introProvider.showButton ? null :
+                       LinearGradient(colors: [
+                        Color(0xffFFFFFF),
+                        Color(0xffFFFFFF),
+                        Color(0xffF0F0F0),
                         
-            //           ],
-            //         ),
-            // ),
-                  ):SizedBox.shrink(),  
+                        
+                      ]),
+                      border:  Border.all(color:!introProvider.showButton ? Color(0xffACACAC) : Color(0xff00B400) ) 
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 16,horizontal: 26),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                          SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color: !introProvider.showButton ? Color(0xffACACAC) : Color(0xff00DC00)),
+                          SizedBox(width: 5,),
+                          Text('Add Exit Node',style: TextStyle(color: !introProvider.showButton ? Color(0xffACACAC) : Color(0xff00DC00),fontFamily: 'Poppins',fontWeight: FontWeight.w600),)
+                      ],
+                    ),
+                  ),
+                  ),
+                ),
+
+
+
+
+
+
                  loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED// && !introProvider.isCustomNode
                   ? SizedBox(height: 15,):SizedBox.shrink(),
                  loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED //&& !introProvider.isCustomNode 
@@ -464,12 +446,11 @@ String capitalizeFirstLetter(String value) {
                       height: 50,width: 160,
                       
                       //decoration: BoxDecoration(
-                        color: appModel.darkTheme ? Color(0xff80808A).withOpacity(0.01) : Colors.white.withOpacity(0.6), //Colors.transparent,
-                        borderColor: Color(0xff00DC00),
+                        color: appModel.darkTheme ? Color(0xff0B0B0B).withOpacity(0.3) : Color(0xffACACAC).withOpacity(0.2), //Colors.transparent,
+                        borderColor:appModel.darkTheme ? Color(0xffACACAC) : Color(0xff0B0B0B),
                          //border: Border.all(color: Color(0xff00DC00)),
-                         borderRadius: BorderRadius.circular(25),
                       //),
-                      child: Center(child: Text('Change Node',style: TextStyle(color: Color(0xff00DC00),fontWeight: FontWeight.w600,fontSize: 16),)),
+                      child: Center(child: Text('Change Node',style: TextStyle(color:appModel.darkTheme ? Color(0xffEBEBEB) : Color(0xff0B0B0B),fontWeight: FontWeight.w600,fontSize: 16),)),
                     ),
                   ): SizedBox.shrink()
                 ],
@@ -485,70 +466,79 @@ String capitalizeFirstLetter(String value) {
                           width: double.infinity,
                           margin: EdgeInsets.symmetric(horizontal: 10,vertical: 5
                           ),
-                         // decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14),
+                           
                             color:appModel.darkTheme ? Color(0xff707070).withOpacity(0.07) //s.white.withOpacity(0.02) 
                             : Colors.white.withOpacity(0.6), // Color(0xFF00B400).withOpacity(0.02),
-                            borderColor: //Border.all(color: 
-                            appModel.darkTheme ? Color(0xff00DC00) :Color(0xFF00B400),
+                            // borderColor: //Border.all(color: 
+                            // appModel.darkTheme ? Color(0xff00DC00) :Color(0xFF00B400),
                             borderWidth:appModel.darkTheme ? 0.8 : 0.3,//),
-                  //           boxShadow:appModel.darkTheme ? [] :[
-                  //                  BoxShadow(
-                  //   color: Color(0xFF00B400).withOpacity(0.1) ,// Colors.black12,,
-                   
-                  // ),
-                  // BoxShadow(
-                  //   color: Colors.white.withOpacity(0.8),
-                  //   spreadRadius: -01.0,
-                  //   blurRadius: 23.5,
-                  //   offset: Offset(-3.0, 4.5),
-                  // )
-                  //           ],
-                         // ),
+                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                         child: Row(
-                          children: [
-                              Container(
-                                height: 45,width: 45,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                 color: appModel.darkTheme ? Color(0xff707070).withOpacity(0.3) //s.white.withOpacity(0.1)
-                                  : Color(0xffBEBEBE).withOpacity(0.3)
-                                ),
-                                padding: EdgeInsets.all(10),
-                                child:introProvider.isCustomNode ? Image.asset('${countryCodeToFlag[ipProvider.customCountryCode?.toUpperCase()]}',
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Icon(Icons.broken_image,color: appModel.darkTheme ? Colors.white : Colors.black);
-                                  },
-                                  ) : Image.asset('assets/images/flags/${nodeProvider.selectedExitNodeCountry ?? 'France'}.png',
-                                   errorBuilder: (context, error, stackTrace) {
-                                    return Icon(Icons.broken_image,color: appModel.darkTheme ? Colors.white : Colors.black);
-                                  },
+                          decoration: BoxDecoration(
+                            border: GradientBoxBorder(gradient: LinearGradient(
+                              colors: loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? 
+                             appModel.darkTheme ? [
+                                  Color(0xff393A39),
+                                  Color(0xffAEB0AE),
+                                  Color(0xffAEB0AE)
+
+                              ] : [
+                                 Color(0xff8D8D8D),
+                                  Color(0xffFFFFFF),
+                                  Color(0xffFFFFFF)
+                              ]
+                              :[
+                                Color(0xff007300),
+                                Color(0xff007300),
+                                Color(0xff5EFF5E)
+                            ]
+                            )),
+                            
+                          ),
+                           child: Row(
+                            children: [
+                                Container(
+                                  height: 45,width: 45,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                   color: appModel.darkTheme ? Color(0xff707070).withOpacity(0.3) //s.white.withOpacity(0.1)
+                                    : Color(0xffFFFFFF).withOpacity(0.5)
                                   ),
-                              ),
-                              SizedBox(width: 8,),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                   introProvider.isCustomNode ? Text('${ipProvider.customNodeCountry ?? 'Fetching country name...'}', style: TextStyle(fontFamily: 'Poppins',fontSize: 12,color:appModel.darkTheme ? Color(0xffACACAC) : Colors.black)) : Text('${nodeProvider.selectedExitNodeCountry ?? 'France'}', style: TextStyle(fontFamily: 'Poppins',fontSize: 12,color:appModel.darkTheme ? Color(0xffACACAC) : Colors.black)),
-                                    SizedBox(height: 5,),
-                                    Text('${nodeProvider.selectedExitNodeName ?? 'exit.bdx'}', maxLines: 2, style: TextStyle(overflow: TextOverflow.ellipsis,fontFamily: 'Poppins',fontSize: 12),)
-                                  ],
+                                  padding: EdgeInsets.all(10),
+                                  child:introProvider.isCustomNode ? Image.asset('${countryCodeToFlag[ipProvider.customCountryCode?.toUpperCase()]}',
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Icon(Icons.broken_image,color: appModel.darkTheme ? Colors.white : Colors.black);
+                                    },
+                                    ) : Image.asset('assets/images/flags/${nodeProvider.selectedExitNodeCountry ?? 'France'}.png',
+                                     errorBuilder: (context, error, stackTrace) {
+                                      return Icon(Icons.broken_image,color: appModel.darkTheme ? Colors.white : Colors.black);
+                                    },
+                                    ),
                                 ),
-                              ),
-                              SizedBox(width: 10,),
-                             loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? Container(
-                                height: 35,width: 35,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color:appModel.darkTheme ? Color(0xff707070).withOpacity(0.07) : Color(0xffBEBEBE).withOpacity(0.3)
+                                SizedBox(width: 8,),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                     introProvider.isCustomNode ? Text('${ipProvider.customNodeCountry ?? 'Fetching country name...'}', style: TextStyle(fontFamily: 'Poppins',fontSize: 12,color:appModel.darkTheme ? Color(0xffACACAC) : Colors.black)) : Text('${nodeProvider.selectedExitNodeCountry ?? 'France'}', style: TextStyle(fontFamily: 'Poppins',fontSize: 12,color:appModel.darkTheme ? Color(0xffACACAC) : Colors.black)),
+                                      SizedBox(height: 5,),
+                                      Text('${nodeProvider.selectedExitNodeName ?? 'exit.bdx'}', maxLines: 2, style: TextStyle(overflow: TextOverflow.ellipsis,fontFamily: 'Poppins',fontSize: 12),)
+                                    ],
+                                  ),
                                 ),
-                                padding: EdgeInsets.all(9),
-                                child: SvgPicture.asset('assets/images/dark_theme/arrow_settings.svg',height: 20,color:appModel.darkTheme ? Colors.white : Colors.black,))
-                                : SizedBox.shrink()
-                          ],
+                                SizedBox(width: 10,),
+                               loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? Container(
+                                  height: 35,width: 35,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color:appModel.darkTheme ? Color(0xff707070).withOpacity(0.07) : Color(0xffBEBEBE).withOpacity(0.3)
+                                  ),
+                                  padding: EdgeInsets.all(9),
+                                  child: SvgPicture.asset('assets/images/dark_theme/arrow_settings.svg',height: 20,color:appModel.darkTheme ? Colors.white : Colors.black,))
+                                  : SizedBox.shrink()
+                            ],
+                           ),
                          ),
                         ),
                     ),
@@ -563,8 +553,8 @@ String capitalizeFirstLetter(String value) {
                       Expanded(
                         child: GlassContainer(
                           height:55,// MediaQuery.of(context).size.height * 0.10,
-                          borderRadius: BorderRadius.circular(10),
-                          color:appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.05):Colors.white.withOpacity(0.6) , //s.black12,
+                          //borderRadius: BorderRadius.circular(10),
+                          color:appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.05):Colors.white.withOpacity(0.4) , //s.black12,
                           blur: 5.0,
                           borderColor: Colors.transparent, //(0xffACACAC),
                           borderWidth: 0.5,
@@ -574,12 +564,12 @@ String capitalizeFirstLetter(String value) {
                             children: [
                               Container(
                                                 decoration: BoxDecoration(
-                                                  border: Border.all(color:appModel.darkTheme ? Colors.transparent : Color(0xffA1A1AF),width: 0.2),
+                                                  //border: Border.all(color:appModel.darkTheme ? Colors.transparent : Color(0xffA1A1AF),width: 0.2),
                                                   shape: BoxShape.circle,
                                                 ),
                                                 child: 
                                                 CircleAvatar(
-                                                  backgroundColor:appModel.darkTheme ? Colors.white.withOpacity(0.1) : Color(0xffBEBEBE).withOpacity(0.3),
+                                                  backgroundColor:appModel.darkTheme ? Colors.white.withOpacity(0.1) : Color(0xffFFFFFF),
                                                   radius: 13,
                                                   child: SvgPicture.asset('assets/images/dark_theme/connection.svg',height: 13,width: 13, color: appModel.darkTheme ? Colors.white : Colors.black,) //Icon(Icons.download, color: Colors.white, size: 20),
                                                 ),
@@ -598,7 +588,7 @@ String capitalizeFirstLetter(String value) {
                                               SizedBox(height: 8),
                                               Text("Status", style: TextStyle(color:appModel.darkTheme ? Colors.white70 : Color(0xff4D4D4D), fontSize: 10)),
                                               SizedBox(height: 4),
-                                              Text(capitalizeFirstLetter(loaderVideoProvider.conStatus.name), style: TextStyle(color:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ?  Color(0xff00DC00) : loaderVideoProvider.conStatus == ConnectionStatus.CONNECTING ? Colors.blue : appModel.darkTheme ? Colors.white : Colors.black, fontSize: 9, fontWeight: FontWeight.bold,overflow: TextOverflow.ellipsis),maxLines: 1,),
+                                              Text(capitalizeFirstLetter(loaderVideoProvider.conStatus.name), style: TextStyle(color:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ?  Color(0xff00DC00) : appModel.darkTheme ? Colors.white : Colors.black, fontSize: 9, fontWeight: FontWeight.bold,overflow: TextOverflow.ellipsis),maxLines: 1,),
                                 ],
                               ),
                             ],
@@ -609,8 +599,8 @@ String capitalizeFirstLetter(String value) {
                       Expanded(
                         child: GlassContainer(
                           height:55, //MediaQuery.of(context).size.height * 0.10,
-                          borderRadius: BorderRadius.circular(10),
-                          color:appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.05):Colors.white.withOpacity(0.6), 
+                          //borderRadius: BorderRadius.circular(10),
+                          color:appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.05):Colors.white.withOpacity(0.4), 
                           blur: 5.0,
                           borderColor: Colors.transparent, //(0xffACACAC),
                           borderWidth: 0.5,
@@ -619,12 +609,12 @@ String capitalizeFirstLetter(String value) {
                             children: [
                               Container(
                                                 decoration: BoxDecoration(
-                                                  border: Border.all(color:appModel.darkTheme ? Colors.transparent : Color(0xffA1A1AF),width: 0.2),
+                                                  //border: Border.all(color:appModel.darkTheme ? Colors.transparent : Color(0xffA1A1AF),width: 0.2),
                                                   shape: BoxShape.circle,
                                                 ),
                                                 child: 
                                                 CircleAvatar(
-                                                  backgroundColor:appModel.darkTheme ? Colors.white.withOpacity(0.1) : Color(0xffBEBEBE).withOpacity(0.3),
+                                                  backgroundColor:appModel.darkTheme ? Colors.white.withOpacity(0.1) : Color(0xffFFFFFF),
                                                   radius: 13,
                                                   child: SvgPicture.asset('assets/images/dark_theme/Download.svg',height: 13,width: 13,) //Icon(Icons.download, color: Colors.white, size: 20),
                                                 ),
@@ -652,8 +642,8 @@ String capitalizeFirstLetter(String value) {
                       Expanded(
                         child: GlassContainer(
                           height: 55, // MediaQuery.of(context).size.height * 0.10,
-                          borderRadius: BorderRadius.circular(10),
-                          color: appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.05):Colors.white.withOpacity(0.6) ,
+                          //borderRadius: BorderRadius.circular(10),
+                          color: appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.05):Colors.white.withOpacity(0.4) ,
                           blur: 5.0,
                           borderColor: Colors.transparent, //(0xffACACAC),
                           borderWidth: 0.5,
@@ -664,14 +654,14 @@ String capitalizeFirstLetter(String value) {
                             children: [
                               Container(
                                                 decoration: BoxDecoration(
-                                                  border: Border.all(color:appModel.darkTheme ? Colors.transparent : Color(0xffA1A1AF),width: 0.2),
+                                                  //border: Border.all(color:appModel.darkTheme ? Colors.transparent : Color(0xffA1A1AF),width: 0.2),
                                                   shape: BoxShape.circle,
                                                 ),
                                                 child: 
                                                 CircleAvatar(
-                                                  backgroundColor:appModel.darkTheme ? Colors.white.withOpacity(0.1) : Color(0xffBEBEBE).withOpacity(0.3),
+                                                  backgroundColor:appModel.darkTheme ? Colors.white.withOpacity(0.1) : Color(0xffFFFFFF),
                                                   radius: 13,
-                                                  child: SvgPicture.asset('assets/images/dark_theme/upload.svg',height: 13,width: 13,) //Icon(Icons.download, color: Colors.white, size: 20),
+                                                  child: SvgPicture.asset('assets/images/dark_theme/upload.svg',height: 13,width: 13,color: Color(0xff8D8D8D),) //Icon(Icons.download, color: Colors.white, size: 20),
                                                 ),
                                               ),
                                               SizedBox(width: 5),
@@ -719,34 +709,50 @@ void showCustomDialog(BuildContext context,AppModel appModel) {
                                   useSafeArea: false,
                                   // barrierColor: Colors.white.withOpacity(0.09),
                                   context: context,
-                                  builder: (BuildContext dcontext) => Padding(
-                                        padding: const EdgeInsets.all(0.0),
-                                        child: appModel.darkTheme ?
-                                        GlassContainer.clearGlass(
-                                         color: Colors.black.withOpacity(0.3), //s.white.withOpacity(0.8),
-                                         blur: 15.0,
-                                         borderColor: Colors.transparent,
-                                          child: Dialog(
-                                           // scrollable: true,
-                                           insetPadding: EdgeInsets.all(18),
-                                            backgroundColor: Colors.transparent,
-                                            //contentPadding: EdgeInsets.all(0.0),
-                                            child:CustomAddExitNodeDialog() //containerWidget(dcontext,mHeight,appModel),
+                                  builder: (BuildContext dcontext) => SafeArea(
+                                    child: Padding(
+                                          padding: const EdgeInsets.all(0.0),
+                                          child: appModel.darkTheme ?
+                                          GlassContainer.clearGlass(
+                                           color: Colors.black.withOpacity(0.3), //s.white.withOpacity(0.8),
+                                           blur: 15.0,
+                                           borderColor: Colors.transparent,
+                                            child: Dialog(
+                                             // scrollable: true,
+                                             insetPadding: EdgeInsets.all(18),
+                                              backgroundColor: Colors.transparent,
+                                              //contentPadding: EdgeInsets.all(0.0),
+                                              child:CustomAddExitNodeDialog() //containerWidget(dcontext,mHeight,appModel),
+                                            ),
+                                          )
+                                          :
+                                    
+                                           Container(
+                                           color: Color(0xffFFFFFF).withOpacity(0.9),//(0xffFFFFFF).withOpacity(0.9), //s.white.withOpacity(0.8),
+                                          // blur: 6.0,
+                                          //borderColor: Colors.transparent,
+                                            child: Dialog(
+                                             // scrollable: true,
+                                             insetPadding: EdgeInsets.all(18),
+                                              backgroundColor: Colors.transparent,
+                                              //contentPadding: EdgeInsets.all(0.0),
+                                              child:CustomAddExitNodeDialog() //containerWidget(dcontext,mHeight,appModel),
+                                            ),
                                           ),
-                                        )
-                                        : GlassContainer.clearGlass(
-                                         color: Color(0x80FFFFFF),//(0xffFFFFFF).withOpacity(0.9), //s.white.withOpacity(0.8),
-                                        // blur: 6.0,
-                                        borderColor: Colors.transparent,
-                                          child: Dialog(
-                                           // scrollable: true,
-                                           insetPadding: EdgeInsets.all(18),
-                                            backgroundColor: Colors.transparent,
-                                            //contentPadding: EdgeInsets.all(0.0),
-                                            child:CustomAddExitNodeDialog() //containerWidget(dcontext,mHeight,appModel),
-                                          ),
+                                          //  GlassContainer.clearGlass(
+                                          //  color: Color(0x80FFFFFF),//(0xffFFFFFF).withOpacity(0.9), //s.white.withOpacity(0.8),
+                                          // // blur: 6.0,
+                                          // borderColor: Colors.transparent,
+                                          //   child: Dialog(
+                                          //    // scrollable: true,
+                                          //    insetPadding: EdgeInsets.all(18),
+                                          //     backgroundColor: Colors.transparent,
+                                          //     //contentPadding: EdgeInsets.all(0.0),
+                                          //     child:CustomAddExitNodeDialog() //containerWidget(dcontext,mHeight,appModel),
+                                          //   ),
+                                          // ),
                                         ),
-                                      ));
+                                  ));
 
 }
 

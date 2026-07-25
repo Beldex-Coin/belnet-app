@@ -26,7 +26,7 @@ class CustomAddExitNodeDialog extends StatefulWidget {
 
 class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
   final TextEditingController _exitNodeController = TextEditingController();
-  final TextEditingController _authCodeController = TextEditingController();
+  final TextEditingController _authCodeController = TextEditingController(text: '9.9.9.9');
   bool _isChecked = false;
  bool isError = false;
   String? _exitNodeError;
@@ -65,23 +65,24 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
         height:_authCodeError != null || _exitNodeError != null ? mHeight * 1.47 / 3 : mHeight *1.38/3,
          width:double.infinity, //MediaQuery.of(dcontext).size.width * 2 / 3,
        // decoration: BoxDecoration(
-          color: appModel.darkTheme ?Colors.transparent// black.withOpacity(0.7)
-           :const Color(0xffF5F5F5).withOpacity(0.6),
+          color: //appModel.darkTheme ?
+          Colors.transparent,// black.withOpacity(0.7)
+           //:const Color(0xffACACAC).withOpacity(0.2),
           borderColor:appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.5) : const Color(0xffACACAC),
           borderWidth:appModel.darkTheme ? 1.0 : 0.3,
-          borderRadius: BorderRadius.circular(14.0),
+          //borderRadius: BorderRadius.circular(14.0),
           boxShadow: appModel.darkTheme ? [] : [
             
-                          BoxShadow(
-                  color: Color(0xFF00FFDD).withOpacity(0.3) ,// Colors.black12,,
+                //           BoxShadow(
+                //   color: Color(0xFF00FFDD).withOpacity(0.3) ,// Colors.black12,,
                  
-                ),
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.7),
-                  spreadRadius: -01.0,
-                  blurRadius: 23.5,
-                  offset: Offset(-3.0, 4.5),
-                )
+                // ),
+                // BoxShadow(
+                //   color: Colors.white.withOpacity(0.7),
+                //   spreadRadius: -01.0,
+                //   blurRadius: 23.5,
+                //   offset: Offset(-3.0, 4.5),
+                // )
                         
           ],
 
@@ -125,8 +126,8 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                 Container(
               height: 50,
               decoration: BoxDecoration(
-                color:appModel.darkTheme ? Color(0xff3A4962).withOpacity(0.12) : Color(0xffBEBEBE).withOpacity(0.13),
-                borderRadius: BorderRadius.circular(8),
+                color:appModel.darkTheme ? Color(0xff444444).withOpacity(0.2) : Color(0xffBEBEBE).withOpacity(0.13),
+                //borderRadius: BorderRadius.circular(8),
                 border: Border.all(color:_exitNodeError != null ? Colors.red : Colors.transparent)
                 
               ),
@@ -145,26 +146,6 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                  border: InputBorder.none,
                  counterText: "",
                   hintStyle: TextStyle(color: Colors.grey,fontSize: 12),
-                  // errorText: _exitNodeError,
-                  // error: Container(
-                  //   width: double.infinity,
-                
-                  //   color: Colors.white,
-                  //   child: Text(_exitNodeError ?? ''),
-                  // ),
-                  // errorStyle: TextStyle(color: Colors.red,backgroundColor: Colors.white),
-                  // enabledBorder: OutlineInputBorder(
-                  //   borderSide: BorderSide(color: Colors.transparent, width: 1),
-                  // ),
-                  // focusedBorder: OutlineInputBorder(
-                  //   borderSide: BorderSide(color: Colors.transparent, width: 1),
-                  // ),
-                  // errorBorder: OutlineInputBorder(
-                  //   borderSide: BorderSide(color: Colors.red, width: 1),
-                  // ),
-                  // focusedErrorBorder: OutlineInputBorder(
-                  //   borderSide: BorderSide(color: Colors.red, width: 1),
-                  // ),
                 ),
                   onChanged: (value) {
                   setState(() {
@@ -197,8 +178,8 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
               isAuthCode ?  Container(
               height: 50,
               decoration: BoxDecoration(
-                color:appModel.darkTheme ? Color(0xff3A4962).withOpacity(0.12) : Color(0xffBEBEBE).withOpacity(0.13),
-                borderRadius: BorderRadius.circular(8),
+                color:appModel.darkTheme ? Color(0xff444444).withOpacity(0.2) : Color(0xffBEBEBE).withOpacity(0.13),
+                //borderRadius: BorderRadius.circular(8),
                 border: Border.all(color:_authCodeError != null ? Colors.red : Colors.transparent)
                 
               ),
@@ -212,34 +193,13 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*\.?\d*\.?\d*$')),
                   //LengthLimitingTextInputFormatter(15),
                  ],
-                style: TextStyle(color:Color(0xff00A3FF)),
+                style: TextStyle(color:Color(0xff00DC00)),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
                   hintText: 'DNS',
                  border: InputBorder.none,
                  counterText: "",
                   hintStyle: TextStyle(color: Colors.grey,fontSize: 12),
-                  
-                  // errorText: _exitNodeError,
-                  // error: Container(
-                  //   width: double.infinity,
-                
-                  //   color: Colors.white,
-                  //   child: Text(_exitNodeError ?? ''),
-                  // ),
-                  // errorStyle: TextStyle(color: Colors.red,backgroundColor: Colors.white),
-                  // enabledBorder: OutlineInputBorder(
-                  //   borderSide: BorderSide(color: Colors.transparent, width: 1),
-                  // ),
-                  // focusedBorder: OutlineInputBorder(
-                  //   borderSide: BorderSide(color: Colors.transparent, width: 1),
-                  // ),
-                  // errorBorder: OutlineInputBorder(
-                  //   borderSide: BorderSide(color: Colors.red, width: 1),
-                  // ),
-                  // focusedErrorBorder: OutlineInputBorder(
-                  //   borderSide: BorderSide(color: Colors.red, width: 1),
-                  // ),
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -251,8 +211,8 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
             ): Container(
                height: 50,width: double.infinity,
               decoration: BoxDecoration(
-                color:appModel.darkTheme ? Color(0xff3A4962).withOpacity(0.12) : Color(0xffBEBEBE).withOpacity(0.13),
-                borderRadius: BorderRadius.circular(8),
+                color:appModel.darkTheme ? Color(0xff444444).withOpacity(0.2) : Color(0xffBEBEBE).withOpacity(0.13),
+                
                 border: Border.all(color: Colors.transparent)
                 
               ),
@@ -273,100 +233,7 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
            ),
             
             SizedBox(height: 20),
-                // isAuthCode ? Stack(
-                //   children: [
-                //     // Background container only for input area
-                //     Container(
-                //       height: 54, // Adjust height to match TextField content
-                //       decoration: BoxDecoration(
-                //         color: Color(0xffBEBEBE).withOpacity(0.13), // Background only behind input
-                //         borderRadius: BorderRadius.circular(8),
-                //       ),
-                //     ),
-                //     TextField(
-                //       controller: _authCodeController,
-                //       style: TextStyle(color: Colors.white),
-                //       decoration: InputDecoration(
-                //         isDense: true,
-                //         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                //         hintText: 'Auth Code',
-                //         hintStyle: TextStyle(color: Colors.grey, fontSize: 12),
-                //         errorText: _authCodeError,
-                //         errorStyle: TextStyle(color: Colors.red),
-                //         border: OutlineInputBorder(
-                //           borderSide: BorderSide.none,
-                //           borderRadius: BorderRadius.circular(4),
-                //         ),
-                //         enabledBorder: OutlineInputBorder(
-                //           borderSide: BorderSide.none,
-                //           borderRadius: BorderRadius.circular(4),
-                //         ),
-                //         focusedBorder: OutlineInputBorder(
-                //           borderSide: BorderSide.none,
-                //           borderRadius: BorderRadius.circular(4),
-                //         ),
-                //         errorBorder: OutlineInputBorder(
-                //           borderSide: BorderSide(color: Colors.red, width: 1),
-                //           borderRadius: BorderRadius.circular(4),
-                //         ),
-                //         focusedErrorBorder: OutlineInputBorder(
-                //           borderSide: BorderSide(color: Colors.red, width: 1),
-                //           borderRadius: BorderRadius.circular(4),
-                //         ),
-                //       ),
-                //     ),
-                //   ],
-                // ):  Container(
-                //       height: 54,width: double.infinity, // Adjust height to match TextField content
-                //       decoration: BoxDecoration(
-                //         color: Color(0xffBEBEBE).withOpacity(0.13), // Background only behind input
-                //         borderRadius: BorderRadius.circular(8),
-                //       ),
-                //     ),
-                
-          //  isAuthCode ? Container(
-          //      height: 65,
-          //     decoration: BoxDecoration(
-          //       color: Color(0xffBEBEBE).withOpacity(0.13),
-          //       borderRadius: BorderRadius.circular(8),
-                
-          //     ),
-          //     child: TextField(
-          //       controller: _authCodeController,
-          //       style: TextStyle(color: Colors.white),
-          //       decoration: InputDecoration(
-          //         hintText: 'Auth Code',
-          //         //labelText: 'Auth Code',
-          //         hintStyle: TextStyle(color: Colors.grey,fontSize: 12),
-          //         errorText: _authCodeError,
-          //         errorStyle: TextStyle(color: Colors.red),
-          //         enabledBorder: OutlineInputBorder(
-          //           borderSide: BorderSide(color: Colors.transparent, //blue, 
-          //           width: 1),
-          //         ),
-          //         focusedBorder: OutlineInputBorder(
-          //           borderSide: BorderSide(color: Colors.transparent, width: 1),
-          //         ),
-          //         errorBorder: OutlineInputBorder(
-          //           borderSide: BorderSide(color: Colors.red, width: 1),
-          //         ),
-          //         focusedErrorBorder: OutlineInputBorder(
-          //           borderSide: BorderSide(color: Colors.red, width: 1),
-          //         ),
-          //       ),
-          //     ),
-          //   ) 
-            // : Container(
-            //    height: 65,
-            //    width: double.infinity,
-            //   decoration: BoxDecoration(
-            //     color: Color(0xffBEBEBE).withOpacity(0.13),
-            //     borderRadius: BorderRadius.circular(8),
-                
-            //   ),
-            //   child: Text('9.9.9.9'),
-            // ),
-          //  SizedBox(height: 20),
+
             Row(
                 children: [
                   
@@ -379,13 +246,28 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                           print("this is for authcode$isAuthCode");
                         });
                       },
-                      child: appModel.darkTheme
-                          ? SvgPicture.asset(isAuthCode
-                              ? 'assets/images/check.svg'
-                              : 'assets/images/Rectangle 10.svg')
-                          : SvgPicture.asset(isAuthCode
-                              ? 'assets/images/check.svg'
-                              : 'assets/images/Rectangle 10 (1).svg')),
+                      child: appModel.darkTheme ?
+                       Container(
+                        height: 18,width: 18,
+                        decoration: BoxDecoration(
+                          color: isAuthCode ? Color(0xffEBEBEB) : Colors.transparent,
+                          border: Border.all(color: Color(0xffEBEBEB),width: 2)
+                        ),
+                        child: Center(child:SvgPicture.asset('assets/images/dark_theme/auth_code_check.svg',color: isAuthCode ? Colors.black: Colors.transparent,)
+                        // Icon(Icons.check,size: 10,weight: 10,color: isAuthCode ? Colors.black: Colors.transparent, )
+                         ),
+                      ):
+                      Container(
+                        height: 18,width: 18,
+                        decoration: BoxDecoration(
+                          color: isAuthCode ? Color(0xff0B0B0B) : Colors.transparent,
+                          border: Border.all(color: Color(0xff222222),width: 2)
+                        ),
+                        child: Center(child:SvgPicture.asset('assets/images/dark_theme/auth_code_check.svg',color: isAuthCode ? Colors.white: Colors.transparent,)
+                        // Icon(Icons.check,size: 10,weight: 10,color: isAuthCode ? Colors.black: Colors.transparent, )
+                         ),
+                      )
+                              ),
                               Padding(
                     padding: const EdgeInsets.only(left: 10.0, right: 8.0),
                     child: Text(
@@ -400,8 +282,6 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                   ),
                 ],
               ),
-           // SizedBox(height: 20),
-          // Spacer(),
             Padding(
                 padding: EdgeInsets.only(top: MediaQuery.of(context).size.height*0.07/3, //10.0 
                 ),
@@ -413,7 +293,10 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                       _authCodeError = null;
                     },
                   );
-                
+                 if(_exitNodeController.text.trim().isEmpty && _authCodeController.text.trim().isEmpty){
+                    _exitNodeError = "Exitnode should not  be empty";
+                     _exitNodeError = "Please enter a valid Exit Node";
+                 }
                   if (_exitNodeController.text == null || _exitNodeController.text == "") {
                     setState(() {
                       _exitNodeError = "Exitnode should not  be empty";
@@ -475,25 +358,9 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                   Container(
                       //padding: EdgeInsets.all(8.0),
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12.0),
-                          border: Border.all(color:(_authCodeError == null && _exitNodeError == null) ?  Color(0xff00B400) : Color(0xffACACAC).withOpacity(0.4) //: Color(0xffACACAC)
+                          border: Border.all(color:(_authCodeError == null && _exitNodeError == null) && (_authCodeController.text.trim().isNotEmpty && _exitNodeController.text.trim().isNotEmpty) ?  Color(0xff00B400) : Color(0xff444444).withOpacity(0.4) //: Color(0xffACACAC)
                           ,width: 1),
-                          //color: Colors.grey,
-                          // gradient: LinearGradient(
-                          //     colors: [const Color(0xff007ED1),const Color(0xff0093FF)]),
-                         
-                          boxShadow: [
-                             BoxShadow(
-                    color:(_authCodeError == null && _exitNodeError == null) ? Color(0xff00B400).withOpacity(0.02) : Color(0xff00FFDD).withOpacity(0.05) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
-                   
-                  ),
-                  BoxShadow(
-                    color: Color(0xff000000), //s.transparent, //.white,
-                    spreadRadius: -01.0,
-                    blurRadius: 23.5,
-                    offset: Offset(-3.0, 4.5),
-                  )
-                           ],
+                          color: (_authCodeError == null && _exitNodeError == null) && (_authCodeController.text.trim().isNotEmpty && _exitNodeController.text.trim().isNotEmpty) ? Color(0xffffffff) : Color(0xff222222)
                           ),
                       height: mHeight * 0.21 / 3,
                       width: double.infinity,
@@ -502,7 +369,7 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                               child: Text(
                               "OK",
                               style: TextStyle(
-                                   color:(_authCodeError == null && _exitNodeError == null) ? Colors.white: Color(0xffACACAC), //isSet ?
+                                   color:(_authCodeError == null && _exitNodeError == null) && (_authCodeController.text.trim().isNotEmpty && _exitNodeController.text.trim().isNotEmpty) ? Color(0xff0B0B0B): Color(0xff737373), //isSet ?
                                   //     Colors.white, // : Color(0xff56566F),
                                   fontFamily: "Poppins",
                                   fontSize: 17,
@@ -512,60 +379,18 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                   
                   : Container(
                       //padding: EdgeInsets.all(8.0),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12.0),
-                          border: Border.all(color:(_authCodeError == null && _exitNodeError == null) ?  Color(0xff00B400) : Color(0xffACACAC) //: Color(0xffACACAC)
-                          ,width: 0.3),
-                          //color: Colors.grey,
-                          // gradient: LinearGradient(
-                          //     colors: [const Color(0xff007ED1),const Color(0xff0093FF)]),
-                         
-                          boxShadow: [
-                             BoxShadow(
-                    color:(_authCodeError == null && _exitNodeError == null) ? Color(0xff00B400).withOpacity(0.2) : Color(0xff00FFDD).withOpacity(0.05) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
-                   
-                  ),
-                  BoxShadow(
-                    color: Colors.white,
-                    spreadRadius: -01.0,
-                    blurRadius: 23.5,
-                    offset: Offset(-3.0, 4.5),
-                  )
-                          //   appModel.darkTheme
-                          //       ? BoxShadow(
-                          //           color: Colors.black,
-                          //           offset: Offset(0, 1),
-                          //           //spreadRadius: 0,
-                          //           blurRadius: 2.0)
-                          //       : BoxShadow(
-                          //           color: Color(0xff6E6E6E),
-                          //           offset: Offset(0, 1),
-                          //           blurRadius: 2.0)
-                           ],
+                      decoration: BoxDecoration( 
+                          border: Border.all(color:(_authCodeError == null && _exitNodeError == null) && (_authCodeController.text.trim().isNotEmpty && _exitNodeController.text.trim().isNotEmpty) ?  Color(0xff00B400) : Color(0xffACACAC) //: Color(0xffACACAC)
+                          ,width: 1),
                           ),
                       height: mHeight * 0.21 / 3,
                       width: double.infinity,
                       child: 
-                      // isCheckLoad
-                      //     ? Expanded(
-                      //         child: LinearPercentIndicator(
-                      //           lineHeight:
-                      //               mHeight * 0.30 / 3,
-                      //           padding: EdgeInsets.zero,
-                      //           animation: true,
-                      //           animationDuration: 10000,
-                      //           barRadius: Radius.circular(12.0),
-                      //           percent: 1.0,
-                      //           backgroundColor:const Color(0xffA8A8B7),
-                      //           progressColor:const Color(0xff007ED1),
-                      //         ),
-                      //       )
-                      //     :
                           Center(
                               child: Text(
                               "OK",
                               style: TextStyle(
-                                   color:(_authCodeError == null && _exitNodeError == null) ? Colors.black: Color(0xff5B5B69), //isSet ?
+                                   color:(_authCodeError == null && _exitNodeError == null) && (_authCodeController.text.trim().isNotEmpty && _exitNodeController.text.trim().isNotEmpty) ? Colors.black: Color(0xffACACAC), //isSet ?
                                   //     Colors.white, // : Color(0xff56566F),
                                   fontFamily: "Poppins",
                                   fontSize: 17,
@@ -574,20 +399,6 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                       ),
                 ),
               ),
-            // ElevatedButton(
-            //   onPressed: () {
-            //     _validateInputs();
-            //     if (_exitNodeError == null && _authCodeError == null) {
-            //       Navigator.of(context).pop();
-            //     }
-            //   },
-            //   style: ElevatedButton.styleFrom(
-            //     backgroundColor: Colors.grey[800],
-            //     foregroundColor: Colors.white,
-            //     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-            //   ),
-            //   child: Text('OK'),
-            // ),
           ],
         ),
       ),

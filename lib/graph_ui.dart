@@ -377,7 +377,7 @@ double getYInterval() {
             LineChartBarData(
               spots: downloadSpots,
               isCurved: true,
-              color: Colors.greenAccent,
+              color: Color(0xff00B400),
               barWidth: 2,
               dotData: FlDotData(show: false),
             ),
@@ -385,7 +385,7 @@ double getYInterval() {
             LineChartBarData(
               spots: uploadSpots,
               isCurved: true,
-              color: Colors.cyanAccent,
+              color: Color(0xff8D8D8D),
               barWidth: 2,
               dotData: FlDotData(show: false),
             ),
@@ -634,14 +634,15 @@ class NetworkSpeedChart extends StatelessWidget {
               dotData: FlDotData(show: false),
             ),
             // Upload line (blue)
+            
             LineChartBarData(
               spots: uploadSpots,
               isCurved: true,
-              color: Colors.blue,
+              color: Color(0xff8D8D8D),
               barWidth: 2,
               belowBarData: BarAreaData(
                 show: true,
-                color: Colors.blue.withOpacity(0.3),
+                color: Color(0xff8D8D8D).withOpacity(0.3),
               ),
               dotData: FlDotData(show: false),
             ),
@@ -720,7 +721,7 @@ class ChartPage extends StatelessWidget {
       xValueMapper: (SpeedData data, _) => data.time,
       yValueMapper: (SpeedData data, _) => data.speed,
       name: 'Upload',
-      color: Color(0xff00A3FF),
+      color: Color(0xff8D8D8D),
       width: 2,
     ),
   ],

@@ -413,7 +413,7 @@ String stringBeforeSpace(String value) {
 
 
 
- swapRandomExitnode(LoaderVideoProvider loaderVideoProvider,LogProvider logProvider,NodeProvider nodeProvider,VpnConnectionProvider vpnConnectionProvider)async{
+ swapRandomExitnode(LoaderVideoProvider loaderVideoProvider,LogProvider logProvider,NodeProvider nodeProvider,VpnConnectionProvider vpnConnectionProvider,IpProvider ipProvider)async{
   loaderVideoProvider.setLoading(true);
     logProvider.addLog('Checking random node for swap');
      loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTING);
@@ -425,6 +425,8 @@ String stringBeforeSpace(String value) {
     getStatus: () => BelnetLib.getSpeedStatus,
     timeout: const Duration(seconds: 20),
     onConnected: () {
+      ipProvider.stopIPMonitoring();
+      ipProvider.startMonitoring();
       loaderVideoProvider.setLoading(false);
       logProvider.addLog('Connected to ${Settings.getInstance()!.exitNode!}');
       loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);

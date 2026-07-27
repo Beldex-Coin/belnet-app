@@ -62,6 +62,8 @@ dependencies:
 
   device_info_plus: ^11.4.0
   visibility_detector: ^0.4.0+2
+
+  gradient_borders: ^1.0.2
   #flutter_statusbarcolor_ns: ^0.6.0
   #flutter_local_notifications: ^17.2.3 
 

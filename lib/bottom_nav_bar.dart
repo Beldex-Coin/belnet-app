@@ -412,9 +412,14 @@ Widget _getScreen(int index) {
                       ),
                     ),
                   ),
-             loaderProvider.conStatus == ConnectionStatus.CONNECTED ? Container(
-                      child:appModel.darkTheme ? Lottie.asset('assets/images/dark_theme/Dots_v1(1).json',fit: BoxFit.cover) : Lottie.asset('assets/images/light_theme/Dots_wht_theme(2).json',fit: BoxFit.cover),
-                    ): SizedBox(),
+
+              loaderProvider.conStatus == ConnectionStatus.CONNECTED ? 
+              Container(
+               child: Lottie.asset('assets/images/dark_theme/Dots_v1(1).json',fit: BoxFit.cover)
+              ) : SizedBox(),   
+            //  loaderProvider.conStatus == ConnectionStatus.CONNECTED ? Container(
+            //           child:appModel.darkTheme ? Lottie.asset('assets/images/dark_theme/Loadings_dark.json',fit: BoxFit.cover) : Lottie.asset('assets/images/light_theme/Loading_white.json',fit: BoxFit.cover),
+            //         ): SizedBox(),
              
                   
                   loaderProvider.isLoading

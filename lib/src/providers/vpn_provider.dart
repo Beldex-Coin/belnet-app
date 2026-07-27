@@ -26,6 +26,13 @@ class VpnConnectionProvider with ChangeNotifier {
     required void Function(String reason) onFailed,
     Duration interval = const Duration(milliseconds: 500),
     Duration timeout = const Duration(seconds: 30),
+    // When set, "ready" additionally requires the daemon's exit mapping to
+    // actually reflect the swap: either it matches [expectedExitNode] or it
+    // differs from [previousExitValue] (the mapping observed BEFORE the
+    // swap). Without this, a failed exit-node swap is reported as success,
+    // because the OLD exit already satisfies the generic readiness check.
+    String? expectedExitNode,
+    String? previousExitValue,
   }) {
     cancelPolling();
     _pollDeadline = DateTime.now().add(timeout);
@@ -43,14 +50,25 @@ class VpnConnectionProvider with ChangeNotifier {
         final raw = await getStatus();
         if (raw != null) {
           final s = Welcome.fromJson(raw);
+          final exitValue = s.exitMap?.the0 ?? '';
           lastState = 'paths built: ${s.numPathsBuilt}, '
               'peers: ${s.numPeersConnected}, '
-              'exit mapped: ${s.exitMap != null}, '
+              'exit mapped: ${exitValue.isEmpty ? 'none' : exitValue}, '
               'daemon ready: ${s.isConnected}';
-          final ready = s.isConnected &&
-              s.exitMap != null &&
-              s.exitMap!.the0.isNotEmpty &&
+          bool ready = s.isConnected &&
+              exitValue.isNotEmpty &&
               s.numPathsBuilt > 0;
+          if (ready && (expectedExitNode != null || previousExitValue != null)) {
+            final matchesExpected = expectedExitNode != null &&
+                exitValuesMatch(exitValue, expectedExitNode);
+            final changedFromPrevious = previousExitValue != null &&
+                previousExitValue.isNotEmpty &&
+                !exitValuesMatch(exitValue, previousExitValue);
+            ready = matchesExpected || changedFromPrevious;
+            if (!ready) {
+              lastState = 'exit mapping still $exitValue ($lastState)';
+            }
+          }
           if (ready && _pollTimer != null) {
             cancelPolling();
             onConnected();
@@ -72,4 +90,15 @@ class VpnConnectionProvider with ChangeNotifier {
   /// Kept for backwards compatibility with existing call sites
   /// (e.g. home_screen.dart) that cancel the old fixed delay.
   void cancelDelay() => cancelPolling();
+}
+
+/// True when two exit-node identifiers plausibly refer to the same node.
+/// The daemon may report either the human-readable BNS name (exit.bdx) or a
+/// resolved address for the same exit, so compare case-insensitively and
+/// accept containment in either direction.
+bool exitValuesMatch(String a, String b) {
+  final x = a.trim().toLowerCase();
+  final y = b.trim().toLowerCase();
+  if (x.isEmpty || y.isEmpty) return false;
+  return x == y || x.contains(y) || y.contains(x);
 }

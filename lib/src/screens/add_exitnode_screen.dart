@@ -294,12 +294,12 @@ class _CustomAddExitNodeDialogState extends State<CustomAddExitNodeDialog> {
                     },
                   );
                  if(_exitNodeController.text.trim().isEmpty && _authCodeController.text.trim().isEmpty){
-                    _exitNodeError = "Exitnode should not  be empty";
+                    _exitNodeError = "Exit node should not  be empty";
                      _exitNodeError = "Please enter a valid Exit Node";
                  }
                   if (_exitNodeController.text == null || _exitNodeController.text == "") {
                     setState(() {
-                      _exitNodeError = "Exitnode should not  be empty";
+                      _exitNodeError = "Exit node should not  be empty";
                       //color = "red";
                     });
                   } 

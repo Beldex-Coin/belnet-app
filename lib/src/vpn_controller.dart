@@ -46,7 +46,8 @@ Future<void> toggleBelnet(BuildContext context,AppSelectingProvider appSelecting
   final tunnelHealthProvider = Provider.of<TunnelHealthProvider>(context,listen: false);
   resetStatevalue(introStateProvider);
 
- if (BelnetLib.isConnected) {
+ var isRunning = await BelnetLib.isRunning;
+ if (isRunning || BelnetLib.isConnected == true) {
     await _disconnectFromBelnet(vpnConnectionProvider,loaderVideoProvider,ipProvider,logProvider,introStateProvider,nodeProvider,tunnelHealthProvider);
   } else {
     await _connectToBelnet(context,appSelectingProvider,nodeProvider,loaderVideoProvider,vpnConnectionProvider,ipProvider,logProvider,appModel,introStateProvider,tunnelHealthProvider ,dns:dns,isCustomeExitNode: isCustomeExitNode);
@@ -163,6 +164,7 @@ Future<void> _disconnectFromBelnet(VpnConnectionProvider vpnConnectionProvider,L
     ipProvider.stopIPMonitoring();
    // speedChartProvider.stopMonitoring();
       stopNotification();
+      loaderVideoProvider.setLoading(false);
       loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
       logProvider.addLog('Belnet Daemon stopped');
       logProvider.addLog('Belnet disconnected');
@@ -295,22 +297,28 @@ print('CustomExitnode checking end');
         });
       },
       onFailed: (reason) async {
-        logProvider.addLog('Connection not ready in time ($reason)');
-        final disConnectValue = await BelnetLib.disconnectFromBelnet();
-        if (disConnectValue) {
-          stopNotification();
-          loaderVideoProvider.setLoading(false);
-          loaderVideoProvider
-              .setConnectionStatus(ConnectionStatus.DISCONNECTED);
-          if (isCustomeExitNode) {
-            introStateProvider.setIsCustomNode(false);
-            nodeProvider.selectNode(3, 'exit.bdx', 'France');
-            showMessage(
-                'Exit Node is invalid or unreachable. Switching to default Exit Node');
-          } else {
-            showMessage(
-                'Could not establish Belnet connection. Please try again.');
-          }
+         logProvider.addLog('Connection not ready in time ($reason)');
+        // Tear down and reset the UI unconditionally: the old code skipped
+        // ALL cleanup when disconnectFromBelnet() returned false or threw,
+        // leaving a spinning loader and (worse) a live tun interface - the
+        // Android VPN icon stayed in the status bar after the "Could not
+        // establish Belnet connection" message.
+        try {
+          await BelnetLib.disconnectFromBelnet();
+        } catch (e) {
+          logProvider.addLog('Disconnect after failed connect threw: $e');
+        }
+        stopNotification();
+        loaderVideoProvider.setLoading(false);
+        loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+        if (isCustomeExitNode) {
+          introStateProvider.setIsCustomNode(false);
+          nodeProvider.selectNode(3, 'exit.bdx', 'France');
+          showMessage(
+              'Exit Node is invalid or unreachable. Switching to default Exit Node');
+        } else {
+          showMessage(
+              'Could not establish Belnet connection. Please try again.');
         }
       },
     );
@@ -355,10 +363,10 @@ Future<void> _recoverBrokenTunnel(
     // Attempt 2: give up cleanly - a red "Disconnected" is more honest (and
     // more actionable) than a green UI over a blackholed tunnel.
     logProvider.addLog('Recovery failed - disconnecting');
-    await _disconnectFromBelnet(vpnConnectionProvider, loaderVideoProvider,
-        ipProvider, logProvider, introStateProvider, nodeProvider,
-        tunnelHealthProvider);
-    showMessage('Belnet disconnected: exit node is not reachable');
+    // await _disconnectFromBelnet(vpnConnectionProvider, loaderVideoProvider,
+    //     ipProvider, logProvider, introStateProvider, nodeProvider,
+    //     tunnelHealthProvider);
+    showMessage('Unprecedented traffic with Exit node. Please change exit node and retry');
   } finally {
     _recoveryInProgress = false;
   }

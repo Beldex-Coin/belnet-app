@@ -14,11 +14,13 @@ import 'package:belnet_mobile/src/providers/ip_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/providers/log_provider.dart';
 import 'package:belnet_mobile/src/providers/speed_chart_provider.dart';
+import 'package:belnet_mobile/src/providers/tunnel_health_provider.dart';
 import 'package:belnet_mobile/src/providers/vpn_provider.dart';
 import 'package:belnet_mobile/src/screens/analytics_screen.dart';
 import 'package:belnet_mobile/src/screens/exit_node_screen.dart';
 import 'package:belnet_mobile/src/screens/home_screen.dart';
 import 'package:belnet_mobile/src/screens/settings_screen.dart';
+import 'package:belnet_mobile/src/utils/show_toast.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart';
 import 'package:belnet_mobile/src/widget/nointernet_connection.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -63,7 +65,7 @@ bool isBelConnect = false;
     final autoConnectProvider = Provider.of<AutoConnectProvider>(context,listen: false);
     final appSelectingProvider = Provider.of<AppSelectingProvider>(context,listen: false);
 
-     // final vpnConnectionProvider = Provider.of<VpnConnectionProvider>(context,listen: false);
+      final vpnConnectionProvider = Provider.of<VpnConnectionProvider>(context,listen: false);
       
    _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
         .listen((bool isConnected) => setState(() {
@@ -72,8 +74,49 @@ bool isBelConnect = false;
        
         checkNode(nodeProvider,loaderVideoProvider,logProvider,ipProvider,introStateProvider,autoConnectProvider,appSelectingProvider);
 
+
+
+
+
+
+  BelnetLib.disconnectEventChannel.receiveBroadcastStream().listen((event){
+   if (event == "notification_disconnect") {
+      debugPrint("User clicked disconnect from notification");
+      // Handle your logic
+      try{
+       vpnConnectionProvider.cancelDelay();
+      Provider.of<TunnelHealthProvider>(context, listen: false).stop();
+      loaderVideoProvider.setLoading(false);
+      loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+      logProvider.addLog('Belnet Daemon stopped');
+      logProvider.addLog('Belnet disconnected');
+      stopNotification();
+      resetIfCustomExitnode(ipProvider,introStateProvider,nodeProvider);
+      //AwesomeNotifications().cancelAll();
+      }catch(e){
+
+      }
+          }
+  },
+   onError: (error) {
+    debugPrint("Notification disconnect stream error: $error");
+  }
+  
+  ); 
+
   }
 
+resetIfCustomExitnode(IpProvider ipProvider,IntroStateProvider introProvider,NodeProvider nodeProvider){
+  if(introProvider.isCustomNode){
+    introProvider.setIsCustomNode(false);
+    ipProvider.resetCustomValue();
+     nodeProvider.selectNode(3,'exit.bdx','France');
+    showMessage('Switching to default Exit Node');
+  
+
+
+}
+}
 
 checkNode(NodeProvider nodeProvider,LoaderVideoProvider loaderVideoProvider,LogProvider logProvider,IpProvider ipProvider,IntroStateProvider introProvider,AutoConnectProvider autoConnectProvider,AppSelectingProvider appSelectingProvider)async{
   //print('inside the bottom nav bar ${nodeProvider.nodeData.length}');

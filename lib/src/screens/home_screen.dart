@@ -111,30 +111,30 @@ void initState() {
     },
   );
 
-  BelnetLib.disconnectEventChannel.receiveBroadcastStream().listen((event){
-   if (event == "notification_disconnect") {
-      debugPrint("User clicked disconnect from notification");
-      // Handle your logic
-      try{
-       vpnConnectionProvider.cancelDelay();
-      Provider.of<TunnelHealthProvider>(context, listen: false).stop();
-      loaderVideoProvider.setLoading(false);
-      loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
-      logProvider.addLog('Belnet Daemon stopped');
-      logProvider.addLog('Belnet disconnected');
-      stopNotification();
-      resetIfCustomExitnode(ipProvider,introStateProvider,nodeProvider);
-      //AwesomeNotifications().cancelAll();
-      }catch(e){
+  // BelnetLib.disconnectEventChannel.receiveBroadcastStream().listen((event){
+  //  if (event == "notification_disconnect") {
+  //     debugPrint("User clicked disconnect from notification");
+  //     // Handle your logic
+  //     try{
+  //      vpnConnectionProvider.cancelDelay();
+  //     Provider.of<TunnelHealthProvider>(context, listen: false).stop();
+  //     loaderVideoProvider.setLoading(false);
+  //     loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+  //     logProvider.addLog('Belnet Daemon stopped');
+  //     logProvider.addLog('Belnet disconnected');
+  //     stopNotification();
+  //     resetIfCustomExitnode(ipProvider,introStateProvider,nodeProvider);
+  //     //AwesomeNotifications().cancelAll();
+  //     }catch(e){
 
-      }
-          }
-  },
-   onError: (error) {
-    debugPrint("Notification disconnect stream error: $error");
-  }
+  //     }
+  //         }
+  // },
+  //  onError: (error) {
+  //   debugPrint("Notification disconnect stream error: $error");
+  // }
   
-  );
+  // );
 
    chartController = ChartDataController();
     chartController.init(appModel);

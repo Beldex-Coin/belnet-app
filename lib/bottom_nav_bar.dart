@@ -548,7 +548,7 @@ class CustomBottomNavBar extends StatelessWidget {
           : appModel!.darkTheme ? Color(0xff555555).withOpacity(0.2) : Color(0xffA1A1A1).withOpacity(0.3), // Colors.grey.shade900.withOpacity(0.7),
           shape: BoxShape.rectangle,
         ),
-        child: SvgPicture.asset(icon, color: isSelected ? Colors.black : appModel!.darkTheme ? Colors.grey : Color(0xff4D4D4D),height: 20,)
+        child: SvgPicture.asset(icon, color: isSelected ? Colors.black : appModel!.darkTheme ? Colors.grey : Color(0xff222222),height: 20,)
         // Icon(
         //   icon,
         //   color: isSelected ? activeColor : Colors.grey,

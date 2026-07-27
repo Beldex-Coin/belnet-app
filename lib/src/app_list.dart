@@ -721,7 +721,7 @@ class _AppListView extends StatelessWidget {
                       Provider.of<AppSelectingProvider>(context, listen: false)
                               .updateSearchQuery('');
                     },
-                    child: Icon(Icons.close,color: appModel.darkTheme ? Colors.white : Colors.black,) //SvgPicture.asset('assets/images/dark_theme/clear_text_search.svg' ,color:appModel.darkTheme ? Colors.white : Colors.black,)
+                    child: Icon(Icons.close,color: appModel.darkTheme ? Colors.white : Colors.black,size: 19,) //SvgPicture.asset('assets/images/dark_theme/clear_text_search.svg' ,color:appModel.darkTheme ? Colors.white : Colors.black,)
                     )
                     : SizedBox.shrink(),
                     border: InputBorder.none,

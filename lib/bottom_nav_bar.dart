@@ -374,11 +374,14 @@ Widget _getScreen(int index) {
                     ): SizedBox(),
              
                   
-                  loaderProvider.isLoading && loaderProvider.conStatus == ConnectionStatus.CONNECTING ? Container(
+                  loaderProvider.isLoading
+                  && 
+                  loaderProvider.conStatus == ConnectionStatus.CONNECTING ?
+                   Container(
                     width: MediaQuery.of(context).size.width,
                     height: MediaQuery.of(context).size.height,
-                    child:appModel.darkTheme ? Lottie.asset('assets/images/light_theme/Loading_white.json',repeat: false,fit: BoxFit.cover //dark_theme/Loading_dark_with_text.json',repeat: false //Loading_dark.json',repeat: false 
-                    ) : Lottie.asset('assets/images/light_theme/Loading_white.json',repeat: false ,fit: BoxFit.cover//Loading_white_theme_with_text.json',repeat: false //Loading_white_theme_v1.json',repeat: false
+                    child:appModel.darkTheme ? Lottie.asset('assets/images/dark_theme/Dark_load.json',repeat: false,fit: BoxFit.cover //dark_theme/Loading_dark_with_text.json',repeat: false //Loading_dark.json',repeat: false 
+                    ) : Lottie.asset('assets/images/light_theme/White_load.json',repeat: false ,fit: BoxFit.cover//Loading_white_theme_with_text.json',repeat: false //Loading_white_theme_v1.json',repeat: false
                     ),
                    ):SizedBox.shrink(),
                   // // Active screen

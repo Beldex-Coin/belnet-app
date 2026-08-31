@@ -419,7 +419,7 @@ String stringBeforeSpace(String value) {
      loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTING);
   //await nodeProvider.selectRandomNode();
   await _saveSettings(nodeProvider);
-  logProvider.addLog('Connecting to ${Settings.getInstance()!.exitNode!} --- ');
+  logProvider.addLog('Connecting to ${Settings.getInstance()!.exitNode!}');
   await BelnetLib.unmapExitNode(Settings.getInstance()!.exitNode!);
   vpnConnectionProvider.startStatusPolling(
     getStatus: () => BelnetLib.getSpeedStatus,
@@ -441,7 +441,6 @@ String stringBeforeSpace(String value) {
   );
 
  }
-
 
 
 

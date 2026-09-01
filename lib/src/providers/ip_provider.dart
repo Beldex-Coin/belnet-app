@@ -91,10 +91,17 @@ String? get customCountryCode => _customCountryCode;
 
 // Fetch IP
 
+  static const _fetchTimeout = Duration(seconds: 5);
+
   Future<void> fetchNewIPs()async{
   try{
-   final ipv4Res = await http.get(Uri.parse('https://api.ipify.org' //'https://api.ipfy.org?format=json'
-   ));
+   // One request instead of two: api.ipify.org (IPv4-only) tells us the
+   // public IPv4, and the IPv6 display value is derived locally from it.
+   // Every request here is a full round trip THROUGH the exit node, so
+   // keep this endpoint single and the cadence low (see startMonitoring).
+   final ipv4Res = await http
+       .get(Uri.parse('https://api.ipify.org'))
+       .timeout(_fetchTimeout);
    if(ipv4Res.statusCode == 200){
     if(ipv4Res.body != _realIp){
          _currentIPv4 = ipv4Res.body; //jsonDecode(ipv4Res.body)['ip'];
@@ -106,23 +113,12 @@ String? get customCountryCode => _customCountryCode;
     }
 
    }
-    final response = await http.get(Uri.parse('https://api64.ipify.org?format=json'));
-  if (response.statusCode == 200) {
-    final data = json.decode(response.body);
-    //return data['ip'];
-    
-    
     if(_currentIPv4 != '000.000.000.00'){
-      _currentIPv6 =  isIPv6(data['ip']) ? data['ip'] : ipv4ToIpv6(data['ip']);
+      _currentIPv6 =
+          isIPv6(_currentIPv4) ? _currentIPv4 : ipv4ToIpv6(_currentIPv4);
     }else{
       _currentIPv6 = '000.000.000.00';
     }
-     }
-  //  final ipv6Res = await http.get(Uri.parse('https://api.ip.sb/geoip'));
-  //  if(ipv6Res.statusCode == 200){
-  //   _currentIPv6 = jsonDecode(ipv6Res.body)['ip'];
-  //   print('THE STREAM CURRENT IP $_currentIPv6');
-  //  }
 
    notifyListeners();
   }catch(_){
@@ -130,6 +126,11 @@ String? get customCountryCode => _customCountryCode;
     print('NOT LOADING IPs-------->');
   }
 }
+
+/// Refresh the displayed IPs immediately - called after connect, exit-node
+/// swaps and tunnel recovery so the UI updates promptly without needing an
+/// aggressive polling interval.
+Future<void> refreshNow() => fetchNewIPs();
 
 
 
@@ -260,7 +261,15 @@ void stopIPMonitoring(){
 void startMonitoring()async{
  final isConnect = await BelnetLib.isRunning;
  if(isConnect){
-    _timer = Timer.periodic(Duration(seconds: 5), (_)=> fetchNewIPs());
+    _timer?.cancel();
+    // Fetch once right away so the UI shows the tunnel IP promptly, then
+    // poll slowly. The old 5-second cadence sent two external requests
+    // through the exit every 5 s for the whole session - pure overhead on
+    // exactly the path users want fast. Event-driven refreshes
+    // (refreshNow after connect/swap/recovery) cover the cases that need
+    // immediacy.
+    fetchNewIPs();
+    _timer = Timer.periodic(Duration(seconds: 60), (_)=> fetchNewIPs());
 
  }
 }

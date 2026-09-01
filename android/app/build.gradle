@@ -22,7 +22,7 @@ def flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "
 
 android {
     namespace "io.beldex.belnet"
-    compileSdkVersion 35
+    compileSdkVersion 36
     ndkVersion '28.1.13356709'
 
     sourceSets {
@@ -35,8 +35,8 @@ android {
 
     defaultConfig {
         applicationId "io.beldex.belnet"
-        minSdk 23
-        targetSdk 35
+        minSdk 24
+        targetSdk 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         //manifestPlaceholders = [applicationName: "android.app.Application"]

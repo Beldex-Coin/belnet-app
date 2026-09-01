@@ -54,13 +54,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           resizeToAvoidBottomInset: false,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
-            title: Text( 'Settings', style: TextStyle(fontFamily: 'Poppins',fontSize: 18,fontWeight: FontWeight.w500),),
+            title: Text( 'Settings', style: TextStyle(fontFamily: 'Poppins',fontSize: 18,fontWeight: FontWeight.w600),),
                 centerTitle: true,
             leading: Padding(
               padding: const EdgeInsets.only(left:  8.0),
               child: Row(
                           children: [
-                           SvgPicture.asset('assets/images/dark_theme/Belnet_logo_new.svg',height: 15),
+                            appModel.darkTheme ? SvgPicture.asset('assets/images/dark_theme/home_logo_dark_theme.svg',height: 15):SvgPicture.asset('assets/images/light_theme/home_logo_white_theme.svg',height: 15),
         
                           //  Image.asset('assets/images/belnet_ic.png',height: 28,color:appModel.darkTheme ? Colors.white : Colors.black),
                           //  Text('Belnet',style: TextStyle(fontFamily: 'Poppins',),),
@@ -82,7 +82,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 margin: EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(
                   color:appModel.darkTheme? Colors.grey.withOpacity(0.1):Color(0xffA1A1A1).withOpacity(0.2),// Colors.grey.withOpacity(0.1),
-                 borderRadius: BorderRadius.circular(10)
                 ),
                 child:appModel.darkTheme? SvgPicture.asset('assets/images/dark_theme/light_Theme.svg'):SvgPicture.asset('assets/images/light_theme/dark_theme.svg') 
            )): SizedBox.shrink()
@@ -161,23 +160,23 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
                 height:double.infinity,  //MediaQuery.of(context).size.height*2.23/3,
                 width: double.infinity,
                 margin: EdgeInsets.symmetric(horizontal:10),
-                blur:appModel.darkTheme ? 15.0 : 3.0,
-                   color: appModel.darkTheme ? Color(0xff080C29).withOpacity(0.7) :Color(0x33FFFFFF).withOpacity(0.02),// Colors.black.withOpacity(0.03),
-                   borderRadius: BorderRadius.circular(14),
-                   borderColor: Color(0xffA1A1AF),
+                blur: 5.0,
+                   color: appModel.darkTheme ? Color(0xff0B0B0B).withOpacity(0.8) :Color(0x33F5F5F5).withOpacity(0.3),// Colors.black.withOpacity(0.03),
+                   
+                   borderColor: appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.6): Color(0xffACACAC),
                    borderWidth: 0.2,
-           boxShadow:appModel.darkTheme ? [] : [
-                          BoxShadow(
-                      color: Color(0xff00FFDD).withOpacity(0.03) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
+          //  boxShadow:appModel.darkTheme ? [] : [
+          //                 BoxShadow(
+          //             color: Color(0xff00FFDD).withOpacity(0.03) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
                      
-                    ),
-                    BoxShadow(
-                      color: Colors.white.withOpacity(0.5),
-                      spreadRadius: -01.0,
-                      blurRadius: 23.5,
-                      offset: Offset(-3.0, 4.5),
-                    )
-                       ],
+          //           ),
+          //           BoxShadow(
+          //             color: Colors.white.withOpacity(0.5),
+          //             spreadRadius: -01.0,
+          //             blurRadius: 23.5,
+          //             offset: Offset(-3.0, 4.5),
+          //           )
+          //              ],
                    padding: EdgeInsets.all(10),
                    child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,7 +194,6 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
               blur: 21.0,
                    color:appModel.darkTheme ? 
                    Colors.grey.shade600.withOpacity(0.06) : Colors.grey.withOpacity(0.2), 
-                   borderRadius: BorderRadius.circular(14),
                    borderColor: Colors.transparent,
                    padding: EdgeInsets.symmetric(horizontal: 10),
             child: Row(
@@ -203,9 +201,9 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
              children: [
                Row(
                  children: [
-                   SvgPicture.asset('assets/images/dark_theme/light_Themes.svg'),
+                   SvgPicture.asset('assets/images/light_theme/light_Theme.svg',color: appModel.darkTheme ? Colors.white : null,),
                    Padding(
-            padding: EdgeInsets.only(left: 5),
+            padding: EdgeInsets.only(left: 10),
             child: Text('Dark Theme',style: TextStyle(fontFamily: 'Poppins',fontSize: 14),))
                  ],
                ),
@@ -254,7 +252,6 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
                 blur: 20.0,
             color:appModel.darkTheme ? 
              Colors.grey.shade600.withOpacity(0.06): Colors.grey.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(14),
             borderColor: Colors.transparent,
             padding: EdgeInsets.symmetric(horizontal: 10),
              child: Row(
@@ -263,15 +260,15 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
                children: [
                   Row(
            children: [
-             SvgPicture.asset('assets/images/dark_theme/Split Tunneling.svg'),
+             SvgPicture.asset('assets/images/light_theme/Split Tunneling.svg',color: appModel.darkTheme ? Colors.white : null,),
              Padding(
-           padding: const EdgeInsets.only(left: 5.0),
+           padding: const EdgeInsets.only(left: 10.0),
            child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.baseline,textBaseline: TextBaseline.alphabetic,
             children: [
               Text('Split Tunneling',style: TextStyle(fontFamily: 'Poppins',fontSize: 14)),
-              Text(appSelectingProvider.isSPEnabled ? 'On' : 'Off',style: TextStyle(fontFamily: 'Poppins',fontSize: 12,color: Color(0xffA1A1C1)))
+              Text(appSelectingProvider.isSPEnabled ? 'On' : 'Off',style: TextStyle(fontFamily: 'Poppins',fontSize: 12,color: Color(0xff8D8D8D)))
             ],
            ),
                   ),
@@ -292,7 +289,6 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
               blur: 21.0,
                    color:appModel.darkTheme ? 
                    Colors.grey.shade600.withOpacity(0.06) : Colors.grey.withOpacity(0.2), 
-                   borderRadius: BorderRadius.circular(14),
                    borderColor: Colors.transparent,
                    padding: EdgeInsets.symmetric(horizontal: 10),
             child: Row(
@@ -300,9 +296,9 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
              children: [
                Row(
                  children: [
-                   SvgPicture.asset('assets/images/dark_theme/autocon.svg'),
+                   SvgPicture.asset('assets/images/light_theme/Link 2.svg',color: appModel.darkTheme ? Colors.white : null,),
                    Padding(
-            padding: EdgeInsets.only(left: 5),
+            padding: EdgeInsets.only(left: 10),
             child: Text('Auto-connect',style: TextStyle(fontFamily: 'Poppins',fontSize: 14),))
                  ],
                ),
@@ -366,7 +362,7 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
            
            SizedBox(height: 8,),
   
-           SettingOptionContainer(onPressed:invitePeople,height: 50,name:'Invite People',icon:'assets/images/dark_theme/Invite People.svg',isArrow: false,),
+           SettingOptionContainer(onPressed:invitePeople,height: 50,name:'Invite People',icon:'assets/images/light_theme/Invite People.svg',isArrow: false,),
            
            
            
@@ -378,7 +374,7 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
               ),),
            SizedBox(height: 10,),
            
-           SettingOptionContainer(onPressed:_isReporting ? (){} : reportIssue,height: 50,name:'Report an Issue',icon:'assets/images/dark_theme/Report an Issue.svg',isArrow: false,),
+           SettingOptionContainer(onPressed:_isReporting ? (){} : reportIssue,height: 50,name:'Report an Issue',icon:'assets/images/light_theme/Report an Issue.svg',isArrow: false,),
            SizedBox(height: 10,),
            
            SettingOptionContainer(onPressed:(){
@@ -386,6 +382,7 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
              context,
              PageRouteBuilder(
                pageBuilder: (context, animation, secondaryAnimation) => AboutPage(),
+                barrierColor: appModel.darkTheme ? Colors.black : Colors.white,
                transitionDuration: Duration(microseconds: 200),
                transitionsBuilder: (context, animation, secondaryAnimation, child) {
                  const begin = Offset(1.0, 0.0); // Start from right
@@ -405,7 +402,7 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
            
            }
              //Navigator.push(context, MaterialPageRoute(builder: (context)=> AboutPage()))
-           ,height: 50,name:'About',icon:'assets/images/dark_theme/About.svg',isArrow: true,)
+           ,height: 50,name:'About',icon:'assets/images/light_theme/About.svg',isArrow: true,)
             ],
                    ),
               ),
@@ -542,7 +539,6 @@ class SettingOptionContainer extends StatelessWidget {
         height: height,width: double.infinity,
          blur: 20.0,
                color:appModel.darkTheme ? Colors.grey.shade600.withOpacity(0.06) : Colors.grey.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(14),
               borderColor: Colors.transparent,
               padding: EdgeInsets.symmetric(horizontal: 10),
       child:Row(
@@ -550,9 +546,9 @@ class SettingOptionContainer extends StatelessWidget {
         children: [
           Row(
             children: [
-              SvgPicture.asset(icon), //'assets/images/dark_theme/About.svg'
+              SvgPicture.asset(icon,color: appModel.darkTheme ? Colors.white : null,), //'assets/images/dark_theme/About.svg'
               Padding(
-                padding: EdgeInsets.only(left: 5),
+                padding: EdgeInsets.only(left: 10),
                 child: Text(name,style: TextStyle(fontFamily: 'Poppins',fontSize: 14),))
             ],
           ),

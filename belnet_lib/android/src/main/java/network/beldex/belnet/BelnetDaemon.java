@@ -12,6 +12,10 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
 import android.net.TrafficStats;
 import android.net.Uri;
 import android.net.VpnService;
@@ -63,8 +67,15 @@ public class BelnetDaemon extends VpnService{
   public static final String UPSTREAM_DNS = "UPSTREAM_DNS";
   public static final String ALLOWED_APPS = "allowed_apps";
   public static final String NOTIFICATION_ID = "NOTIFICATION_ID";
+  public static final String LOG_LEVEL = "LOG_LEVEL";
+  public static final String MTU = "MTU";
+  public static final String ROUTE_IPV6 = "ROUTE_IPV6";
   private static final String DEFAULT_EXIT_NODE = "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx";
-  private static final String DEFAULT_UPSTREAM_DNS = "1.1.1.1";
+  // Keep in sync with the Dart-side default in belnet_lib.dart (was 1.1.1.1
+  // here and 9.9.9.9 in Dart, which made DNS issues confusing to debug).
+  private static final String DEFAULT_UPSTREAM_DNS = "9.9.9.9";
+  private static final String DEFAULT_LOG_LEVEL = "warn";
+  private static final int DEFAULT_MTU = 1500;
   public static Boolean isCalling =false;
   public static final int NOTIFY_ID = 1;
   private static final int ERROR_NOTIFY_ID = 3;
@@ -115,8 +126,12 @@ public class BelnetDaemon extends VpnService{
   private Timer mUpdateIsConnectedTimer;
   private MutableLiveData<Boolean> isConnected = new MutableLiveData<Boolean>();
 
+  public static final String ACTION_NETWORK_CHANGED = "network.beldex.belnet.NETWORK_CHANGED";
+  private ConnectivityManager.NetworkCallback mNetworkCallback;
+  private long mLastNetworkChangeMs = 0;
 
-    String results;
+  private int mMtu = DEFAULT_MTU;
+  private boolean mRouteIpv6 = true;
 
   @Override
   public void onCreate() {
@@ -124,6 +139,7 @@ public class BelnetDaemon extends VpnService{
     mUpdateIsConnectedTimer = new Timer();
     mUpdateIsConnectedTimer.schedule(new UpdateIsConnectedTask(), 0, 500);
     Log.d(LOG_TAG, "Connected timer is "+ mUpdateIsConnectedTimer.toString());
+    registerNetworkCallback();
    // createNotific();
 //    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
 //      createNotificationChannel();
@@ -140,11 +156,85 @@ public class BelnetDaemon extends VpnService{
       mUpdateIsConnectedTimer.cancel();
       mUpdateIsConnectedTimer = null;
     }
+    unregisterNetworkCallback();
     // clearNotifications();
     disconnect();
-   
+
     super.onDestroy();
 
+  }
+
+  /**
+   * Watch the underlying (non-VPN) network. On a Wi-Fi <-> mobile handover
+   * the daemon's UDP flows to its first hop break silently: the daemon keeps
+   * "running" but paths are dead - users see "Connected" with no internet.
+   * When the underlying network changes we re-protect the daemon's UDP
+   * socket against the new network and broadcast an event so the Flutter
+   * layer can run an immediate tunnel health probe.
+   */
+  private void registerNetworkCallback() {
+    ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+    if (cm == null)
+      return;
+    mNetworkCallback = new ConnectivityManager.NetworkCallback() {
+      @Override
+      public void onAvailable(Network network) {
+        handleNetworkChange("available");
+      }
+
+      @Override
+      public void onLost(Network network) {
+        handleNetworkChange("lost");
+      }
+    };
+    try {
+      NetworkRequest request = new NetworkRequest.Builder()
+          .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+          .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+          .build();
+      cm.registerNetworkCallback(request, mNetworkCallback);
+    } catch (Exception e) {
+      Log.w(LOG_TAG, "could not register network callback: " + e);
+      mNetworkCallback = null;
+    }
+  }
+
+  private void unregisterNetworkCallback() {
+    if (mNetworkCallback == null)
+      return;
+    ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+    if (cm != null) {
+      try {
+        cm.unregisterNetworkCallback(mNetworkCallback);
+      } catch (Exception e) {
+        Log.w(LOG_TAG, "could not unregister network callback: " + e);
+      }
+    }
+    mNetworkCallback = null;
+  }
+
+  private void handleNetworkChange(String why) {
+    // Debounce: handovers produce a burst of callbacks.
+    long now = SystemClock.elapsedRealtime();
+    if (now - mLastNetworkChangeMs < 3000)
+      return;
+    mLastNetworkChangeMs = now;
+    Log.d(LOG_TAG, "underlying network change (" + why + ")");
+    if (IsRunning()) {
+      new Thread(
+          () -> {
+            try {
+              m_UDPSocket = GetUDPSocket();
+              protect(m_UDPSocket);
+              Log.d(LOG_TAG, "re-protected UDP socket after network change");
+            } catch (Throwable t) {
+              Log.w(LOG_TAG, "re-protect after network change failed: " + t);
+            }
+          },
+          "belnet-netchange")
+          .start();
+    }
+    sendBroadcast(new Intent(ACTION_NETWORK_CHANGED));
   }
 
 
@@ -174,7 +264,7 @@ public class BelnetDaemon extends VpnService{
       Log.d("callingbelnetDeamon","true");
      // isCalling = false;
       disconnect();
-      stopSelf();
+      //stopSelf();
      //clearNotifications();
 
       return START_NOT_STICKY;
@@ -183,6 +273,7 @@ public class BelnetDaemon extends VpnService{
 
       String exitNode = "7a4cpzri7qgqen9a3g3hgfjrijt9337qb19rhcdmx5y7yttak33o.bdx";
       String upstreamDNS = null;
+      String logLevel = DEFAULT_LOG_LEVEL;
       ArrayList<String> allowedApps = new ArrayList<>();
       SharedPreferences sharedPreferences = getSharedPreferences("belnet_lib", MODE_PRIVATE);
 
@@ -195,17 +286,25 @@ public class BelnetDaemon extends VpnService{
         exitNode = intent.getStringExtra(EXIT_NODE);
         upstreamDNS = intent.getStringExtra(UPSTREAM_DNS);
         allowedApps = intent.getStringArrayListExtra(ALLOWED_APPS);
+        logLevel = intent.getStringExtra(LOG_LEVEL);
+        mMtu = intent.getIntExtra(MTU, DEFAULT_MTU);
+        mRouteIpv6 = intent.getBooleanExtra(ROUTE_IPV6, true);
        // isCalling = true;
         // save values
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(EXIT_NODE, exitNode);
         editor.putString(UPSTREAM_DNS, upstreamDNS);
+        editor.putString(LOG_LEVEL, logLevel);
+        editor.putInt(MTU, mMtu);
+        editor.putBoolean(ROUTE_IPV6, mRouteIpv6);
         editor.commit();
       } else { // if started by the system because Always-on VPN setting is enabled
         // use the latest values
         exitNode = sharedPreferences.getString(EXIT_NODE, null);
         upstreamDNS = sharedPreferences.getString(UPSTREAM_DNS, null);
-
+        logLevel = sharedPreferences.getString(LOG_LEVEL, DEFAULT_LOG_LEVEL);
+        mMtu = sharedPreferences.getInt(MTU, DEFAULT_MTU);
+        mRouteIpv6 = sharedPreferences.getBoolean(ROUTE_IPV6, true);
       }
 
       if (exitNode == null || exitNode.isEmpty()) {
@@ -227,8 +326,12 @@ public class BelnetDaemon extends VpnService{
       Log.e(LOG_TAG, "Using " + upstreamDNS + " as upstream DNS.");
       configVals.add(new ConfigValue("dns", "upstream", upstreamDNS));
 
-      // set log level to info
-      configVals.add(new ConfigValue("logging", "level", "info"));
+      // Daemon log level: "warn" by default so logging stays off the packet
+      // path in release builds; callers may pass "info"/"debug" explicitly.
+      if (logLevel == null || logLevel.isEmpty())
+        logLevel = DEFAULT_LOG_LEVEL;
+      Log.d(LOG_TAG, "Using daemon log level " + logLevel);
+      configVals.add(new ConfigValue("logging", "level", logLevel));
 
       boolean connectedSuccessfully = connect(configVals,allowedApps);
       if (connectedSuccessfully){
@@ -328,7 +431,14 @@ public class BelnetDaemon extends VpnService{
 
       VpnService.Builder builder = new VpnService.Builder();
 
-      builder.setMtu(1500);
+      // MTU is configurable for benchmarking: onion-encryption overhead can
+      // fragment full-size packets inside the tunnel; 1280-1400 may perform
+      // better on some networks. Default stays 1500.
+      int mtu = mMtu;
+      if (mtu < 1280 || mtu > 1500)
+        mtu = DEFAULT_MTU;
+      Log.d(LOG_TAG, "Using MTU " + mtu);
+      builder.setMtu(mtu);
 
       String[] parts = ourRange.split("/");
       String ourIP = parts[0];
@@ -336,7 +446,16 @@ public class BelnetDaemon extends VpnService{
 
       builder.addAddress(ourIP, ourMask);
       builder.addRoute("0.0.0.0", 0);
-      builder.addRoute("::", 0);
+      if (mRouteIpv6) {
+        // Claiming ::/0 prevents IPv6 leaks, but NOTE: if the exit path does
+        // not actually carry IPv6, apps that prefer IPv6 will pay a
+        // Happy-Eyeballs fallback delay per connection (or fail on
+        // IPv6-only setups). Disable via connectToBelnet(routeIpv6: false)
+        // to benchmark the difference.
+        builder.addRoute("::", 0);
+      } else {
+        Log.w(LOG_TAG, "IPv6 route NOT claimed (route_ipv6=false): IPv6 traffic will bypass the tunnel!");
+      }
       builder.addDnsServer(upstreamDNS);
       builder.setSession("Belnet");
       builder.setConfigureIntent(null);
@@ -384,18 +503,85 @@ public class BelnetDaemon extends VpnService{
   }
 
   private void disconnect() {
-    if (IsRunning()) {
-      Stop();
-      // stopSelf();
-      stopForeground(true);
+    boolean running = false;
+    try {
+      running = IsRunning();
+    } catch (Throwable t) {
+      Log.e(LOG_TAG, "IsRunning() threw during disconnect: " + t);
     }
-    // if (impl != null) {
-    //   //Free(impl);
-    //   impl = null;
-    // }
+    if (running) {
+      try {
+        Stop();
+      } catch (Throwable t) {
+        Log.e(LOG_TAG, "Stop() threw during disconnect: " + t);
+      }
+    }
 
+    // Make sure the tun interface actually goes down.
+    //
+    // The system VPN (and its status-bar key icon) only disappears once the
+    // tun fd is closed. That fd was detachFd()'d to the native daemon in
+    // connect(); the daemon closes it during a *successful* graceful
+    // shutdown, but:
+    //   - if the daemon never finished starting (failed / timed-out connect,
+    //     i.e. the "Could not establish Belnet connection" path), IsRunning()
+    //     is false, Stop() was skipped above, and nothing ever closes it;
+    //   - if the daemon's shutdown hangs (no built paths / no connectivity),
+    //     Mainloop() never returns and the fd again never gets closed.
+    // In both cases the VPN key icon stayed in the status bar forever while
+    // the app already showed "Disconnected". So: give the graceful shutdown
+    // a short window, then close the fd ourselves (guarded by a /proc check
+    // so we never touch an fd the daemon already closed).
+    final int fd = m_FD;
+    m_FD = -1;
+    iface = null;
+    if (fd >= 0) {
+      if (!running) {
+        // Daemon never ran: the fd is definitely leaked; close it right away.
+        closeTunFd(fd);
+      } else {
+        new Thread(
+            () -> {
+              // Wait up to 4s for the daemon to stop gracefully.
+              for (int i = 0; i < 16; i++) {
+                try {
+                  if (!IsRunning())
+                    break;
+                } catch (Throwable t) {
+                  break;
+                }
+                SystemClock.sleep(250);
+              }
+              closeTunFd(fd);
+            },
+            "belnet-tun-teardown")
+            .start();
+      }
+    }
+
+    stopForeground(true);
+    cancelSpeedNotification();
     updateIsConnected();
+  }
 
+/**
+   * Close {@code fd} if (and only if) it still refers to the tun device.
+   * The native daemon may already have closed it during a graceful shutdown
+   * (after which the number could even have been recycled for an unrelated
+   * file), so verify what the fd points at via /proc/self/fd before closing.
+   */
+  private static synchronized void closeTunFd(int fd) {
+    try {
+      String link = android.system.Os.readlink("/proc/self/fd/" + fd);
+      if (link == null || !link.contains("tun")) {
+        Log.e(LOG_TAG, "tun fd " + fd + " already closed/recycled (" + link + "); leaving it alone");
+        return;
+      }
+      ParcelFileDescriptor.adoptFd(fd).close();
+      Log.e(LOG_TAG, "tun fd " + fd + " force-closed; VPN interface torn down");
+    } catch (Exception e) {
+      Log.e(LOG_TAG, "tun fd " + fd + " already closed: " + e);
+    }
   }
 
   public MutableLiveData<Boolean> isConnected() {
@@ -403,19 +589,70 @@ public class BelnetDaemon extends VpnService{
   }
 
   private void updateIsConnected() {
-    isConnected.postValue(IsRunning() && VpnService.prepare(BelnetDaemon.this) == null);
+    // "Connected" must mean the tunnel can actually carry traffic, not just
+    // that the daemon process is alive. A daemon that is running but has no
+    // built paths / mapped exit blackholes ALL device traffic (we route
+    // 0.0.0.0/0 and ::/0 into the tun), which users experience as
+    // "Connected but no internet".
+    boolean running = IsRunning() && VpnService.prepare(BelnetDaemon.this) == null;
+    boolean ready = false;
+    if (running) {
+      try {
+        String raw = GetStatus();
+        if (raw != null && !raw.isEmpty()) {
+          JSONObject status = new JSONObject(raw);
+          boolean flag = status.optBoolean("isconnected", false);
+          int pathsBuilt = status.optInt("numPathsBuilt", 0);
+          JSONObject exitMap = status.optJSONObject("exitMap");
+          ready = flag && pathsBuilt > 0 && exitMap != null && exitMap.length() > 0;
+
+           Log.e(
+    LOG_TAG,
+    "updateIsConnected: running=" + running +
+    ", flag=" + flag +
+    ", ready=" + ready +
+    ", pathsBuilt=" + pathsBuilt +
+    ", exitMap=" + exitMap
+);
+        }
+      } catch (JSONException e) {
+        Log.w(LOG_TAG, "updateIsConnected: could not parse daemon status: " + e);
+      }
+    }
+    isConnected.postValue(running && ready);
   }
 
   
-  public String unmappingNode(String newNode){  
-    new Thread(
-      () -> {
-        results = Unmap(newNode);
-      })
-      .start();
+  /** Callback for async exit-node remapping results. */
+  public interface UnmapCallback {
+    void onResult(String result);
+  }
 
-     return results;
-   }
+  /**
+   * Remap the exit to {@code newNode} asynchronously.
+   *
+   * The old version of this method started a thread and immediately returned
+   * a shared field the thread had not written yet (always null/stale), so
+   * failed swaps were reported as successes. The result is now delivered on
+   * the main thread via {@link UnmapCallback} once the JNI call completes.
+   */
+  public void unmappingNode(String newNode, UnmapCallback cb) {
+    final Handler mainHandler = new Handler(Looper.getMainLooper());
+    new Thread(
+        () -> {
+          String unmapResult;
+          try {
+            unmapResult = Unmap(newNode);
+          } catch (Throwable t) {
+            Log.e(LOG_TAG, "Unmap(" + newNode + ") threw: " + t);
+            unmapResult = null;
+          }
+          final String value = unmapResult;
+          mainHandler.post(() -> cb.onResult(value));
+        },
+        "belnet-unmap")
+        .start();
+  }
 
   /**
    * Class for clients to access. Because we know this service always runs in the
@@ -443,7 +680,90 @@ public class BelnetDaemon extends VpnService{
   private class UpdateIsConnectedTask extends TimerTask {
     public void run() {
       updateIsConnected();
+      maybeUpdateSpeedNotification();
     }
+  }
+
+  // ---------------------------------------------------------------------
+  // Speed notification (native).
+  //
+  // Previously the Flutter layer re-CREATED the notification once per
+  // second via awesome_notifications - a cross-channel + system-service
+  // call every second for the whole session, with visible flicker on some
+  // OEM ROMs. It is now updated here, from the service's existing timer,
+  // throttled to every 3 seconds with setOnlyAlertOnce, and survives even
+  // if the Flutter engine is killed.
+  //
+  // NOTE: this intentionally does not call startForeground() - the service
+  // semantics are unchanged from the shipped version. Promoting to a true
+  // foreground service (with android:foregroundServiceType in the manifest)
+  // is a recommended follow-up.
+  // ---------------------------------------------------------------------
+  private static final int SPEED_NOTIFY_ID = 10; // same id the Dart layer used
+  private static final String SPEED_CHANNEL_ID = "belnets_channel"; // created by the app at startup
+  private long mLastNotifyMs = 0;
+  private long mNotifyLastTs = 0;
+  private long mNotifyLastRx = 0;
+  private long mNotifyLastTx = 0;
+
+  private void maybeUpdateSpeedNotification() {
+    if (!IsRunning())
+      return;
+    long now = SystemClock.elapsedRealtime();
+    if (now - mLastNotifyMs < 3000)
+      return;
+    mLastNotifyMs = now;
+
+    long rx = TrafficStats.getTotalRxBytes();
+    long tx = TrafficStats.getTotalTxBytes();
+    String body = "↑ 0.0 bps ↓ 0.0 bps";
+    if (mNotifyLastTs != 0) {
+      float dt = (now - mNotifyLastTs) / 1000f;
+      if (dt > 0f) {
+        // Halved: TrafficStats counts tunneled bytes twice (tun + physical).
+        long up = (long) (Math.max(0, tx - mNotifyLastTx) / 2 / dt);
+        long down = (long) (Math.max(0, rx - mNotifyLastRx) / 2 / dt);
+        body = "↑ " + ConnectionTools.bytesToSize(up) + "ps ↓ "
+            + ConnectionTools.bytesToSize(down) + "ps";
+      }
+    }
+    mNotifyLastTs = now;
+    mNotifyLastRx = rx;
+    mNotifyLastTx = tx;
+
+    try {
+      Intent launch = getPackageManager().getLaunchIntentForPackage(getPackageName());
+      PendingIntent contentIntent = launch == null ? null
+          : PendingIntent.getActivity(this, 0, launch,
+              PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+      NotificationCompat.Builder builder =
+          new NotificationCompat.Builder(this, SPEED_CHANNEL_ID)
+              .setSmallIcon(io.beldex.belnet_lib.R.drawable.belnet_svg)
+              .setContentTitle("Belnet dVPN")
+              .setContentText(body)
+              .setOngoing(true)
+              .setOnlyAlertOnce(true)
+              .setSilent(true)
+              .setCategory(NotificationCompat.CATEGORY_SERVICE);
+      if (contentIntent != null)
+        builder.setContentIntent(contentIntent);
+      NotificationManagerCompat.from(this).notify(SPEED_NOTIFY_ID, builder.build());
+    } catch (Throwable t) {
+      // Missing channel or notification permission: never let the
+      // notification path take down the VPN timer.
+      Log.w(LOG_TAG, "speed notification update failed: " + t);
+    }
+  }
+
+  private void cancelSpeedNotification() {
+    try {
+      NotificationManagerCompat.from(this).cancel(SPEED_NOTIFY_ID);
+    } catch (Throwable t) {
+      Log.w(LOG_TAG, "speed notification cancel failed: " + t);
+    }
+    mNotifyLastTs = 0;
+    mLastNotifyMs = 0;
   }
 
 

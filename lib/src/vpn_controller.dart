@@ -13,6 +13,7 @@ import 'package:belnet_mobile/src/providers/ip_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/providers/log_provider.dart';
 import 'package:belnet_mobile/src/providers/speed_chart_provider.dart';
+import 'package:belnet_mobile/src/providers/tunnel_health_provider.dart';
 import 'package:belnet_mobile/src/providers/vpn_provider.dart';
 import 'package:belnet_mobile/src/settings.dart';
 import 'package:belnet_mobile/src/utils/show_toast.dart';
@@ -42,12 +43,14 @@ Future<void> toggleBelnet(BuildContext context,AppSelectingProvider appSelecting
   final logProvider = Provider.of<LogProvider>(context,listen: false);
   final appModel = Provider.of<AppModel>(context,listen:false);
   final introStateProvider = Provider.of<IntroStateProvider>(context,listen: false);
+  final tunnelHealthProvider = Provider.of<TunnelHealthProvider>(context,listen: false);
   resetStatevalue(introStateProvider);
- 
- if (BelnetLib.isConnected) {
-    await _disconnectFromBelnet(vpnConnectionProvider,loaderVideoProvider,ipProvider,logProvider,introStateProvider,nodeProvider);
+
+ var isRunning = await BelnetLib.isRunning;
+ if (isRunning || BelnetLib.isConnected == true) {
+    await _disconnectFromBelnet(vpnConnectionProvider,loaderVideoProvider,ipProvider,logProvider,introStateProvider,nodeProvider,tunnelHealthProvider);
   } else {
-    await _connectToBelnet(context,appSelectingProvider,nodeProvider,loaderVideoProvider,vpnConnectionProvider,ipProvider,logProvider,appModel,introStateProvider ,dns:dns,isCustomeExitNode: isCustomeExitNode);
+    await _connectToBelnet(context,appSelectingProvider,nodeProvider,loaderVideoProvider,vpnConnectionProvider,ipProvider,logProvider,appModel,introStateProvider,tunnelHealthProvider ,dns:dns,isCustomeExitNode: isCustomeExitNode);
   }
 
 
@@ -149,17 +152,19 @@ Future<void> _saveSettings(NodeProvider nodeProvider ,{String? exitvalue, String
 }
 
 
-Future<void> _disconnectFromBelnet(VpnConnectionProvider vpnConnectionProvider,LoaderVideoProvider loaderVideoProvider,IpProvider ipProvider,LogProvider logProvider,IntroStateProvider introProvider,NodeProvider nodeProvider) async {
-  
+Future<void> _disconnectFromBelnet(VpnConnectionProvider vpnConnectionProvider,LoaderVideoProvider loaderVideoProvider,IpProvider ipProvider,LogProvider logProvider,IntroStateProvider introProvider,NodeProvider nodeProvider,TunnelHealthProvider tunnelHealthProvider) async {
+
  // setState(() => loading = true);
   bool disConnectValue = await BelnetLib.disconnectFromBelnet();
  // appModel.connecting_belnet = false;
 
   if (disConnectValue) {
     vpnConnectionProvider.cancelDelay();
+    tunnelHealthProvider.stop();
     ipProvider.stopIPMonitoring();
    // speedChartProvider.stopMonitoring();
       stopNotification();
+      loaderVideoProvider.setLoading(false);
       loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
       logProvider.addLog('Belnet Daemon stopped');
       logProvider.addLog('Belnet disconnected');
@@ -207,15 +212,14 @@ setForCustomExitnode(IpProvider ipProvider,IntroStateProvider introProvider,Node
 
 
 
-Future<void> _connectToBelnet(BuildContext context,AppSelectingProvider appSelectingProvider,NodeProvider nodeProvider,LoaderVideoProvider loaderVideoProvider,VpnConnectionProvider vpnConnectionProvider,IpProvider ipProvider,LogProvider logProvider,AppModel appModel,IntroStateProvider introStateProvider ,{String? dns,bool isCustomeExitNode = false}) async {
+Future<void> _connectToBelnet(BuildContext context,AppSelectingProvider appSelectingProvider,NodeProvider nodeProvider,LoaderVideoProvider loaderVideoProvider,VpnConnectionProvider vpnConnectionProvider,IpProvider ipProvider,LogProvider logProvider,AppModel appModel,IntroStateProvider introStateProvider,TunnelHealthProvider tunnelHealthProvider ,{String? dns,bool isCustomeExitNode = false}) async {
 
  if(introStateProvider.grantPermissionCount == 1){ // To avoid multiple vpn permission dialogs 
 
     introStateProvider.increaseGrantPermissionCountByOne();
 
-if(isCustomeExitNode){
- await _handleCustomExitNode(introStateProvider);
-}
+// NOTE: the old _handleCustomExitNode() 1-second Timer poll has been removed;
+// custom exit nodes are now verified by the same status polling used below.
 
 introStateProvider.showButtonAfterOk();
 
@@ -223,7 +227,20 @@ introStateProvider.showButtonAfterOk();
   
 print('THE LOADER VALUE IS 1----> ${loaderVideoProvider.isLoading}');
 //logProvider.addLog('Checking for vpn Permission..');
-  final result = await BelnetLib.prepareConnection();
+  final bool result;
+  try {
+    result = await BelnetLib.prepareConnection();
+  } on BootstrapException catch (e) {
+    // First-time bootstrap download failed on every seed URL: surface it
+    // instead of failing silently (the old code swallowed this with print).
+    logProvider.addLog('Bootstrap failed: ${e.message}');
+    introStateProvider.setGrantPermissionCount(1);
+    loaderVideoProvider.setLoading(false);
+    loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+    showMessage(
+        'Could not download network bootstrap - check your connection');
+    return;
+  }
   if (!result) {
       print('THE LOADER VALUE IS 666----> ${loaderVideoProvider.isLoading}');
       logProvider.addLog('Permission denied: Unable to start VPN');
@@ -255,26 +272,56 @@ print('THE LOADER VALUE IS 1----> ${loaderVideoProvider.isLoading}');
 
 print('CustomExitnode checking end');
   if (con) {
-    vpnConnectionProvider.startConnectionDelay((){
-  //context.loaderOverlay.hide();
- // loaderVideoProvider.hideLoader();
- if(isCustomeExitNode){
- _checkingExitnodeAfterDelay(nodeProvider,logProvider,vpnConnectionProvider,loaderVideoProvider,ipProvider,appModel,introStateProvider);
- }else{
-  showNotification(appModel);
-   ipProvider.startMonitoring();
-     loaderVideoProvider.setLoading(false);
-         loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
-               logProvider.addLog('Exit node set by Daemon: Connected to ${nodeProvider.selectedExitNodeName}');
-introStateProvider.setValueAfterResume();
-        // speedChartProvider.startMonitoring();
-     print('ISCONNECT IS CONNNECTED AR NOT --> ${BelnetLib.isConnected}');
-     print('THE LOADER VALUE IS 4444----> ${loaderVideoProvider.isLoading}');
- }
-   
-  });
-  } else {
-    //setState(() => loading = false);
+    logProvider.addLog('Waiting for exit tunnel to become ready...');
+    vpnConnectionProvider.startStatusPolling(
+      getStatus: () => BelnetLib.getSpeedStatus,
+      onConnected: () {
+        showNotification(appModel);
+        ipProvider.startMonitoring();
+        loaderVideoProvider.setLoading(false);
+        loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
+        logProvider.addLog(
+            'Exit tunnel ready: connected to ${nodeProvider.selectedExitNodeName}');
+        introStateProvider.setValueAfterResume();
+        if (isCustomeExitNode) {
+          introStateProvider.setFlagvalue(true);
+        }
+        // Start end-to-end health monitoring; if the tunnel silently
+        // blackholes (exit dies, handover breaks paths), try one remap of
+        // the current exit and otherwise disconnect with a clear message
+        // instead of leaving a green UI over a dead tunnel.
+        tunnelHealthProvider.start(onBroken: () {
+          _recoverBrokenTunnel(tunnelHealthProvider, vpnConnectionProvider,
+              loaderVideoProvider, ipProvider, logProvider, introStateProvider,
+              nodeProvider);
+        });
+      },
+      onFailed: (reason) async {
+         logProvider.addLog('Connection not ready in time ($reason)');
+        // Tear down and reset the UI unconditionally: the old code skipped
+        // ALL cleanup when disconnectFromBelnet() returned false or threw,
+        // leaving a spinning loader and (worse) a live tun interface - the
+        // Android VPN icon stayed in the status bar after the "Could not
+        // establish Belnet connection" message.
+        try {
+          await BelnetLib.disconnectFromBelnet();
+        } catch (e) {
+          logProvider.addLog('Disconnect after failed connect threw: $e');
+        }
+        stopNotification();
+        loaderVideoProvider.setLoading(false);
+        loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+        if (isCustomeExitNode) {
+          introStateProvider.setIsCustomNode(false);
+          nodeProvider.selectNode(3, 'exit.bdx', 'France');
+          showMessage(
+              'Exit Node is invalid or unreachable. Switching to default Exit Node');
+        } else {
+          showMessage(
+              'Could not establish Belnet connection. Please try again.');
+        }
+      },
+    );
   }
 
 
@@ -282,246 +329,70 @@ introStateProvider.setValueAfterResume();
 
 }
 
-bool myExit = false;
-bool f = false;
- 
+/// Recovery for a tunnel that reports connected but cannot reach the
+/// internet (health probe failed twice). Strategy: re-map the current exit
+/// once and re-probe; if that doesn't restore traffic, disconnect cleanly so
+/// the user sees the true state instead of "Connected" with no internet.
+bool _recoveryInProgress = false;
 
+Future<void> _recoverBrokenTunnel(
+    TunnelHealthProvider tunnelHealthProvider,
+    VpnConnectionProvider vpnConnectionProvider,
+    LoaderVideoProvider loaderVideoProvider,
+    IpProvider ipProvider,
+    LogProvider logProvider,
+    IntroStateProvider introStateProvider,
+    NodeProvider nodeProvider) async {
+  if (_recoveryInProgress) return;
+  _recoveryInProgress = true;
+  try {
+    final exitNode = Settings.getInstance()!.exitNode ?? 'exit.bdx';
+    logProvider.addLog('Exit node unreachable - attempting recovery');
+    showMessage('Exit node unreachable, reconnecting...');
 
-
- Future<void> _handleCustomExitNode(IntroStateProvider introStateProvider, {String? exitvalue}) async {
-  
-
- // if (exitvalue != null && exitvalue.isNotEmpty) {
-    // setState(() {
-    //   selectedValue = exitvalue;
-    //   selectedConIcon = "";
-    // });
-
-    Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!introStateProvider.myExit && !introStateProvider.flagvalue) {
-        getDataFromDaemon(introStateProvider);
-      } else {
-        timer.cancel();
-      }
-      // if (!myExit && !f) {
-      //   getDataFromDaemon();
-      // } else {
-      //   timer.cancel();
-      // }
-    });
-
-
-
-
-
-
-
-
-
-
-
-
- // }
- //if(canValidateExit){
-  //  if (myExit) {
-  //   setState(() {
-  //     f = true;
-  //     mystr = "exitnode is valid";
-  //    // loading = false;
-  //   });
-  // } else {
-  //   setState(() {
-  //     mystr = "exitnode is invalid";
-  //   });
-  //   print("myExitvalue is $mystr");
-  //   await BelnetLib.disconnectFromBelnet();
-  //   logController.addDataTolist(
-  //     "$selectedValue is Invalid Exit Node",
-  //     "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
-  //   );
-  //   setState(() {
-  //     selectedValue =
-  //         'exit.bdx';
-  //     selectedConIcon =
-  //         "https://belnet-exitnode.s3.ap-south-1.amazonaws.com/countryflag/icons8-france.png";
-  //   });
-  //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-  //       backgroundColor: appModel.darkTheme
-  //           ? Colors.black.withOpacity(0.50)
-  //           : Colors.white,
-  //       behavior: SnackBarBehavior.floating,
-  //       width: MediaQuery.of(context).size.height * 2.5 / 3,
-  //       content: Text(
-  //         "Exit Node is Invalid!.switching to default Exit Node",
-  //         style: TextStyle(
-  //             color: appModel.darkTheme ? Colors.white : Colors.black),
-  //         textAlign: TextAlign.center,
-  //       )));
-  // }
- //}
-  
-}
-
-Future<void> _checkingExitnodeAfterDelay(NodeProvider nodeProvider,LogProvider logProvider,VpnConnectionProvider vpnConnectionProvider,LoaderVideoProvider loaderVideoProvider,IpProvider ipProvider,AppModel appModel,IntroStateProvider introStateProvider) async {
- //if(canValidateExit){
-   if (introStateProvider.myExit) {
-   // setState(() {
-      f = true;
-      introStateProvider.setFlagvalue(true);
-       showNotification(appModel);
-      ipProvider.startMonitoring();
-     loaderVideoProvider.setLoading(false);
-         loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
-               logProvider.addLog('Exit node set by Daemon: Connected to ${nodeProvider.selectedExitNodeName}');
-
-     // mystr = "exitnode is valid";
-     // loading = false;
-   // });
-  } else {
-    // setState(() {
-    //   mystr = "exitnode is invalid";
-    // });
-   // print("myExitvalue is $mystr");
-    bool disConnectValue = await BelnetLib.disconnectFromBelnet();
- // appModel.connecting_belnet = false;
-
-  if (disConnectValue) {
-    vpnConnectionProvider.cancelDelay();
-   // ipProvider.stopIPMonitoring();
-   // speedChartProvider.stopMonitoring();
-     stopNotification();
-       loaderVideoProvider.setLoading(false);
-      loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
-      logProvider.addLog('Exit Node is Invalid!.switching to default Exit Node');
-       introStateProvider.setIsCustomNode(false);
-      //logProvider.addLog('Belnet disconnected');
-     //context.loaderOverlay.hide();
-     print('THE LOADER VALUE IS D11----> ${loaderVideoProvider.isLoading}');
-     //loaderVideoProvider.setLoading(false);
-     print('THE LOADER VALUE IS D22 ----> ${loaderVideoProvider.isLoading}');
-  }
-   // _disconnectFromBelnet(vpnConnectionProvider, loaderVideoProvider, speedChartProvider, ipProvider, logProvider);
-   // await BelnetLib.disconnectFromBelnet();
-    //timer1?.cancel();
-     // AwesomeNotifications().cancel(10);
-    // logController.addDataTolist(
-    //   "$selectedValue is Invalid Exit Node",
-    //   "${ConvertTimeToHMS().displayHour_minute_seconds(DateTime.now()).toString()}",
-    // );
-
-
-   nodeProvider.selectNode(3,'exit.bdx','France');
-
-
-    // setState(() {
-    //   selectedValue =
-    //       'exit.bdx';
-    //   selectedConIcon =
-    //       "https://belnet-exitnode.s3.ap-south-1.amazonaws.com/countryflag/icons8-france.png";
-    // });
-
-    showMessage('Exit Node is Invalid!.switching to default Exit Node');
-    // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    //     backgroundColor: appModel.darkTheme
-    //         ? Colors.black.withOpacity(0.50)
-    //         : Colors.white,
-    //     behavior: SnackBarBehavior.floating,
-    //     width: MediaQuery.of(context).size.height * 2.5 / 3,
-    //     content: Text(
-    //       "Exit Node is Invalid!.switching to default Exit Node",
-    //       style: TextStyle(
-    //           color: appModel.darkTheme ? Colors.white : Colors.black),
-    //       textAlign: TextAlign.center,
-    //     )));
-  }
- //}
-  
-}
-getDataFromDaemon(IntroStateProvider introStateProvider) async {
-    var fromDaemon = await BelnetLib.getSpeedStatus;
-    if (fromDaemon != null) {
-      var data1 = Welcome.fromJson(fromDaemon);
-      print("isConnected before ${data1.isConnected}");
-      introStateProvider.setMyExitValue(data1.isConnected);
-      myExit = data1.isConnected;
-
-      print("isConnected after the myExit $myExit");
-      //setState(() {});
+    // Attempt 1: remap the current exit and verify.
+    await BelnetLib.unmapExitNode(exitNode);
+    await Future<void>.delayed(const Duration(seconds: 3));
+    await tunnelHealthProvider.probeNow();
+    if (!tunnelHealthProvider.isBroken) {
+      logProvider.addLog('Recovery successful: exit remapped');
+      ipProvider.refreshNow();
+      return;
     }
+
+    // Attempt 2: give up cleanly - a red "Disconnected" is more honest (and
+    // more actionable) than a green UI over a blackholed tunnel.
+    logProvider.addLog('Recovery failed - disconnecting');
+    // await _disconnectFromBelnet(vpnConnectionProvider, loaderVideoProvider,
+    //     ipProvider, logProvider, introStateProvider, nodeProvider,
+    //     tunnelHealthProvider);
+    showMessage('Unprecedented traffic with Exit node. Please change exit node and retry');
+  } finally {
+    _recoveryInProgress = false;
   }
-  
-
-
-
-
-//// Notification 
-///
-void showNotification(AppModel appModel) {
-  print('Comes inside show Notification function');
- 
- showMyNotifaction(appModel);
- timer1 = Timer.periodic(Duration(seconds: 1),(timer){
-    updateNotification(appModel);
- });
- 
- 
- 
- 
- 
- 
-  //Timer.periodic(Duration(milliseconds: 100), (timer) {
-   // if (BelnetLib.isConnected) {
-     // _updateNotification(appModel);
-    // } else {
-    //   //timer.cancel();
-    //   _dismissNotification();
-    // }
- // });
 }
 
-Timer? timer1;
+//// Notification
+///
+/// The speed notification is now owned by the native service
+/// (BelnetDaemon.maybeUpdateSpeedNotification): it updates in place every
+/// 3 seconds with setOnlyAlertOnce (no flicker, no per-second Dart timer)
+/// and keeps working even if the Flutter engine is killed. This function is
+/// kept as a no-op hook in case a Dart-side notification is ever needed
+/// again.
+void showNotification(AppModel appModel) {
+  // Intentionally empty - see BelnetDaemon.java (native notification).
+}
 
 stopNotification()async{
   Future.delayed(const Duration(milliseconds: 200),(){
-    timer1?.cancel();
-
+  // The native side cancels id 10 on disconnect as well; this is a
+  // belt-and-braces cancel for paths where Dart disconnects first.
   AwesomeNotifications().cancel(10).then((value) {
     print('Notification Stopped');
   });
   });
- 
-}
 
-
-
-
-
-void showMyNotifaction(AppModel appModel){
-  AwesomeNotifications().createNotification(
-    content: NotificationContent(
-      id: 10, 
-      channelKey: 'belnets_channel',
-    title: "belnet dVPN",
-    body:
-        '↑ ${stringBeforeSpace(appModel.singleUpload)}${stringAfterSpace(appModel.singleUpload)} ↓ ${stringBeforeSpace(appModel.singleDownload)}${stringAfterSpace(appModel.singleDownload)}',
-    locked: true,
-    autoDismissible: false,
-    category: NotificationCategory.Service,)
-      );
-}
-
-void updateNotification(AppModel appModel){
-  AwesomeNotifications().createNotification(
-    content: NotificationContent(
-      id: 10, 
-        channelKey: 'belnets_channel',
-    title: "Belnet dVPN",
-    body:
-        '↑ ${stringBeforeSpace(appModel.singleUpload)}${stringAfterSpace(appModel.singleUpload)} ↓ ${stringBeforeSpace(appModel.singleDownload)}${stringAfterSpace(appModel.singleDownload)}',
-    locked: true,
-    autoDismissible: false,
-    category: NotificationCategory.Service,)
-      );
 }
 
 
@@ -542,25 +413,34 @@ String stringBeforeSpace(String value) {
 
 
 
- swapRandomExitnode(LoaderVideoProvider loaderVideoProvider,LogProvider logProvider,NodeProvider nodeProvider,VpnConnectionProvider vpnConnectionProvider)async{
+ swapRandomExitnode(LoaderVideoProvider loaderVideoProvider,LogProvider logProvider,NodeProvider nodeProvider,VpnConnectionProvider vpnConnectionProvider,IpProvider ipProvider)async{
   loaderVideoProvider.setLoading(true);
     logProvider.addLog('Checking random node for swap');
      loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTING);
   //await nodeProvider.selectRandomNode();
   await _saveSettings(nodeProvider);
-  logProvider.addLog('Connecting to ${Settings.getInstance()!.exitNode!} --- ');
-  BelnetLib.unmapExitNode(Settings.getInstance()!.exitNode!);
-  vpnConnectionProvider.startConnectionDelay((){
- // Future.delayed(Duration(seconds: 5),(){
- 
-loaderVideoProvider.setLoading(false);
-    logProvider.addLog('Connected to ${Settings.getInstance()!.exitNode!}');
-     loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
- showMessage('Exit node switched successfully');
-  });
+  logProvider.addLog('Connecting to ${Settings.getInstance()!.exitNode!}');
+  await BelnetLib.unmapExitNode(Settings.getInstance()!.exitNode!);
+  vpnConnectionProvider.startStatusPolling(
+    getStatus: () => BelnetLib.getSpeedStatus,
+    timeout: const Duration(seconds: 20),
+    onConnected: () {
+      ipProvider.stopIPMonitoring();
+      ipProvider.startMonitoring();
+      loaderVideoProvider.setLoading(false);
+      logProvider.addLog('Connected to ${Settings.getInstance()!.exitNode!}');
+      loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
+      showMessage('Exit node switched successfully');
+    },
+    onFailed: (reason) {
+      loaderVideoProvider.setLoading(false);
+      loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
+      logProvider.addLog('Exit node swap not confirmed ($reason)');
+      showMessage('Could not verify exit node switch');
+    },
+  );
 
  }
-
 
 
 

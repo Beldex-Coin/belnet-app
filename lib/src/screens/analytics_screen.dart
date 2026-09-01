@@ -124,13 +124,13 @@ checkRunning();
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          title: Text( 'Analytics', style: TextStyle(fontFamily: 'Poppins',fontSize: 18,fontWeight: FontWeight.w500),),
+          title: Text( 'Analytics', style: TextStyle(fontFamily: 'Poppins',fontSize: 18,fontWeight: FontWeight.w600),),
               centerTitle: true,
           leading: Padding(
             padding: const EdgeInsets.only(left:  8.0),
             child: Row(
-                        children: [
-                           SvgPicture.asset('assets/images/dark_theme/Belnet_logo_new.svg',height: 15),
+                   children: [
+                            appModel.darkTheme ? SvgPicture.asset('assets/images/dark_theme/home_logo_dark_theme.svg',height: 15):SvgPicture.asset('assets/images/light_theme/home_logo_white_theme.svg',height: 15),
        
                         ],
                       
@@ -149,7 +149,6 @@ checkRunning();
               margin: EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
                 color:appModel.darkTheme? Colors.grey.withOpacity(0.1):Color(0xffA1A1A1).withOpacity(0.2),// Colors.grey.withOpacity(0.1),
-               borderRadius: BorderRadius.circular(10)
               ),
               child:appModel.darkTheme? SvgPicture.asset('assets/images/dark_theme/light_Theme.svg'):SvgPicture.asset('assets/images/light_theme/dark_theme.svg') ),
          )
@@ -160,22 +159,21 @@ checkRunning();
          height:double.infinity, // height*2.26/3,
          margin: EdgeInsets.only(top: 10,left:10,right:10),
         blur: 5.0,
-          color:appModel.darkTheme ? Color(0xff080C29).withOpacity(0.7) :Color(0x33FFFFFF).withOpacity(0.02), //.black38, // Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-          borderColor: Color(0xffACACAC).withOpacity(0.6),
+          color:appModel.darkTheme ? Color(0xff0B0B0B).withOpacity(0.8) :Color(0x33F5F5F5).withOpacity(0.3), //.black38, // Colors.transparent,
+          borderColor:appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.6): Color(0xffACACAC),
           borderWidth: 0.3,
-          boxShadow:appModel.darkTheme ? [] : [
-                          BoxShadow(
-                      color: Color(0xff00FFDD).withOpacity(0.03) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
+          // boxShadow:appModel.darkTheme ? [] : [
+          //           //       BoxShadow(
+          //           //   color: Color(0xff00FFDD).withOpacity(0.03) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
                      
-                    ),
-                    BoxShadow(
-                      color: Colors.white.withOpacity(0.3),
-                      spreadRadius: -01.0,
-                      blurRadius: 23.5,
-                      offset: Offset(-3.0, 4.5),
-                    )
-                       ],
+          //           // ),
+          //           // BoxShadow(
+          //           //   color: Colors.white.withOpacity(0.3),
+          //           //   spreadRadius: -01.0,
+          //           //   blurRadius: 23.5,
+          //           //   offset: Offset(-3.0, 4.5),
+          //           // )
+          //              ],
           padding: EdgeInsets.symmetric(vertical: 15,horizontal: 10),
           child: Column(
             //crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,7 +183,6 @@ checkRunning();
                 color:appModel.darkTheme ? Colors.white.withOpacity(0.01): Color(0xffBEBEBE).withOpacity(0.1),
                 height: MediaQuery.of(context).size.height*0.50/3, //130,
                 width: double.infinity,
-                borderRadius: BorderRadius.circular(14),
                 borderColor: Colors.transparent,
                 padding: EdgeInsets.all(8),
                 child: Column(
@@ -201,7 +198,6 @@ checkRunning();
                             height:  height*0.30/3,
                              blur: 15.0,
                                        color:  appModel.darkTheme ? Colors.white.withOpacity(0.06) : Color(0xffBEBEBE).withOpacity(0.2),
-                                           borderRadius: BorderRadius.circular(14),
                                         borderColor: Colors.transparent,
                                         padding: EdgeInsets.all(8),
                                         child: Column(
@@ -234,7 +230,6 @@ checkRunning();
                             height: height*0.30/3,
                              blur: 15.0,
                                         color: appModel.darkTheme ? Colors.white.withOpacity(0.06) : Color(0xffBEBEBE).withOpacity(0.2),
-                                           borderRadius: BorderRadius.circular(14),
                                         borderColor: Colors.transparent,
                                         padding: EdgeInsets.only(left:5),
                                         child: Column(
@@ -242,7 +237,7 @@ checkRunning();
                                           crossAxisAlignment: CrossAxisAlignment.baseline,
                                           textBaseline: TextBaseline.alphabetic,
                                           children:[
-                                         Text('VPN IP  ',style: TextStyle(color:appModel.darkTheme ? Color(0xffACACAC): Color(0xff4D4D4D),fontSize: 11,fontFamily: 'Poppins'),),
+                                         Text('VPN IP  ',style: TextStyle(color:appModel.darkTheme ? Color(0xffACACAC): Color(0xff222222),fontSize: 11,fontFamily: 'Poppins'),),
                                             RichText(
                             textAlign: TextAlign.justify,
                             maxLines: 1,
@@ -252,7 +247,7 @@ checkRunning();
                                       fontSize:11, //mHeight * 0.060 / 3,
                                       fontWeight: FontWeight.w600,
                                       fontFamily: 'Poppins',
-                                      color: Color(0xff00DC00)),
+                                      color: appModel.darkTheme ? Color(0xffEBEBEB) : Color(0xff00B400)),
                                   children: [
                                 TextSpan(
                                     text:ipProvider.currentIPv4,
@@ -274,7 +269,8 @@ checkRunning();
                                       fontSize:11, //mHeight * 0.060 / 3,
                                       fontWeight: FontWeight.w600,
                                       fontFamily: 'Poppins',
-                                      color: Color(0xff00A3FF)),
+                                      color:appModel.darkTheme ? Color(0xffEBEBEB) : Color(0xff8D8D8D)
+                                      ),
                                   children: [
                                 TextSpan(
                                     text:ipProvider.currentIPv6,
@@ -312,7 +308,7 @@ checkRunning();
                      SizedBox(width: 10),
                      Row(
                        children: [
-                         CircleAvatar(radius: 3, backgroundColor: Color(0xff00A3FF)),
+                         CircleAvatar(radius: 3, backgroundColor: Color(0xff8D8D8D)),
                          SizedBox(width: 5),
                          Text('Upload', style: TextStyle(color:appModel.darkTheme ? Color(0xffACACAC) : Colors.black,fontFamily: 'Poppins',fontSize: 9)),
                        ],
@@ -334,7 +330,6 @@ checkRunning();
                         color:appModel.darkTheme ? Colors.grey.withOpacity(0.08): Color(0xffBEBEBE).withOpacity(0.2),
                         width: screenWidth * _widthAnimation.value,
                         borderColor: Colors.transparent,
-                        borderRadius: BorderRadius.circular(14),
                         padding: EdgeInsets.all(10),
                         child: Column(
                           children: [
@@ -413,10 +408,6 @@ checkRunning();
                                 //         ))
                                 );
       
-                           
-      
-                                 // Clipboard.setData(ClipboardData(text: logProvider.logs.toString()));
-                                  
                                   }  ,text: 'Copy',icon:'assets/images/dark_theme/copy_logs.svg',)
                               ],
                             ),
@@ -574,7 +565,6 @@ class optionButton extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical:  8,horizontal: 10),
         decoration: BoxDecoration(
           color:appModel.darkTheme ? Colors.grey.withOpacity(0.06) : Colors.white,
-          borderRadius: BorderRadius.circular(20)
         
         ),
         child: Row(

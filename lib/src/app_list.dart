@@ -204,14 +204,13 @@ bool isTosplitTunnel = false;
                       margin: EdgeInsets.symmetric(horizontal: 10),
                       padding: EdgeInsets.symmetric(horizontal:  15.0),
                               color: Colors.grey.withOpacity(0.1), //Colors.transparent,
-                              borderRadius: BorderRadius.circular(14),
                               borderColor: Colors.transparent,
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                     Row(
                       children: [
-                         SvgPicture.asset('assets/images/dark_theme/Split Tunneling.svg'),
+                         SvgPicture.asset('assets/images/light_theme/Split Tunneling.svg',color: appModel.darkTheme ? Colors.white : null,),
                          Padding(
                            padding: const EdgeInsets.only(left: 8.0),
                            child: Text('Split tunneling',style: TextStyle(fontFamily: 'Poppins',
@@ -342,22 +341,21 @@ class _AppListView extends StatelessWidget {
       height:double.infinity, //MediaQuery.of(context).size.height*1.90/3,
       margin: EdgeInsets.only(top: 10,left:10,right:10),
       blur: 18.0,
-        color: appModel.darkTheme ? Color(0xff080C29).withOpacity(0.7) : Color(0x33BEBEBE).withOpacity(0.02), //s.black.withOpacity(0.03),
-        borderRadius: BorderRadius.circular(14),
-        borderColor: Color(0xffA1A1AF),
+        color:appModel.darkTheme ? Color(0xff0B0B0B).withOpacity(0.8) :Color(0x33F5F5F5).withOpacity(0.3), //.black38, // Colors.transparent,
+          borderColor:appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.6): Color(0xffACACAC),
         borderWidth: 0.3,
-        boxShadow:appModel.darkTheme ? [] : [
-                      BoxShadow(
-                  color: Color(0xff00FFDD).withOpacity(0.03) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
+        // boxShadow:appModel.darkTheme ? [] : [
+        //               BoxShadow(
+        //           color: Color(0xff00FFDD).withOpacity(0.03) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
                  
-                ),
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.5),
-                  spreadRadius: -01.0,
-                  blurRadius: 23.5,
-                  offset: Offset(-3.0, 4.5),
-                )
-                   ],
+        //         ),
+        //         BoxShadow(
+        //           color: Colors.white.withOpacity(0.5),
+        //           spreadRadius: -01.0,
+        //           blurRadius: 23.5,
+        //           offset: Offset(-3.0, 4.5),
+        //         )
+        //            ],
       // decoration: BoxDecoration(
       //   borderRadius: BorderRadius.circular(15),
       //   border: Border.all(color: Color(0xffA1A1AF),width: 0.1)
@@ -409,7 +407,7 @@ class _AppListView extends StatelessWidget {
                           (app.name?.toLowerCase().contains(searchQuery) ?? false) ||
                           app.packageName.toLowerCase().contains(searchQuery))
                       .toList();
-              // 🔽 Sort alphabetically by app name (case-insensitive)
+              //  Sort alphabetically by app name (case-insensitive)
                searchedApps.sort((a, b) {
                final nameA = a.name?.toLowerCase() ?? '';
                final nameB = b.name?.toLowerCase() ?? '';
@@ -442,7 +440,7 @@ class _AppListView extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color:appModel.darkTheme ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
+          //borderRadius: BorderRadius.circular(16),
           border: Border.all(color:appModel.darkTheme ? const Color(0xff3A496266).withOpacity(0.2) :Colors.transparent),
         ),
         padding: const EdgeInsets.all(8),
@@ -463,7 +461,6 @@ class _AppListView extends StatelessWidget {
                     color: appModel.darkTheme
                         ? Colors.white.withOpacity(0.05)
                         : const Color(0xff3A4962).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                         color: appModel.darkTheme
                             ? const Color(0xff3A496266).withOpacity(0.1)
@@ -690,7 +687,7 @@ class _AppListView extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color:appModel.darkTheme ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
+         // borderRadius: BorderRadius.circular(16),
           border: Border.all(color:appModel.darkTheme ? const Color(0xff3A496266).withOpacity(0.2) : Colors.transparent),
         ),
         padding: const EdgeInsets.all(12),
@@ -703,7 +700,7 @@ class _AppListView extends StatelessWidget {
               width: double.infinity,
               decoration: BoxDecoration(
                 color: appModel.darkTheme ? Colors.white.withOpacity(0.05):Colors.grey.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(20),
+               // borderRadius: BorderRadius.circular(20),
                 border: Border.all(color:appModel.darkTheme ? const Color(0xff3A496266).withOpacity(0.1) : Colors.transparent),
               ),
               child: VisibilityDetector(
@@ -724,7 +721,7 @@ class _AppListView extends StatelessWidget {
                       Provider.of<AppSelectingProvider>(context, listen: false)
                               .updateSearchQuery('');
                     },
-                    child: Icon(Icons.close,color: appModel.darkTheme ? Colors.white : Colors.black,) //SvgPicture.asset('assets/images/dark_theme/clear_text_search.svg' ,color:appModel.darkTheme ? Colors.white : Colors.black,)
+                    child: Icon(Icons.close,color: appModel.darkTheme ? Colors.white : Colors.black,size: 19,) //SvgPicture.asset('assets/images/dark_theme/clear_text_search.svg' ,color:appModel.darkTheme ? Colors.white : Colors.black,)
                     )
                     : SizedBox.shrink(),
                     border: InputBorder.none,
@@ -809,7 +806,7 @@ class _AppListView extends StatelessWidget {
                     color: appModel.darkTheme
                         ? Colors.white.withOpacity(0.05)
                         : const Color(0xff3A4962).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                   // borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                         color: appModel.darkTheme
                             ? const Color(0xff3A496266).withOpacity(0.1)

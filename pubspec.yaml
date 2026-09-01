@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.4.0+22
+version: 1.4.1+23
 
 environment:
   sdk: '>=3.5.0 <4.0.0'
@@ -62,6 +62,8 @@ dependencies:
 
   device_info_plus: ^11.4.0
   visibility_detector: ^0.4.0+2
+
+  gradient_borders: ^1.0.2
   #flutter_statusbarcolor_ns: ^0.6.0
   #flutter_local_notifications: ^17.2.3 
 
@@ -122,6 +124,9 @@ flutter:
       fonts:
         - asset: fonts/Poppins-Regular.ttf
         - asset: fonts/Poppins-SemiBold.ttf
+    - family: Conthrax
+      fonts:
+        - asset: assets/fonts/Conthrax-SemiBold.otf
   #         style: italic
   #   - family: Trajan Pro
   #     fonts:

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_mobile/bottom_nav_bar.dart';
 import 'package:belnet_mobile/node_provider.dart';
@@ -11,6 +13,7 @@ import 'package:belnet_mobile/src/providers/ip_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/providers/log_provider.dart';
 import 'package:belnet_mobile/src/providers/speed_chart_provider.dart';
+import 'package:belnet_mobile/src/providers/tunnel_health_provider.dart';
 import 'package:belnet_mobile/src/providers/vpn_provider.dart';
 import 'package:belnet_mobile/src/splash_screen.dart';
 import 'package:belnet_mobile/src/utils/styles.dart';
@@ -60,6 +63,11 @@ void main() async {
   }
   //Paint .enableDithering = true;
   //pr.Provider.debugCheckInvalidValueType = null;
+
+  // Prefetch/refresh the bootstrap router snapshot in the background so
+  // prepareConnection() rarely has to download it on the connect path
+  // (fire-and-forget; never blocks startup, never throws).
+  unawaited(BelnetLib.refreshBootstrapIfStale());
 
   runApp(ProviderScope(child: BelnetApp()));
 }
@@ -215,7 +223,8 @@ checkShowSpalsh()async{
                 pr.ChangeNotifierProvider<SettingsProvider>(create: (_) => SettingsProvider()),
         pr.ChangeNotifierProvider<AppSelectionProvider>(create: (_)=>AppSelectionProvider()..loadSelectedApps(),),
         pr.ChangeNotifierProvider<AppSelectingProvider>(create: (_)=>AppSelectingProvider()),
-        pr.ChangeNotifierProvider<AutoConnectProvider>(create: (_)=> AutoConnectProvider()..loadAutoConnect())
+        pr.ChangeNotifierProvider<AutoConnectProvider>(create: (_)=> AutoConnectProvider()..loadAutoConnect()),
+        pr.ChangeNotifierProvider<TunnelHealthProvider>(create: (_)=> TunnelHealthProvider()),
       ],
       child: pr.Consumer<AppModel>(
         builder: (context, appModel, child) {

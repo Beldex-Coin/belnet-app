@@ -244,7 +244,7 @@ class Charts extends StatelessWidget {
                                   data: samUp,
                                   useCubicSmoothing: true,
                                   cubicSmoothingFactor: 0.2,
-                                  lineColor: Colors.blue,
+                                  lineColor: Color(0xff8D8D8D),
                                 ),
                               ),
                             ],
@@ -548,7 +548,7 @@ class Charts extends StatelessWidget {
                               child: Text(
                                 "a minute ago",
                                 style: TextStyle(
-                                    color: Color(0xff56566F),
+                                    color: Color(0xff8D8D8D),
                                     fontSize:
                                         MediaQuery.of(context).size.height *
                                             0.03 /
@@ -558,7 +558,7 @@ class Charts extends StatelessWidget {
                             Text(
                               "now",
                               style: TextStyle(
-                                  color: Color(0xff56566F),
+                                  color: Color(0xff8D8D8D),
                                   fontSize: MediaQuery.of(context).size.height *
                                       0.03 /
                                       3),
@@ -642,7 +642,7 @@ class Charts extends StatelessWidget {
                           Text(
                             "0.0 Mb/s",
                             style: TextStyle(
-                              color: Color(0xff56566F),
+                              color: Color(0xff8D8D8D),
                               fontSize:
                                   MediaQuery.of(context).size.height * 0.03 / 3,
                             ),
@@ -654,7 +654,7 @@ class Charts extends StatelessWidget {
                           Text(
                             "0.0 Mb/s",
                             style: TextStyle(
-                              color: Color(0xff56566F),
+                              color: Color(0xff8D8D8D),
                               fontSize:
                                   MediaQuery.of(context).size.height * 0.03 / 3,
                             ),
@@ -666,7 +666,7 @@ class Charts extends StatelessWidget {
                           Text(
                             "0.0 Mb/s",
                             style: TextStyle(
-                              color: Color(0xff56566F),
+                              color: Color(0xff8D8D8D),
                               fontSize:
                                   MediaQuery.of(context).size.height * 0.03 / 3,
                             ),

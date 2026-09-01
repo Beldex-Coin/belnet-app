@@ -14,11 +14,13 @@ import 'package:belnet_mobile/src/providers/ip_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/providers/log_provider.dart';
 import 'package:belnet_mobile/src/providers/speed_chart_provider.dart';
+import 'package:belnet_mobile/src/providers/tunnel_health_provider.dart';
 import 'package:belnet_mobile/src/providers/vpn_provider.dart';
 import 'package:belnet_mobile/src/screens/analytics_screen.dart';
 import 'package:belnet_mobile/src/screens/exit_node_screen.dart';
 import 'package:belnet_mobile/src/screens/home_screen.dart';
 import 'package:belnet_mobile/src/screens/settings_screen.dart';
+import 'package:belnet_mobile/src/utils/show_toast.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart';
 import 'package:belnet_mobile/src/widget/nointernet_connection.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -63,7 +65,7 @@ bool isBelConnect = false;
     final autoConnectProvider = Provider.of<AutoConnectProvider>(context,listen: false);
     final appSelectingProvider = Provider.of<AppSelectingProvider>(context,listen: false);
 
-     // final vpnConnectionProvider = Provider.of<VpnConnectionProvider>(context,listen: false);
+      final vpnConnectionProvider = Provider.of<VpnConnectionProvider>(context,listen: false);
       
    _isConnectedEventSubscription = BelnetLib.isConnectedEventStream
         .listen((bool isConnected) => setState(() {
@@ -72,8 +74,49 @@ bool isBelConnect = false;
        
         checkNode(nodeProvider,loaderVideoProvider,logProvider,ipProvider,introStateProvider,autoConnectProvider,appSelectingProvider);
 
+
+
+
+
+
+  BelnetLib.disconnectEventChannel.receiveBroadcastStream().listen((event){
+   if (event == "notification_disconnect") {
+      debugPrint("User clicked disconnect from notification");
+      // Handle your logic
+      try{
+       vpnConnectionProvider.cancelDelay();
+      Provider.of<TunnelHealthProvider>(context, listen: false).stop();
+      loaderVideoProvider.setLoading(false);
+      loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+      logProvider.addLog('Belnet Daemon stopped');
+      logProvider.addLog('Belnet disconnected');
+      stopNotification();
+      resetIfCustomExitnode(ipProvider,introStateProvider,nodeProvider);
+      //AwesomeNotifications().cancelAll();
+      }catch(e){
+
+      }
+          }
+  },
+   onError: (error) {
+    debugPrint("Notification disconnect stream error: $error");
+  }
+  
+  ); 
+
   }
 
+resetIfCustomExitnode(IpProvider ipProvider,IntroStateProvider introProvider,NodeProvider nodeProvider){
+  if(introProvider.isCustomNode){
+    introProvider.setIsCustomNode(false);
+    ipProvider.resetCustomValue();
+     nodeProvider.selectNode(3,'exit.bdx','France');
+    showMessage('Switching to default Exit Node');
+  
+
+
+}
+}
 
 checkNode(NodeProvider nodeProvider,LoaderVideoProvider loaderVideoProvider,LogProvider logProvider,IpProvider ipProvider,IntroStateProvider introProvider,AutoConnectProvider autoConnectProvider,AppSelectingProvider appSelectingProvider)async{
   //print('inside the bottom nav bar ${nodeProvider.nodeData.length}');
@@ -364,21 +407,29 @@ Widget _getScreen(int index) {
                   Container(
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image:appModel.darkTheme ? AssetImage('assets/images/dark_theme/Dark_background.png') :AssetImage('assets/images/light_theme/White__theme_background_v1.png') , // <-- your image
+                        image:appModel.darkTheme ? AssetImage('assets/images/dark_theme/BG_dark_theme.png') :AssetImage('assets/images/light_theme/BG_wht_theme.png') ,
                         fit: BoxFit.cover,
                       ),
                     ),
                   ),
-             loaderProvider.conStatus == ConnectionStatus.CONNECTED ? Container(
-                      child:appModel.darkTheme ? Lottie.asset('assets/images/dark_theme/Dots_v1(1).json',fit: BoxFit.cover) : Lottie.asset('assets/images/light_theme/Dots_wht_theme(2).json',fit: BoxFit.cover),
-                    ): SizedBox(),
+
+              loaderProvider.conStatus == ConnectionStatus.CONNECTED ? 
+              Container(
+               child: Lottie.asset('assets/images/dark_theme/Dots_v1(1).json',fit: BoxFit.cover)
+              ) : SizedBox(),   
+            //  loaderProvider.conStatus == ConnectionStatus.CONNECTED ? Container(
+            //           child:appModel.darkTheme ? Lottie.asset('assets/images/dark_theme/Loadings_dark.json',fit: BoxFit.cover) : Lottie.asset('assets/images/light_theme/Loading_white.json',fit: BoxFit.cover),
+            //         ): SizedBox(),
              
                   
-                  loaderProvider.isLoading ? Container(
+                  loaderProvider.isLoading
+                  && 
+                  loaderProvider.conStatus == ConnectionStatus.CONNECTING ?
+                   Container(
                     width: MediaQuery.of(context).size.width,
                     height: MediaQuery.of(context).size.height,
-                    child:appModel.darkTheme ? Lottie.asset('assets/images/dark_theme/Loading_dark_theme.json',repeat: false,fit: BoxFit.cover //dark_theme/Loading_dark_with_text.json',repeat: false //Loading_dark.json',repeat: false 
-                    ) : Lottie.asset('assets/images/light_theme/Loading_white_theme.json',repeat: false ,fit: BoxFit.cover//Loading_white_theme_with_text.json',repeat: false //Loading_white_theme_v1.json',repeat: false
+                    child:appModel.darkTheme ? Lottie.asset('assets/images/dark_theme/Dark_load.json',repeat: false,fit: BoxFit.cover //dark_theme/Loading_dark_with_text.json',repeat: false //Loading_dark.json',repeat: false 
+                    ) : Lottie.asset('assets/images/light_theme/White_load.json',repeat: false ,fit: BoxFit.cover//Loading_white_theme_with_text.json',repeat: false //Loading_white_theme_v1.json',repeat: false
                     ),
                    ):SizedBox.shrink(),
                   // // Active screen
@@ -459,7 +510,6 @@ class CustomBottomNavBar extends StatelessWidget {
       padding: EdgeInsets.only(right:9,left: 9), // little bottom space
       child:
        ClipRRect(
-        borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: 
@@ -467,7 +517,6 @@ class CustomBottomNavBar extends StatelessWidget {
             padding: EdgeInsets.symmetric( vertical: 15),
              decoration: BoxDecoration(
     color: appModel.darkTheme ? Colors.white.withOpacity(0.05) : Color(0xffC0C0C0).withOpacity(0.2),
-    borderRadius: BorderRadius.circular(12),
     //border: Border. //all(color: Color(0xff3A496266).withOpacity(0.1)),
   ),
            // color: Colors.black.withOpacity(0.3),
@@ -494,12 +543,12 @@ class CustomBottomNavBar extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color:isSelected ? appModel!.darkTheme ? Colors.white.withOpacity(0.12) 
-          : Colors.white : appModel!.darkTheme ? Color(0xff3A4962).withOpacity(0.3) : Color(0xffA1A1A1).withOpacity(0.3), // Colors.grey.shade900.withOpacity(0.7),
+          color:isSelected ? 
+           Colors.white 
+          : appModel!.darkTheme ? Color(0xff555555).withOpacity(0.2) : Color(0xffA1A1A1).withOpacity(0.3), // Colors.grey.shade900.withOpacity(0.7),
           shape: BoxShape.rectangle,
-          borderRadius: BorderRadius.circular(10)
         ),
-        child: SvgPicture.asset(icon, color: isSelected ? activeColor : appModel.darkTheme ? Colors.grey : Color(0xff4D4D4D),height: 20,)
+        child: SvgPicture.asset(icon, color: isSelected ? Colors.black : appModel!.darkTheme ? Colors.grey : Color(0xff222222),height: 20,)
         // Icon(
         //   icon,
         //   color: isSelected ? activeColor : Colors.grey,

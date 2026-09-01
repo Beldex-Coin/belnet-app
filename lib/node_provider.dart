@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/app_list_provider.dart';
+import 'package:belnet_mobile/src/model/exitnodeCategoryModel.dart' as exitNodeModel;
 import 'package:belnet_mobile/src/model/exitnodeRepo.dart';
 import 'package:belnet_mobile/src/providers/auto_connect_provider.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart';
@@ -240,7 +241,14 @@ Future<void> selectRandomNode(AutoConnectProvider autoConnectProvider, BuildCont
 final isVpnPermit = await BelnetLib.isPrepared;
  try{
 
-   final nodeLists = await DataRepo().getListData();
+   // Fetch the node list and warm the geolocation cache concurrently -
+   // findNearestNode() reuses the cached position, so the two network
+   // round trips no longer run back to back on the connect path.
+   final results = await Future.wait<dynamic>([
+     DataRepo().getListData(),
+     getUserLocationFromAPI(),
+   ]);
+   final nodeLists = results[0] as List<exitNodeModel.ExitNodeDataList>;
 
  final node = await findNearestNode(
       nodeLists: nodeLists,

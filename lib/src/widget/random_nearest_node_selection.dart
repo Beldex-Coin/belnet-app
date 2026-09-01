@@ -36,32 +36,55 @@ class UserPosition {
 //     throw Exception('Failed to fetch location from IP');
 //   }
 // }
+/// In-memory geolocation cache: the user's coarse location changes rarely,
+/// while this lookup used to sit (serially) on the connect path every time.
+UserPosition? _cachedPosition;
+DateTime? _cachedPositionAt;
+const _positionCacheTtl = Duration(hours: 24);
+const _geoTimeout = Duration(seconds: 3);
+
 Future<UserPosition> getUserLocationFromAPI() async {
+  // Serve from cache when fresh - keeps the connect path off the network.
+  final cachedAt = _cachedPositionAt;
+  if (_cachedPosition != null &&
+      cachedAt != null &&
+      DateTime.now().difference(cachedAt) < _positionCacheTtl) {
+    return _cachedPosition!;
+  }
+
   try {
-    // Try ipapi.co
-    final res1 = await http.get(Uri.parse('https://ipwho.is/'));
+    // Try ipwho.is
+    final res1 =
+        await http.get(Uri.parse('https://ipwho.is/')).timeout(_geoTimeout);
     if (res1.statusCode == 200) {
       final data = jsonDecode(res1.body);
-      return UserPosition(
+      return _cachePosition(UserPosition(
         latitude: (data['latitude'] ?? 0).toDouble(),
         longitude: (data['longitude'] ?? 0).toDouble(),
-        country: normalizeCountryName(data['country'])  ?? "Unknown",
-      );
+        country: normalizeCountryName(data['country']),
+      ));
     }
   } catch (_) {}
 
   try {
-    //  Try ip-api.com
-    final res2 = await http.get(Uri.parse('http://ip-api.com/json/'));
+    //  Fallback: ipapi.co (supports HTTPS on the free tier, unlike
+    //  ip-api.com which is HTTP-only - this is a privacy product, don't
+    //  leak geolocation lookups over plain HTTP).
+    final res2 = await http
+        .get(Uri.parse('https://ipapi.co/json/'))
+        .timeout(_geoTimeout);
     if (res2.statusCode == 200) {
       final data = jsonDecode(res2.body);
-      return UserPosition(
-        latitude: (data['lat'] ?? 0).toDouble(),
-        longitude: (data['lon'] ?? 0).toDouble(),
-        country: normalizeCountryName(data['country'])  ?? "Unknown",
-      );
+      return _cachePosition(UserPosition(
+        latitude: (data['latitude'] ?? 0).toDouble(),
+        longitude: (data['longitude'] ?? 0).toDouble(),
+        country: normalizeCountryName(data['country_name']),
+      ));
     }
   } catch (_) {}
+
+  // Stale cache beats the (0,0) fallback.
+  if (_cachedPosition != null) return _cachedPosition!;
 
   // try {
   //   // Try ipinfo.io
@@ -80,6 +103,12 @@ Future<UserPosition> getUserLocationFromAPI() async {
   // All failed → return a safe fallback, do NOT throw
   print("All IP-Location APIs failed, using default values.");
   return UserPosition(latitude: 0, longitude: 0, country: "Unknown");
+}
+
+UserPosition _cachePosition(UserPosition pos) {
+  _cachedPosition = pos;
+  _cachedPositionAt = DateTime.now();
+  return pos;
 }
 
 /// Haversine formula to calculate distance in km
@@ -170,7 +199,11 @@ Future<Map<String, dynamic>> findNearestNode({
     List<exitNodeModel.Node> sameCountryNodes =
         nonZeroNodes.where((n) => n.country == nearestNode.country).toList();
 
-    //  Sort by speedScore (1 best, 0 worst) then distance
+    // speedScore is a RANK, not a score: 1 = fastest node, 2 = second
+    // fastest, ...; 0 = unranked (already filtered out above when possible).
+    // Verified against exitnode_info_list.json where ranked nodes carry
+    // unique values 1..N. Ascending sort therefore puts the BEST node
+    // first — do not invert this comparison.
     sameCountryNodes.sort((a, b) {
       int speedCompare = a.speedScore.compareTo(b.speedScore);
       if (speedCompare != 0) return speedCompare;

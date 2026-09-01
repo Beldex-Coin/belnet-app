@@ -12,6 +12,7 @@ import 'package:belnet_mobile/src/vpn_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:glass_kit/glass_kit.dart';
+import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:provider/provider.dart';
 
 class ExitNodesScreen extends StatefulWidget {
@@ -70,34 +71,49 @@ void showCustomDialog(BuildContext context,AppModel appModel) {
                                   useSafeArea: false,
                                   // barrierColor: Colors.white.withOpacity(0.09),
                                   context: context,
-                                  builder: (BuildContext dcontext) => Padding(
-                                        padding: const EdgeInsets.all(0.0),
-                                        child: appModel.darkTheme ?
-                                        GlassContainer.clearGlass(
-                                         color: Colors.black.withOpacity(0.3), //s.white.withOpacity(0.8),
-                                         blur: 10.0,
-                                         borderColor: Colors.transparent,
-                                          child: Dialog(
-                                           // scrollable: true,
-                                           insetPadding: EdgeInsets.all(18),
-                                            backgroundColor: Colors.transparent, 
-                                            //contentPadding: EdgeInsets.all(0.0),
-                                            child:CustomAddExitNodeDialog() //containerWidget(dcontext,mHeight,appModel),
+                                  builder: (BuildContext dcontext) => SafeArea(
+                                    child: Padding(
+                                          padding: const EdgeInsets.all(0.0),
+                                          child: appModel.darkTheme ?
+                                            GlassContainer.clearGlass(
+                                           color: Colors.black.withOpacity(0.3), //s.white.withOpacity(0.8),
+                                           blur: 15.0,
+                                           borderColor: Colors.transparent,
+                                            child: Dialog(
+                                             // scrollable: true,
+                                             insetPadding: EdgeInsets.all(18),
+                                              backgroundColor: Colors.transparent,
+                                              //contentPadding: EdgeInsets.all(0.0),
+                                              child:CustomAddExitNodeDialog() //containerWidget(dcontext,mHeight,appModel),
+                                            ),
+                                          )
+                                          : 
+                                           Container(
+                                           color: Color(0xffFFFFFF).withOpacity(0.9),//(0xffFFFFFF).withOpacity(0.9), //s.white.withOpacity(0.8),
+                                          // blur: 6.0,
+                                          //borderColor: Colors.transparent,
+                                            child: Dialog(
+                                             // scrollable: true,
+                                             insetPadding: EdgeInsets.all(18),
+                                              backgroundColor: Colors.transparent,
+                                              //contentPadding: EdgeInsets.all(0.0),
+                                              child:CustomAddExitNodeDialog() //containerWidget(dcontext,mHeight,appModel),
+                                            ),
                                           ),
-                                        )
-                                        : GlassContainer.clearGlass(
-                                         color:  Color(0x80FFFFFF), //s.white.withOpacity(0.8),
-                                         //blur: 10.0,
-                                         borderColor: Colors.transparent,
-                                          child: Dialog(
-                                           // scrollable: true,
-                                           insetPadding: EdgeInsets.all(18),
-                                            backgroundColor: Colors.transparent,
-                                            //contentPadding: EdgeInsets.all(0.0),
-                                            child:CustomAddExitNodeDialog() //containerWidget(dcontext,mHeight,appModel),
-                                          ),
+                                          // GlassContainer.clearGlass(
+                                          //  color:  Color(0x80FFFFFF), //s.white.withOpacity(0.8),
+                                          //  //blur: 10.0,
+                                          //  borderColor: Colors.transparent,
+                                          //   child: Dialog(
+                                          //    // scrollable: true,
+                                          //    insetPadding: EdgeInsets.all(18),
+                                          //     backgroundColor: Colors.transparent,
+                                          //     //contentPadding: EdgeInsets.all(0.0),
+                                          //     child:CustomAddExitNodeDialog() //containerWidget(dcontext,mHeight,appModel),
+                                          //   ),
+                                          // ),
                                         ),
-                                      ));
+                                  ));
 }
 
 
@@ -114,13 +130,13 @@ void showCustomDialog(BuildContext context,AppModel appModel) {
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          title: Text( 'Change node', style: TextStyle(fontFamily: 'Poppins',fontSize: 18,fontWeight: FontWeight.w500),),
+          title: Text( 'Change node', style: TextStyle(fontFamily: 'Poppins',fontSize: 18,fontWeight: FontWeight.w600),),
               centerTitle: true,
           leading: Padding(
             padding: const EdgeInsets.only(left:  8.0),
             child: Row(
                         children: [
-                          SvgPicture.asset('assets/images/dark_theme/Belnet_logo_new.svg',height: 15),
+                         appModel.darkTheme ? SvgPicture.asset('assets/images/dark_theme/home_logo_dark_theme.svg',height: 15):SvgPicture.asset('assets/images/light_theme/home_logo_white_theme.svg',height: 15),
       
                         ],
                       
@@ -138,7 +154,7 @@ void showCustomDialog(BuildContext context,AppModel appModel) {
               margin: EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
                 color:appModel.darkTheme? Colors.grey.withOpacity(0.1):Color(0xffA1A1A1).withOpacity(0.2),// Colors.grey.withOpacity(0.1),
-               borderRadius: BorderRadius.circular(10)
+               //borderRadius: BorderRadius.circular(10)
               ),
               child:appModel.darkTheme? SvgPicture.asset('assets/images/dark_theme/light_Theme.svg'):SvgPicture.asset('assets/images/light_theme/dark_theme.svg') ),
          )
@@ -151,162 +167,239 @@ void showCustomDialog(BuildContext context,AppModel appModel) {
         // height: MediaQuery.of(context).size.height*2.26/3,
         margin: EdgeInsets.only(left: 10,right: 10,top:10),
         blur:appModel.darkTheme ? 9.0 : 3.0,
-          color:appModel.darkTheme ? Color(0xff080C29).withOpacity(0.8) :Color(0x33FFFFFF).withOpacity(0.02), //s.transparent.withOpacity(0.06), //s.black.withOpacity(0.03), //.black38, // Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-          borderColor: Color(0xffA1A1AF),
+          color:appModel.darkTheme ? Color(0xff0B0B0B).withOpacity(0.8) :Color(0x33F5F5F5).withOpacity(0.3), //s.transparent.withOpacity(0.06), //s.black.withOpacity(0.03), //.black38, // Colors.transparent,
+          borderColor: Color(0xffACACAC),
           borderWidth: 0.3,
           padding: EdgeInsets.symmetric(vertical: 15),
-          boxShadow:appModel.darkTheme ? [] : [
-                          BoxShadow(
-                      color: Color(0xff00FFDD).withOpacity(0.03) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
+          // boxShadow:appModel.darkTheme ? [] : [
+          //                 BoxShadow(
+          //             color: Color(0xff00FFDD).withOpacity(0.03) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
                      
-                    ),
-                    BoxShadow(
-                      color: Colors.white.withOpacity(0.5),
-                      spreadRadius: -01.0,
-                      blurRadius: 23.5,
-                      offset: Offset(-3.0, 4.5),
-                    )
-                       ],
+          //           ),
+          //           BoxShadow(
+          //             color: Colors.white.withOpacity(0.5),
+          //             spreadRadius: -01.0,
+          //             blurRadius: 23.5,
+          //             offset: Offset(-3.0, 4.5),
+          //           )
+          //              ],
           child: Column(
             children: [
-              GestureDetector(
-                onTap: loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? null :  ()=>  showCustomDialog(context,appModel),
-                child: appModel.darkTheme ? 
-          loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ?
+      //         GestureDetector(
+      //           onTap: loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? null :  ()=>  showCustomDialog(context,appModel),
+      //           child: appModel.darkTheme ? 
+      //     loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ?
       
-          SvgPicture.asset('assets/images/dark_theme/add_ext_nd_disabled_dark.svg',width: 154,height: 44,)
-      // GlassContainer.clearGlass(
-      //             width: 154,
-      //              height: 48,
-      //             //decoration: BoxDecoration(
-      //               color: Color(0xff80808A).withOpacity(0.01),
-      //               borderRadius: BorderRadius.circular(40),
-      //                  borderColor:  Color(0xff4D4D4D).withOpacity(0.5),
-      //               borderWidth: 2, 
-      //             child: 
-      //             Row(
-      //                     mainAxisAlignment: MainAxisAlignment.center,
-      //                     children: [
+      //     SvgPicture.asset('assets/images/dark_theme/add_ext_nd_disabled_dark.svg',width: 154,height: 44,)
+      // // GlassContainer.clearGlass(
+      // //             width: 154,
+      // //              height: 48,
+      // //             //decoration: BoxDecoration(
+      // //               color: Color(0xff80808A).withOpacity(0.01),
+      // //               borderRadius: BorderRadius.circular(40),
+      // //                  borderColor:  Color(0xff4D4D4D).withOpacity(0.5),
+      // //               borderWidth: 2, 
+      // //             child: 
+      // //             Row(
+      // //                     mainAxisAlignment: MainAxisAlignment.center,
+      // //                     children: [
       
-      //                       SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color: Color(0xff4D4D4D).withOpacity(0.9)), // Color(0xFF00B400)),
-      //                     Padding(
-      //                       padding: const EdgeInsets.only(left:8.0),
-      //                       child: Text('Add Exit Node',style: TextStyle(color: Color(0xff4D4D4D).withOpacity(0.9)
-      //                       ,fontFamily: 'Poppins',fontWeight: FontWeight.w600,fontSize: 12),),
-      //                     )
+      // //                       SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color: Color(0xff4D4D4D).withOpacity(0.9)), // Color(0xFF00B400)),
+      // //                     Padding(
+      // //                       padding: const EdgeInsets.only(left:8.0),
+      // //                       child: Text('Add Exit Node',style: TextStyle(color: Color(0xff4D4D4D).withOpacity(0.9)
+      // //                       ,fontFamily: 'Poppins',fontWeight: FontWeight.w600,fontSize: 12),),
+      // //                     )
                         
-      //                     ],
-      //                   ),
-      //           )
+      // //                     ],
+      // //                   ),
+      // //           )
             
-            :
-                 // SvgPicture.asset('assets/images/dark_theme/add_node_dark.svg',height: 44,)
+      //       :
+      //            // SvgPicture.asset('assets/images/dark_theme/add_node_dark.svg',height: 44,)
       
-          Stack(
-        alignment: Alignment.center,
-        children: [
-          // Outer container for the gradient border
-          Container(
-            width: 154,
-            height: 44,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(44),
-              border: Border.all(color: Color(0xfff00DC00),width: 0.3),
-              gradient:
-               LinearGradient(
-                colors: [
-                  Color(0xFF464663), // Gradient start color
-                  Color(0xFF00DC00).withOpacity(0.6), // Gradient end color
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-          ),
-          // Inner container for the background and inner shadow
-          ClipRRect(
-            borderRadius: BorderRadius.circular(44),
-            child: Container(
-              width: 152, // Slightly smaller to account for the 1px border
-              height: 42,
-              decoration: BoxDecoration(
-                color: Colors.transparent, //(0xFF3A4962).withOpacity(0.4), // Background color with 40% opacity
-                borderRadius: BorderRadius.circular(44),
-                boxShadow: [
-                  BoxShadow(
-                    //color: Color(0xFF0094FF), // Inner shadow color
-                    offset: Offset(-3, 3), // X: -2, Y: 2
-                    blurRadius: 14, // Blur: 12
-                    spreadRadius: -2, // Negative spread to create inner shadow
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color: Color(0xFF00DC00)),
-                  Padding(
-                    padding: const EdgeInsets.only(left:8.0),
-                    child: Text('Add Exit Node',style: TextStyle(color: Color(0xFF00DC00),
-                    fontFamily: 'Poppins',fontWeight: FontWeight.w600,fontSize: 12),),
-                  )
-                ],
-              ),
-            ),
-          ),
-        ],
-      )
-      : 
-              loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ?
-          SvgPicture.asset('assets/images/light_theme/add_ext_nd_disabled_white.svg',height: 44,width: 152,)
-          :         SvgPicture.asset('assets/images/light_theme/add_node_light.svg',height: 44,width: 152,)
-      // Container(
-      //         width: 152,
-      //          height: 44,
-      //         decoration: BoxDecoration(
-      //           borderRadius: BorderRadius.circular(23),
-      //           // border: Border.all(
-      //           //    color:Color(0xFF00B400),
-      //           //    //  selectedType == 'Beldex Official' && type == 'Beldex Official'
-      //           //   //         ? Color(0xFF00DC00)
-      //           //   //         : selectedType == 'Contributor exit node' && type == 'Contributor exit node'
-      //           //   //             ? Color(0xFF0094FF)
-      //           //   //             : Colors.transparent,
-      //           //   //Color(0xFF0094FF)
-                
-      //           // width: 1),
-      //           boxShadow: 
-      //            [
-      //                       BoxShadow(
-      //               color: Colors.white // Color(0xFF00B400).withOpacity(0.15) ,// Colors.black12,,
-                   
-      //             ),
-      //              BoxShadow(
-      //               color:Color(0xFF00B400).withOpacity(0.07) ,// Colors.black12,,
-      //               spreadRadius: -01.0,
-      //               blurRadius: 20.5,
-      //               offset: Offset(-3.0, 4.5),
-      //             )
-                          
-      //           ]
+      //     Stack(
+      //   alignment: Alignment.center,
+      //   children: [
+      //     // Outer container for the gradient border
+      //     Container(
+      //       width: 154,
+      //       height: 44,
+      //       decoration: BoxDecoration(
+      //         borderRadius: BorderRadius.circular(44),
+      //         border: Border.all(color: Color(0xfff00DC00),width: 0.3),
+      //         gradient:
+      //          LinearGradient(
+      //           colors: [
+      //             Color(0xFF464663), // Gradient start color
+      //             Color(0xFF00DC00).withOpacity(0.6), // Gradient end color
+      //           ],
+      //           begin: Alignment.topLeft,
+      //           end: Alignment.bottomRight,
       //         ),
-      //         child: 
-      //         Row(
-      //                 mainAxisAlignment: MainAxisAlignment.center,
-      //                 children: [
-      //                   SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color:loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? Color(0xff4D4D4D).withOpacity(0.3) : Color(0xFF00B400)),
-      //                 Padding(
-      //                   padding: const EdgeInsets.only(left:8.0),
-      //                   child: Text('Add Exit Node',style: TextStyle(color:loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? Color(0xff4D4D4D).withOpacity(0.3) : Color(0xFF00B400),
-      //                   fontFamily: 'Poppins',fontWeight: FontWeight.w600,fontSize: 12),),
-      //                 )
-                        
-      //                 ],
-      //               ),
       //       ),
-              ),
+      //     ),
+      //     // Inner container for the background and inner shadow
+      //     ClipRRect(
+      //       borderRadius: BorderRadius.circular(44),
+      //       child: Container(
+      //         width: 152, // Slightly smaller to account for the 1px border
+      //         height: 42,
+      //         decoration: BoxDecoration(
+      //           color: Colors.transparent, //(0xFF3A4962).withOpacity(0.4), // Background color with 40% opacity
+      //           borderRadius: BorderRadius.circular(44),
+      //           boxShadow: [
+      //             BoxShadow(
+      //               //color: Color(0xFF0094FF), // Inner shadow color
+      //               offset: Offset(-3, 3), // X: -2, Y: 2
+      //               blurRadius: 14, // Blur: 12
+      //               spreadRadius: -2, // Negative spread to create inner shadow
+      //             ),
+      //           ],
+      //         ),
+      //         child: Row(
+      //           mainAxisAlignment: MainAxisAlignment.center,
+      //           children: [
+      //             SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color: Color(0xFF00DC00)),
+      //             Padding(
+      //               padding: const EdgeInsets.only(left:8.0),
+      //               child: Text('Add Exit Node',style: TextStyle(color: Color(0xFF00DC00),
+      //               fontFamily: 'Poppins',fontWeight: FontWeight.w600,fontSize: 12),),
+      //             )
+      //           ],
+      //         ),
+      //       ),
+      //     ),
+      //   ],
+      // )
+      // : 
+      //         loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ?
+      //     SvgPicture.asset('assets/images/light_theme/add_ext_nd_disabled_white.svg',height: 44,width: 152,)
+      //     :         SvgPicture.asset('assets/images/light_theme/add_node_light.svg',height: 44,width: 152,)
+      // // Container(
+      // //         width: 152,
+      // //          height: 44,
+      // //         decoration: BoxDecoration(
+      // //           borderRadius: BorderRadius.circular(23),
+      // //           // border: Border.all(
+      // //           //    color:Color(0xFF00B400),
+      // //           //    //  selectedType == 'Beldex Official' && type == 'Beldex Official'
+      // //           //   //         ? Color(0xFF00DC00)
+      // //           //   //         : selectedType == 'Contributor exit node' && type == 'Contributor exit node'
+      // //           //   //             ? Color(0xFF0094FF)
+      // //           //   //             : Colors.transparent,
+      // //           //   //Color(0xFF0094FF)
+                
+      // //           // width: 1),
+      // //           boxShadow: 
+      // //            [
+      // //                       BoxShadow(
+      // //               color: Colors.white // Color(0xFF00B400).withOpacity(0.15) ,// Colors.black12,,
+                   
+      // //             ),
+      // //              BoxShadow(
+      // //               color:Color(0xFF00B400).withOpacity(0.07) ,// Colors.black12,,
+      // //               spreadRadius: -01.0,
+      // //               blurRadius: 20.5,
+      // //               offset: Offset(-3.0, 4.5),
+      // //             )
+                          
+      // //           ]
+      // //         ),
+      // //         child: 
+      // //         Row(
+      // //                 mainAxisAlignment: MainAxisAlignment.center,
+      // //                 children: [
+      // //                   SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color:loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? Color(0xff4D4D4D).withOpacity(0.3) : Color(0xFF00B400)),
+      // //                 Padding(
+      // //                   padding: const EdgeInsets.only(left:8.0),
+      // //                   child: Text('Add Exit Node',style: TextStyle(color:loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? Color(0xff4D4D4D).withOpacity(0.3) : Color(0xFF00B400),
+      // //                   fontFamily: 'Poppins',fontWeight: FontWeight.w600,fontSize: 12),),
+      // //                 )
+                        
+      // //                 ],
+      // //               ),
+      // //       ),
+      //         ),
           
+    
+    Visibility(
+                  visible:true, //loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED,
+                  child: GestureDetector(
+                    onTap:loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? null :  ()=>  showCustomDialog(context,appModel),
+                    child: appModel.darkTheme ?
+                    
+                    Container(
+                      //height: 60,
+                      // constraints: BoxConstraints(),
+                      decoration: BoxDecoration(
+                        color:loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? appModel.darkTheme ? Colors.transparent : Color(0xff222222) : Color(0xffFFFFFF),
+                        // gradient:!introProvider.showButton ? null : LinearGradient(colors: [
+                        //   Color(0xff1A1A1A),
+                        //   Color(0xff1A1A1A),
+                        //   Color(0xff333333),
+                          
+                          
+                        // ]),
+                        // border: !introProvider.showButton ? Border.all(color:Color(0xff444444) ) : GradientBoxBorder(gradient: 
+                        // LinearGradient(
+                        //    begin: Alignment.topLeft,
+                        //    end: Alignment.bottomRight,
+                        //   colors: [
+                        //    Color(0xff464663),
+                        //    Color(0xff00DC00)
+                        // ]))
+                        border:loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? GradientBoxBorder(gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                           end: Alignment.bottomRight,
+                          colors:[
+                           Color(0xff444444),
+                           Color(0xff444444),
+                           Color(0xff8D8D8D)
+                        ] )) : null
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 12,horizontal: 20),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                            SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color:loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? Color(0xff737373) : Color(0xff0B0B0B)),
+                            SizedBox(width: 5,),
+                            Text('Add Exit Node',style: TextStyle(color: loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? Color(0xff737373) : Color(0xff0B0B0B),fontFamily: 'Poppins',fontWeight: FontWeight.w600),)
+                        ],
+                      ),
+                    ):
+                    Container(
+                    //height: 60,
+                    // constraints: BoxConstraints(),
+                    decoration: BoxDecoration(
+                      color:loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? Color(0xffFFFFFF) :
+                       Color(0xff0B0B0B),
+                      // gradient:!introProvider.showButton ? null :
+                      //  LinearGradient(colors: [
+                      //   Color(0xffFFFFFF),
+                      //   Color(0xffFFFFFF),
+                      //   Color(0xffF0F0F0),
+                        
+                        
+                      // ]),
+                      border:  Border.all(color:loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? Color(0xffACACAC) : Color(0xff44444A) ) 
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 12,horizontal: 20),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                          SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color:loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? Color(0xffACACAC) : Color(0xff00DC00)),
+                          SizedBox(width: 5,),
+                          Text('Add Exit Node',style: TextStyle(color:loaderVideoProvider.conStatus != ConnectionStatus.DISCONNECTED || !introProvider.showButton ? Color(0xffACACAC) : Color(0xffEBEBEB),fontFamily: 'Poppins',fontWeight: FontWeight.w600),)
+                      ],
+                    ),
+                  ),
+                  ),
+                ),
+    
+    
+    
+    
       Expanded(child: SlideTransition(
         position: _offsetAnimation,
         child: NodeTabScreen()))
@@ -410,7 +503,7 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
       padding: EdgeInsets.symmetric(horizontal: 5,vertical: 5),
       decoration: BoxDecoration(
         color:appModel.darkTheme ? Colors.white.withOpacity(0.05) : Color(0xffBEBEBE).withOpacity(0.4),
-        borderRadius: BorderRadius.circular(22),
+       // borderRadius: BorderRadius.circular(22),
         border: Border.all(color:appModel.darkTheme ? const Color(0xff3A496266).withOpacity(0.2) : Colors.transparent),
       ),
       child: 
@@ -514,47 +607,20 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
         //         ),
         // )
         // :
-        appModel.darkTheme ?
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            // Outer container
-            Container(
-              height: 42,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(44),
-                border: Border.all(
-                  color: selectedType == 'Beldex Official' && type == 'Beldex Official'
-                      ? Color(0xFF00DC00)
-                      : selectedType == 'Contributor exit node' && type == 'Contributor exit node'
-                          ? Color(0xFF0094FF)
-                          : Colors.transparent,
-                  width: 0.4,
-                ),
-                gradient: LinearGradient(
-                  colors: [
-                    Color(0xFF464663),
-                    selectedType == 'Beldex Official' && type == 'Beldex Official'
-                        ? Color(0xFF00DC00).withOpacity(0.6)
-                        : selectedType == 'Contributor exit node' && type == 'Contributor exit node'
-                            ? Color(0xFF0094FF).withOpacity(0.6)
-                            : Colors.transparent,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
-            // Inner container
-            ClipRRect(
-              borderRadius: BorderRadius.circular(44),
-              child: Container(
+
+appModel.darkTheme ?
+
+        Container(
                 height: 40,
                 width: double.infinity,
                 margin: EdgeInsets.symmetric(horizontal: 1),
                 decoration: BoxDecoration(
-                  color: Color(0xff464663).withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(44),
+                  color: Color(0xff444444).withOpacity(0.4),
+                  border:isSelected ? GradientBoxBorder(gradient: LinearGradient(colors: [
+                    Color(0xff444444),
+                    Color(0xff8D8D8D)
+                  ])): null,
+                  //borderRadius: BorderRadius.circular(44),
                   boxShadow: [
                     BoxShadow(
                       offset: Offset(-3, 3),
@@ -571,11 +637,14 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
                       child: Text(
                         type == 'Contributor exit node' ? ' Contributor Nodes' : 'Beldex Nodes',
                         style: TextStyle(
-                          color: selectedType == 'Contributor exit node' && type == 'Contributor exit node'
-                              ? Color(0xFF0094FF)
-                              : selectedType == 'Beldex Official' && type == 'Beldex Official'
-                                  ? Color(0xFF00DC00)
-                                  : Colors.white,
+                          color: 
+                          // selectedType == 'Contributor exit node' && type == 'Contributor exit node'
+                          //     ? Color(0xFF0094FF)
+                          //     : selectedType == 'Beldex Official' && type == 'Beldex Official'
+                                 isSelected
+                                  ?
+                                   Color(0xFF00DC00)
+                                  : Color(0xff8D8D8D),
                           fontFamily: 'Poppins',
                           fontSize: 11,
                           fontWeight: selectedType != type ? FontWeight.w100 : FontWeight.w600,
@@ -593,59 +662,116 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
                     )
                   ],
                 ),
-              ),
-            ),
-          ],
-        ):
+              )
+
+
+
+
+        // Stack(
+        //   alignment: Alignment.center,
+        //   children: [
+        //     // Outer container
+        //     Container(
+        //       height: 42,
+        //       decoration: BoxDecoration(
+        //         //borderRadius: BorderRadius.circular(44),
+        //         border: 
+        //         Border.all(
+        //           color: selectedType == 'Beldex Official' && type == 'Beldex Official'
+        //               ? Color(0xFF00DC00)
+        //               : selectedType == 'Contributor exit node' && type == 'Contributor exit node'
+        //                   ? Color(0xFF0094FF)
+        //                   : Colors.transparent,
+        //           width: 0.4,
+        //         ),
+        //         gradient: LinearGradient(
+        //           colors: [
+        //             Color(0xFF464663),
+        //             selectedType == 'Beldex Official' && type == 'Beldex Official'
+        //                 ? Color(0xFF00DC00).withOpacity(0.6)
+        //                 : selectedType == 'Contributor exit node' && type == 'Contributor exit node'
+        //                     ? Color(0xFF0094FF).withOpacity(0.6)
+        //                     : Colors.transparent,
+        //           ],
+        //           begin: Alignment.topLeft,
+        //           end: Alignment.bottomRight,
+        //         ),
+        //       ),
+        //     ),
+        //     // Inner container
+        //     ClipRRect(
+        //       //borderRadius: BorderRadius.circular(44),
+        //       child: Container(
+        //         height: 40,
+        //         width: double.infinity,
+        //         margin: EdgeInsets.symmetric(horizontal: 1),
+        //         decoration: BoxDecoration(
+        //           color: Color(0xff464663).withOpacity(0.5),
+        //           //borderRadius: BorderRadius.circular(44),
+        //           boxShadow: [
+        //             BoxShadow(
+        //               offset: Offset(-3, 3),
+        //               blurRadius: 14,
+        //               spreadRadius: -2,
+        //             ),
+        //           ],
+        //         ),
+        //         child: Row(
+        //           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        //           children: [
+        //             Padding(
+        //               padding: const EdgeInsets.only(left: 8.0),
+        //               child: Text(
+        //                 type == 'Contributor exit node' ? ' Contributor Nodes' : 'Beldex Nodes',
+        //                 style: TextStyle(
+        //                   color: selectedType == 'Contributor exit node' && type == 'Contributor exit node'
+        //                       ? Color(0xFF0094FF)
+        //                       : selectedType == 'Beldex Official' && type == 'Beldex Official'
+        //                           ? Color(0xFF00DC00)
+        //                           : Colors.white,
+        //                   fontFamily: 'Poppins',
+        //                   fontSize: 11,
+        //                   fontWeight: selectedType != type ? FontWeight.w100 : FontWeight.w600,
+        //                 ),
+        //               ),
+        //             ),
+        //             Text(
+        //               '$count',
+        //               style: TextStyle(
+        //                 color: Colors.grey,
+        //                 fontFamily: 'Poppins',
+        //                 fontSize: 11,
+        //                 fontWeight: selectedType != type ? FontWeight.w100 : FontWeight.w600,
+        //               ),
+        //             )
+        //           ],
+        //         ),
+        //       ),
+        //     ),
+        //   ],
+        // )
+        :
         Container(
-          height: 42,//width: 100,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color:  selectedType == 'Beldex Official' && type == 'Beldex Official'
-                      ? Color(0xFF00DC00)
-                      : selectedType == 'Contributor exit node' && type == 'Contributor exit node'
-                          ? Color(0xFF0094FF)
-                          : Colors.transparent,
-              //Color(0xFF0094FF)
-            
-            width: 0.3),
-            boxShadow: 
-             selectedType == 'Beldex Official' && type == 'Beldex Official'
-                      ? [
-                        BoxShadow(
-                color: Color(0xFF00DC00).withOpacity(0.3) ,// Colors.black12,,
-               
-              ),
-              BoxShadow(
-                color: Colors.white,
-                spreadRadius:3.0, // -01.0,
-                blurRadius:13.5, //23.5,
-                offset: Offset(-3.0, 4.5),
-              )
-                      ]
-                      : selectedType == 'Contributor exit node' && type == 'Contributor exit node'
-                          ? 
-            
-            [
-              BoxShadow(
-                color: Color(0xFF0094FF).withOpacity(0.3) ,// Colors.black12,,
-               
-              ),
-              BoxShadow(
-                color: Colors.white,
-                spreadRadius:3.0, //-01.0,
-                blurRadius:13.5, //23.5,
-                offset: Offset(-3.0, 4.5),
-              )
-            ]: [
-              BoxShadow(
-                color: Colors.white.withOpacity(0.6)
-              )
-            ]
-          ),
-          child: 
-          Row(
+                height: 40,
+                width: double.infinity,
+                margin: EdgeInsets.symmetric(horizontal: 1),
+                decoration: BoxDecoration(
+                  color: Color(0xffFFFFFF).withOpacity(0.4),
+                  border:Border.all(color:isSelected ? Color(0xffACACAC) : Colors.transparent ) ,
+                  // GradientBoxBorder(gradient: LinearGradient(colors: [
+                  //   Color(0xff444444),
+                  //   Color(0xff8D8D8D)
+                  // ])): null,
+                  //borderRadius: BorderRadius.circular(44),
+                  // boxShadow: [
+                  //   BoxShadow(
+                  //     offset: Offset(-3, 3),
+                  //     blurRadius: 14,
+                  //     spreadRadius: -2,
+                  //   ),
+                  // ],
+                ),
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Padding(
@@ -653,11 +779,14 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
                       child: Text(
                         type == 'Contributor exit node' ? ' Contributor Nodes' : 'Beldex Nodes',
                         style: TextStyle(
-                          color: selectedType == 'Contributor exit node' && type == 'Contributor exit node'
-                              ? Color(0xFF0094FF)
-                              : selectedType == 'Beldex Official' && type == 'Beldex Official'
-                                  ? Color(0xFF00DC00)
-                                  : Colors.black,
+                          color: 
+                          // selectedType == 'Contributor exit node' && type == 'Contributor exit node'
+                          //     ? Color(0xFF0094FF)
+                          //     : selectedType == 'Beldex Official' && type == 'Beldex Official'
+                                 isSelected
+                                  ?
+                                   Color(0xFF00DC00)
+                                  : Color(0xff8D8D8D),
                           fontFamily: 'Poppins',
                           fontSize: 11,
                           fontWeight: selectedType != type ? FontWeight.w100 : FontWeight.w600,
@@ -675,7 +804,172 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
                     )
                   ],
                 ),
-        ),
+              )
+
+
+        // appModel.darkTheme ?
+        // Stack(
+        //   alignment: Alignment.center,
+        //   children: [
+        //     // Outer container
+        //     Container(
+        //       height: 42,
+        //       decoration: BoxDecoration(
+        //         //borderRadius: BorderRadius.circular(44),
+        //         border: 
+        //         Border.all(
+        //           color: selectedType == 'Beldex Official' && type == 'Beldex Official'
+        //               ? Color(0xFF00DC00)
+        //               : selectedType == 'Contributor exit node' && type == 'Contributor exit node'
+        //                   ? Color(0xFF0094FF)
+        //                   : Colors.transparent,
+        //           width: 0.4,
+        //         ),
+        //         gradient: LinearGradient(
+        //           colors: [
+        //             Color(0xFF464663),
+        //             selectedType == 'Beldex Official' && type == 'Beldex Official'
+        //                 ? Color(0xFF00DC00).withOpacity(0.6)
+        //                 : selectedType == 'Contributor exit node' && type == 'Contributor exit node'
+        //                     ? Color(0xFF0094FF).withOpacity(0.6)
+        //                     : Colors.transparent,
+        //           ],
+        //           begin: Alignment.topLeft,
+        //           end: Alignment.bottomRight,
+        //         ),
+        //       ),
+        //     ),
+        //     // Inner container
+        //     ClipRRect(
+        //       borderRadius: BorderRadius.circular(44),
+        //       child: Container(
+        //         height: 40,
+        //         width: double.infinity,
+        //         margin: EdgeInsets.symmetric(horizontal: 1),
+        //         decoration: BoxDecoration(
+        //           color: Color(0xff464663).withOpacity(0.5),
+        //           borderRadius: BorderRadius.circular(44),
+        //           boxShadow: [
+        //             BoxShadow(
+        //               offset: Offset(-3, 3),
+        //               blurRadius: 14,
+        //               spreadRadius: -2,
+        //             ),
+        //           ],
+        //         ),
+        //         child: Row(
+        //           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        //           children: [
+        //             Padding(
+        //               padding: const EdgeInsets.only(left: 8.0),
+        //               child: Text(
+        //                 type == 'Contributor exit node' ? ' Contributor Nodes' : 'Beldex Nodes',
+        //                 style: TextStyle(
+        //                   color: selectedType == 'Contributor exit node' && type == 'Contributor exit node'
+        //                       ? Color(0xFF0094FF)
+        //                       : selectedType == 'Beldex Official' && type == 'Beldex Official'
+        //                           ? Color(0xFF00DC00)
+        //                           : Colors.white,
+        //                   fontFamily: 'Poppins',
+        //                   fontSize: 11,
+        //                   fontWeight: selectedType != type ? FontWeight.w100 : FontWeight.w600,
+        //                 ),
+        //               ),
+        //             ),
+        //             Text(
+        //               '$count',
+        //               style: TextStyle(
+        //                 color: Colors.grey,
+        //                 fontFamily: 'Poppins',
+        //                 fontSize: 11,
+        //                 fontWeight: selectedType != type ? FontWeight.w100 : FontWeight.w600,
+        //               ),
+        //             )
+        //           ],
+        //         ),
+        //       ),
+        //     ),
+        //   ],
+        // ):
+        // Container(
+        //   height: 42,//width: 100,
+        //   decoration: BoxDecoration(
+        //     borderRadius: BorderRadius.circular(20),
+        //     border: Border.all(
+        //       color:  selectedType == 'Beldex Official' && type == 'Beldex Official'
+        //               ? Color(0xFF00DC00)
+        //               : selectedType == 'Contributor exit node' && type == 'Contributor exit node'
+        //                   ? Color(0xFF0094FF)
+        //                   : Colors.transparent,
+        //       //Color(0xFF0094FF)
+            
+        //     width: 0.3),
+        //     boxShadow: 
+        //      selectedType == 'Beldex Official' && type == 'Beldex Official'
+        //               ? [
+        //                 BoxShadow(
+        //         color: Color(0xFF00DC00).withOpacity(0.3) ,// Colors.black12,,
+               
+        //       ),
+        //       BoxShadow(
+        //         color: Colors.white,
+        //         spreadRadius:3.0, // -01.0,
+        //         blurRadius:13.5, //23.5,
+        //         offset: Offset(-3.0, 4.5),
+        //       )
+        //               ]
+        //               : selectedType == 'Contributor exit node' && type == 'Contributor exit node'
+        //                   ? 
+            
+        //     [
+        //       BoxShadow(
+        //         color: Color(0xFF0094FF).withOpacity(0.3) ,// Colors.black12,,
+               
+        //       ),
+        //       BoxShadow(
+        //         color: Colors.white,
+        //         spreadRadius:3.0, //-01.0,
+        //         blurRadius:13.5, //23.5,
+        //         offset: Offset(-3.0, 4.5),
+        //       )
+        //     ]: [
+        //       BoxShadow(
+        //         color: Colors.white.withOpacity(0.6)
+        //       )
+        //     ]
+        //   ),
+        //   child: 
+        //   Row(
+        //           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        //           children: [
+        //             Padding(
+        //               padding: const EdgeInsets.only(left: 8.0),
+        //               child: Text(
+        //                 type == 'Contributor exit node' ? ' Contributor Nodes' : 'Beldex Nodes',
+        //                 style: TextStyle(
+        //                   color: selectedType == 'Contributor exit node' && type == 'Contributor exit node'
+        //                       ? Color(0xFF0094FF)
+        //                       : selectedType == 'Beldex Official' && type == 'Beldex Official'
+        //                           ? Color(0xFF00DC00)
+        //                           : Colors.black,
+        //                   fontFamily: 'Poppins',
+        //                   fontSize: 11,
+        //                   fontWeight: selectedType != type ? FontWeight.w100 : FontWeight.w600,
+        //                 ),
+        //               ),
+        //             ),
+        //             Text(
+        //               '$count',
+        //               style: TextStyle(
+        //                 color: Colors.grey,
+        //                 fontFamily: 'Poppins',
+        //                 fontSize: 11,
+        //                 fontWeight: selectedType != type ? FontWeight.w100 : FontWeight.w600,
+        //               ),
+        //             )
+        //           ],
+        //         ),
+        // ),
         
       ),
     );
@@ -754,142 +1048,174 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
                
                 if(isConnect && !isSelected && loaderVideoProvider.fromChangeNode){
                     
-                   showDialog(
-  context: context,
-  builder: (context) {
-    return GlassContainer.clearGlass(
-                                         color: appModel.darkTheme ? Colors.black.withOpacity(0.3) : Color(0x80FFFFFF), //s.white.withOpacity(0.8),
-                                         blur:appModel.darkTheme ? 10.0 : kBlur,
-                                         borderColor: Colors.transparent,
-      child: Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        backgroundColor: Colors.transparent,
-         insetPadding: EdgeInsets.symmetric(horizontal: 20),
-        child: GlassContainer.clearGlass(
-          width: MediaQuery.of(context).size.width,
-          height: 200,
-          color: appModel.darkTheme ?Colors.transparent// black.withOpacity(0.7)
-           :const Color(0xffF5F5F5).withOpacity(0.6),
-          //decoration: BoxDecoration(
-           // borderColor: Border.all(color: Color(0xffACACAC).withOpacity(0.5)),
-           // borderRadius: BorderRadius.circular(14),
-         // ),
-         borderColor:appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.5) : const Color(0xffACACAC),
-          borderWidth:appModel.darkTheme ? 1.0 : 0.3,
-          borderRadius: BorderRadius.circular(14.0),
-          boxShadow: appModel.darkTheme ? [] : [
-            
-                          BoxShadow(
-                  color: Color(0xFF00FFDD).withOpacity(0.3) ,// Colors.black12,,
-                 
-                ),
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.7),
-                  spreadRadius: -01.0,
-                  blurRadius: 23.5,
-                  offset: Offset(-3.0, 4.5),
-                )
-                        
-          ],
-          child: Padding(
-            padding: EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text("Switch Node", style: TextStyle(fontSize: 20,fontWeight: FontWeight.w600,fontFamily: 'Poppins')),
-                SizedBox(height: 10),
-                Text("Do you want to switch with the selected node?",textAlign: TextAlign.center,style: TextStyle(fontSize: 17,fontFamily: 'Poppins'),),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      // child: 
-                      // ElevatedButton(
-                      //   onPressed: () {
-                      //     Navigator.pop(context);
-                      //   },
-                        child: GestureDetector(
-                          onTap: ()=>Navigator.pop(context),
-                          child: GlassContainer.clearGlass(
-                                         color:appModel.darkTheme? Colors.grey.withOpacity(0.05) :Color(0xffACACAC).withOpacity(0.9), //s.white.withOpacity(0.8),
-                                         blur:appModel.darkTheme ? 10.0 : 20.0,
-                                         borderRadius: BorderRadius.circular(10),
-                                         gradient: LinearGradient(
-      colors: [
-        Color(0xFFD9DDDE),
-        Color(0xFFCCD3D6),
-      ],
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-    ),
-                                         borderColor: Colors.transparent,
-                            height: 45,
-                          //  decoration: BoxDecoration(color:Colors.grey.withOpacity(0.3)),
-                            child: Center(child: Text("Cancel",style: TextStyle(color: Color(0xffACACAC),fontSize: 15,fontWeight: FontWeight.w700),))),
-                        ),
-                     // ),
-                    ),SizedBox(width: 8,),
-                    Expanded(
-                      child: GestureDetector(
-                                        onTap: () {
-                      Navigator.pop(context); // close dialogbox
-                          nodeProvider.selectNode(node['id'],node['name'],country);
-                         swapRandomExitnode(loaderVideoProvider,logProvider,nodeProvider,vpnConnectionProvider);
-                      loaderVideoProvider.setIndex(0); // move to home screen
-                      introStateProvider.setIsCustomNode(false);
-                        loaderVideoProvider.resetChangeNode();
-                                        },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                           color:  Colors.grey.withOpacity(0.05),
-                                            borderRadius: BorderRadius.circular(10),
-                                            border: Border.all(color: Color(0xff00DC00),width: 0.4),
-                                            boxShadow: appModel.darkTheme ? [] : [
-                             BoxShadow(
-                    color: Color(0xff00B400).withOpacity(0.2) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
+//                    showDialog(
+//   context: context,
+//   barrierColor: appModel.darkTheme ? Colors.transparent : Color(0xffFFFFFF).withOpacity(0.8),
+//   useSafeArea: false,
+//   builder: (context) {
+//     return SafeArea(
+//       child: GlassContainer.clearGlass(
+//                 color: appModel.darkTheme ? Colors.black.withOpacity(0.3) : Colors.transparent, //Color(0x80FFFFFF).withOpacity(0.9), //s.white.withOpacity(0.8),
+//                 blur:appModel.darkTheme ? 10.0 : kBlur,
+//                 borderColor: Colors.transparent,
+//         child: Dialog(
+//           shape: RoundedRectangleBorder(
+//             borderRadius: BorderRadius.circular(16),
+//           ),
+//           backgroundColor: Colors.transparent,
+//            insetPadding: EdgeInsets.symmetric(horizontal: 20),
+//           child: GlassContainer.clearGlass(
+//             width: MediaQuery.of(context).size.width,
+//             height: 200,
+//             color: appModel.darkTheme ?Colors.transparent// black.withOpacity(0.7)
+//              :Colors.transparent, //const Color(0xffF5F5F5).withOpacity(0.6),
+//             //decoration: BoxDecoration(
+//              // borderColor: Border.all(color: Color(0xffACACAC).withOpacity(0.5)),
+//              // borderRadius: BorderRadius.circular(14),
+//            // ),
+//            borderColor:appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.5) : const Color(0xffACACAC),
+//             borderWidth:appModel.darkTheme ? 1.0 : 0.3,
+//             //borderRadius: BorderRadius.circular(14.0),
+//             // boxShadow: appModel.darkTheme ? [] : [
+              
+//             //                 BoxShadow(
+//             //         color: Color(0xFF00FFDD).withOpacity(0.3) ,// Colors.black12,,
                    
-                  ),
-                  BoxShadow(
-                    color: Colors.white,
-                    spreadRadius: -01.0,
-                    blurRadius: 23.5,
-                    offset: Offset(-3.0, 4.5),
-                  )
-                          //   appModel.darkTheme
-                          //       ? BoxShadow(
-                          //           color: Colors.black,
-                          //           offset: Offset(0, 1),
-                          //           //spreadRadius: 0,
-                          //           blurRadius: 2.0)
-                          //       : BoxShadow(
-                          //           color: Color(0xff6E6E6E),
-                          //           offset: Offset(0, 1),
-                          //           blurRadius: 2.0)
-                           ],
+//             //       ),
+//             //       BoxShadow(
+//             //         color: Colors.white.withOpacity(0.7),
+//             //         spreadRadius: -01.0,
+//             //         blurRadius: 23.5,
+//             //         offset: Offset(-3.0, 4.5),
+//             //       )
+                          
+//             // ],
+//             child: Padding(
+//               padding: EdgeInsets.all(20),
+//               child: Column(
+//                 mainAxisSize: MainAxisSize.min,
+//                 children: [
+//                   Text("Switch Node", style: TextStyle(fontSize: 19,fontWeight: FontWeight.w600,fontFamily: 'Poppins')),
+//                   SizedBox(height: 10),
+//                   Text("Do you want to switch with the selected node?",textAlign: TextAlign.center,style: TextStyle(fontSize: 17,fontFamily: 'Poppins'),),
+//                   SizedBox(height: 20),
+//                   Row(
+//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                     children: [
+//                       Expanded(
+//                         // child: 
+//                         // ElevatedButton(
+//                         //   onPressed: () {
+//                         //     Navigator.pop(context);
+//                         //   },
+//                           child: GestureDetector(
+//                             onTap: ()=>Navigator.pop(context),
+//                             child: GlassContainer.clearGlass(
+//                                            color:appModel.darkTheme? Colors.grey.withOpacity(0.05) :Color(0xffFFFFFF).withOpacity(0.7), //s.white.withOpacity(0.8),
+//                                            blur:appModel.darkTheme ? 10.0 : 20.0,
+//                                            borderColor: Colors.transparent,
+//                               height: 45,
+//                             //  decoration: BoxDecoration(color:Colors.grey.withOpacity(0.3)),
+//                               child: Center(child: Text("Cancel",style: TextStyle(color: Color(0xffACACAC),fontSize: 15,fontFamily: 'Poppins', fontWeight: FontWeight.w300),))),
+//                           ),
+//                        // ),
+//                       ),SizedBox(width: 8,),
+//                       Expanded(
+//                         child: GestureDetector(
+//                                           onTap: () {
+//                         Navigator.pop(context); // close dialogbox
+//                             nodeProvider.selectNode(node['id'],node['name'],country);
+                            
+//                            swapRandomExitnode(loaderVideoProvider,logProvider,nodeProvider,vpnConnectionProvider,ipProvider);
+//                         loaderVideoProvider.setIndex(0); // move to home screen
+//                         introStateProvider.setIsCustomNode(false);
+//                           loaderVideoProvider.resetChangeNode();
+//                                           },
+//                                           child: Container(
+//                                             decoration: BoxDecoration(
+//                                              color:appModel.darkTheme ? Color(0xffFFFFFF) :Color(0xffFFFFFF).withOpacity(0.7),
+//                                               //borderRadius: BorderRadius.circular(10),
+//                                               border: Border.all(color:appModel.darkTheme ? Colors.transparent :Color(0xff00DC00),width: 0.4),
+//                                             ),
+//                                             height: 45,
+//                                             //decoration: BoxDecoration(border: Border.all(color: Color(0xff00DC00))),
+//                                             child: Center(child: Text("OK",style: TextStyle(fontSize: 15, color: Colors.black , fontWeight: FontWeight.w700)))),
+//                                         ),
+//                       )
+//                     ],
+//                   )
+//                 ],
+//               ),
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   },
+// );
+
+
+
+
+
+showDialog(
+                                  useSafeArea: false,
+                                  // barrierColor: Colors.white.withOpacity(0.09),
+                                  context: context,
+                                  builder: (BuildContext dcontext) => SafeArea(
+                                    child: Padding(
+                                          padding: const EdgeInsets.all(0.0),
+                                          child: appModel.darkTheme ?
+                                          GlassContainer.clearGlass(
+                                           color: Colors.black.withOpacity(0.3), //s.white.withOpacity(0.8),
+                                           blur: 15.0,
+                                           borderColor: Colors.transparent,
+                                            child: Dialog(
+                                             // scrollable: true,
+                                             insetPadding: EdgeInsets.all(18),
+                                              backgroundColor: Colors.transparent,
+                                              //contentPadding: EdgeInsets.all(0.0),
+                                              child:SwitchNodeDialog(id: node['id'],nodeName:  node['name'],country:  country,) //containerWidget(dcontext,mHeight,appModel),
+                                            ),
+                                          )
+                                          :
+                                    
+                                           Container(
+                                           color: Color(0xffFFFFFF).withOpacity(0.9),//(0xffFFFFFF).withOpacity(0.9), //s.white.withOpacity(0.8),
+                                          // blur: 6.0,
+                                          //borderColor: Colors.transparent,
+                                            child: Dialog(
+                                             // scrollable: true,
+                                             insetPadding: EdgeInsets.all(18),
+                                              backgroundColor: Colors.transparent,
+                                              //contentPadding: EdgeInsets.all(0.0),
+                                              child:SwitchNodeDialog(id: node['id'],nodeName:  node['name'],country:  country,) //containerWidget(dcontext,mHeight,appModel),
+                                            ),
                                           ),
-                                        // color: Colors.grey.withOpacity(0.05), //s.white.withOpacity(0.8),
-                                         
-                                        //  blur: 10.0,
-                                        //  borderRadius: BorderRadius.circular(10),
-                                        //  borderColor: Color(0xff00DC00),
-                                          height: 45,
-                                          //decoration: BoxDecoration(border: Border.all(color: Color(0xff00DC00))),
-                                          child: Center(child: Text("OK",style: TextStyle(fontSize: 15,fontWeight: FontWeight.w700)))),
-                                      ),
-                    )
-                  ],
-                )
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  },
-);
+                                          //  GlassContainer.clearGlass(
+                                          //  color: Color(0x80FFFFFF),//(0xffFFFFFF).withOpacity(0.9), //s.white.withOpacity(0.8),
+                                          // // blur: 6.0,
+                                          // borderColor: Colors.transparent,
+                                          //   child: Dialog(
+                                          //    // scrollable: true,
+                                          //    insetPadding: EdgeInsets.all(18),
+                                          //     backgroundColor: Colors.transparent,
+                                          //     //contentPadding: EdgeInsets.all(0.0),
+                                          //     child:CustomAddExitNodeDialog() //containerWidget(dcontext,mHeight,appModel),
+                                          //   ),
+                                          // ),
+                                        ),
+                                  ));
+
+
+
+
+
+
+
+
+
+
 
                 //    nodeProvider.selectNode(node['id'],node['name'],country);
                 //    swapRandomExitnode(loaderVideoProvider,logProvider,nodeProvider,vpnConnectionProvider);
@@ -912,8 +1238,8 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
                 width: double.infinity,
                 margin: EdgeInsets.symmetric(vertical: 4),
                 //decoration: BoxDecoration(
-                    color: isSelected ? Color(0xff00DC00).withOpacity(0.03) : Colors.white.withOpacity(0.05), //: isSelected ? Color(0xff00DC00).withOpacity(0.03) :  Colors.white.withOpacity(0.05) ,
-                    borderRadius: BorderRadius.circular(15),
+                    color: isSelected ? Color(0xff00DC00).withOpacity(0.03) :appModel.darkTheme ? Color(0xff444444).withOpacity(0.2) : Color(0xffACACAC).withOpacity(0.1) , //: isSelected ? Color(0xff00DC00).withOpacity(0.03) :  Colors.white.withOpacity(0.05) ,
+                   // borderRadius: BorderRadius.circular(15),
                     borderColor: isSelected ? Color(0xff00DC00) : const Color(0xffACACAC).withOpacity(0.5),
                     borderWidth: 0.6,
                  // ),
@@ -989,3 +1315,133 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
   }
 }
 
+
+
+class SwitchNodeDialog extends StatefulWidget {
+  const SwitchNodeDialog({super.key, required this.id, required this.nodeName, required this.country});
+
+  final int id;
+  final String nodeName;
+  final String country;
+
+  @override
+  State<SwitchNodeDialog> createState() => _SwitchNodeDialogState();
+}
+
+class _SwitchNodeDialogState extends State<SwitchNodeDialog> {
+  @override
+  Widget build(BuildContext context) {
+    final appModel = Provider.of<AppModel>(context);
+    final nodeProvider = Provider.of<NodeProvider>(context);
+    final loaderVideoProvider = Provider.of<LoaderVideoProvider>(context);
+    final logProvider = Provider.of<LogProvider>(context);
+    final vpnConnectionProvider = Provider.of<VpnConnectionProvider>(context);
+    final ipProvider = Provider.of<IpProvider>(context);
+    final introStateProvider = Provider.of<IntroStateProvider>(context);
+    print('SWITCH NODE ${widget.id} ${widget.nodeName} ${widget.country}');
+    return GlassContainer.clearGlass(
+      padding:const EdgeInsets.all(15.0),
+        height:195,
+         width:double.infinity, //MediaQuery.of(dcontext).size.width * 2 / 3,
+       // decoration: BoxDecoration(
+          color: //appModel.darkTheme ?
+          Colors.transparent,// black.withOpacity(0.7)
+           //:const Color(0xffACACAC).withOpacity(0.2),
+          borderColor:appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.5) : const Color(0xffACACAC),
+          borderWidth:appModel.darkTheme ? 1.0 : 0.3,
+          boxShadow: appModel.darkTheme ? [] : [
+                        
+          ],
+          child: Column(
+             mainAxisSize: MainAxisSize.min,
+            children: [
+                Text("Switch Node", style: TextStyle(fontSize: 19,fontWeight: FontWeight.w600,fontFamily: 'Poppins')),
+                  SizedBox(height: 10),
+                  Text("Do you want to switch with the selected node?",textAlign: TextAlign.center,style: TextStyle(fontSize: 17,fontFamily: 'Poppins'),),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        // child: 
+                        // ElevatedButton(
+                        //   onPressed: () {
+                        //     Navigator.pop(context);
+                        //   },
+                          child: GestureDetector(
+                            onTap: ()=>Navigator.pop(context),
+                            child: GlassContainer.clearGlass(
+                                           color:appModel.darkTheme? Colors.grey.withOpacity(0.05) :Color(0xffFFFFFF).withOpacity(0.7), //s.white.withOpacity(0.8),
+                                           blur:appModel.darkTheme ? 10.0 : 20.0,
+                                           //borderRadius: BorderRadius.circular(10),
+      //                                      gradient: LinearGradient(
+      //   colors: [
+      //     Color(0xFFD9DDDE),
+      //     Color(0xFFCCD3D6),
+      //   ],
+      //   begin: Alignment.topCenter,
+      //   end: Alignment.bottomCenter,
+      // ),
+                                           borderColor: Colors.transparent,
+                              height: 45,
+                            //  decoration: BoxDecoration(color:Colors.grey.withOpacity(0.3)),
+                              child: Center(child: Text("Cancel",style: TextStyle(color: Color(0xffACACAC),fontSize: 15,fontFamily: 'Poppins', fontWeight: FontWeight.w300),))),
+                          ),
+                       // ),
+                      ),SizedBox(width: 8,),
+                      Expanded(
+                        child: GestureDetector(
+                                          onTap: () {
+                        Navigator.pop(context); // close dialogbox
+                            nodeProvider.selectNode(widget.id,widget.nodeName,widget.country);
+                            
+                           swapRandomExitnode(loaderVideoProvider,logProvider,nodeProvider,vpnConnectionProvider,ipProvider);
+                        loaderVideoProvider.setIndex(0); // move to home screen
+                        introStateProvider.setIsCustomNode(false);
+                          loaderVideoProvider.resetChangeNode();
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                             color:appModel.darkTheme ? Color(0xffFFFFFF) :Color(0xffFFFFFF).withOpacity(0.7),
+                                              //borderRadius: BorderRadius.circular(10),
+                                              border: Border.all(color:appModel.darkTheme ? Colors.transparent :Color(0xff00DC00),width: 0.4),
+                    //                           boxShadow: appModel.darkTheme ? [] : [
+                    //            BoxShadow(
+                    //   color: Color(0xff00B400).withOpacity(0.2) //Color(0xFF00DC00).withOpacity(0.2) ,// Colors.black12,,
+                     
+                    // ),
+                    // BoxShadow(
+                    //   color: Colors.white,
+                    //   spreadRadius: -01.0,
+                    //   blurRadius: 23.5,
+                    //   offset: Offset(-3.0, 4.5),
+                    // )
+                            //   appModel.darkTheme
+                            //       ? BoxShadow(
+                            //           color: Colors.black,
+                            //           offset: Offset(0, 1),
+                            //           //spreadRadius: 0,
+                            //           blurRadius: 2.0)
+                            //       : BoxShadow(
+                            //           color: Color(0xff6E6E6E),
+                            //           offset: Offset(0, 1),
+                            //           blurRadius: 2.0)
+                            // ],
+                                            ),
+                                          // color: Colors.grey.withOpacity(0.05), //s.white.withOpacity(0.8),
+                                           
+                                          //  blur: 10.0,
+                                          //  borderRadius: BorderRadius.circular(10),
+                                          //  borderColor: Color(0xff00DC00),
+                                            height: 45,
+                                            //decoration: BoxDecoration(border: Border.all(color: Color(0xff00DC00))),
+                                            child: Center(child: Text("OK",style: TextStyle(fontSize: 15, color: Colors.black , fontWeight: FontWeight.w700)))),
+                                        ),
+                      )
+                    ],
+                  )
+            ],
+          ),
+    );
+  }
+}

@@ -30,7 +30,7 @@ class OnboardingScreen extends StatelessWidget {
            Container(
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage('assets/images/dark_theme/Dark_background.png'), // <-- your image
+                        image: AssetImage('assets/images/dark_theme/BG_dark_theme.png'), // <-- your image
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -43,8 +43,10 @@ class OnboardingScreen extends StatelessWidget {
                           Spacer(),
                           Column(
                             children: [
-                              SvgPicture.asset('assets/images/belnet_logo_dark_theme.svg'),
-                              Text('1.4.0')
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: SvgPicture.asset('assets/images/dark_theme/belnet_onboard_logo.svg'),
+                              ),
                             ],
                           ),
                           Spacer(flex: 5,),
@@ -52,25 +54,34 @@ class OnboardingScreen extends StatelessWidget {
                            // height: MediaQuery.of(context).size.height*0.50/3,
                             width: double.infinity,
                             margin: EdgeInsets.symmetric(horizontal: 20),
+                            padding: EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
+                              //borderRadius: BorderRadius.circular(10),
                               border: Border.all(color: Color(0xffACACAC),width: 0.5)
                             ),
-                            child: SvgPicture.asset('assets/images/dark_theme/Fast & Secure dVPN.svg',height: 120,fit: BoxFit.cover,)
+                            child: Column(
+                              children: [
+                                Text('FAST & SECURE',style: TextStyle(fontFamily: 'Conthrax',fontSize: 28,fontWeight: FontWeight.w700),),
+                                Text('DVPN',style: TextStyle(fontFamily: 'Conthrax',color: Color(0xff8D8D8D), fontSize: 28,fontWeight: FontWeight.w700),),
+                              ],
+                            ), //SvgPicture.asset('assets/images/dark_theme/Fast & Secure dVPN.svg',height: 120,fit: BoxFit.cover,)
                           ),
                           SizedBox(height: MediaQuery.of(context).size.height*0.20/3),
                           //SizedBox(height: 15,),
                           GestureDetector(
                             onTap:()=> _goToHome(context),
-                            child: GlassContainer.clearGlass(
+                            child: Container(
                               height: 60,
                               width: double.infinity,
                               margin: EdgeInsets.symmetric(horizontal: 20),
                               padding: EdgeInsets.all(15),
-                               color: Color(0xff3A4962).withOpacity(0.01), //s.white.withOpacity(0.02),
-                              borderColor: Color(0xff00DC00),
-                              borderRadius:BorderRadius.circular(10),
-                                child: Center(child: Text('Next',style: TextStyle(color: Color(0xff00DC00),fontSize: 20,fontWeight: FontWeight.w700),)),
+                              decoration: BoxDecoration(
+                                color: Color(0xffFFFFFF), //s.white.withOpacity(0.02),
+                              //borderColor: Color(0xff00DC00),
+                              ),
+                              
+                              //borderRadius:BorderRadius.circular(10),
+                                child: Center(child: Text('Next',style: TextStyle(color: Color(0xff0B0B0B),fontSize: 20,fontWeight: FontWeight.w700),)),
                               ),
                           ),
                           SizedBox(height: 15)

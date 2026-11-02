@@ -4,6 +4,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_mobile/bottom_nav_bar.dart';
 import 'package:belnet_mobile/node_provider.dart';
 import 'package:belnet_mobile/src/app_list_provider.dart';
+import 'package:belnet_mobile/src/map/vpn_map_provider.dart';
 import 'package:belnet_mobile/src/model/exitnodeCategoryModel.dart' as exitNodeModel;
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/providers/auto_connect_provider.dart';
@@ -225,6 +226,16 @@ checkShowSpalsh()async{
         pr.ChangeNotifierProvider<AppSelectingProvider>(create: (_)=>AppSelectingProvider()),
         pr.ChangeNotifierProvider<AutoConnectProvider>(create: (_)=> AutoConnectProvider()..loadAutoConnect()),
         pr.ChangeNotifierProvider<TunnelHealthProvider>(create: (_)=> TunnelHealthProvider()),
+        // Interactive world map state; observes the providers above.
+        pr.ChangeNotifierProvider<VpnMapProvider>(
+          create: (ctx) => VpnMapProvider(
+            loader: pr.Provider.of<LoaderVideoProvider>(ctx, listen: false),
+            nodes: pr.Provider.of<NodeProvider>(ctx, listen: false),
+            ip: pr.Provider.of<IpProvider>(ctx, listen: false),
+            intro: pr.Provider.of<IntroStateProvider>(ctx, listen: false),
+            connectivity: pr.Provider.of<ConnectivityProvider>(ctx, listen: false),
+          ),
+        ),
       ],
       child: pr.Consumer<AppModel>(
         builder: (context, appModel, child) {

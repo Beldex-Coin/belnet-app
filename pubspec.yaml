@@ -106,6 +106,7 @@ flutter:
     - assets/images/dark_theme/
     - assets/images/light_theme/
     - assets/images/flags/
+    - assets/map/
     # - assets/images/Belnet_Text_White.png
 
   # An image asset can refer to one or more resolution-specific "variants", see

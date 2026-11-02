@@ -223,6 +223,33 @@ Map<String, Map<String, dynamic>> groupByCountryWithIcon(String type) {
     notifyListeners();
   }
  
+  /// Raw metadata (id, name, country, icon, lat, long, optional city, ...)
+  /// of an exit node from the downloaded/cached node list, matched by BNS
+  /// name first and by id second. Null when the list has no such node -
+  /// e.g. a user-added custom exit node or before the list has loaded.
+  Map<String, dynamic>? findNodeMetadata({int? id, String? name}) {
+    final wanted = name?.trim().toLowerCase() ?? '';
+    Map<String, dynamic>? byId;
+    for (final group in _nodeData) {
+      if (group is! Map) continue;
+      final nodes = group['node'];
+      if (nodes is! List) continue;
+      for (final node in nodes) {
+        if (node is! Map) continue;
+        final nodeName = node['name']?.toString().trim().toLowerCase() ?? '';
+        if (wanted.isNotEmpty && nodeName == wanted) {
+          return Map<String, dynamic>.from(node);
+        }
+        if (byId == null && id != null && node['id'] == id) {
+          byId = Map<String, dynamic>.from(node);
+        }
+      }
+    }
+    // Only trust an id match when no name was given: custom nodes reuse
+    // placeholder ids (e.g. 100) that may collide with listed nodes.
+    return wanted.isEmpty ? byId : null;
+  }
+
   int getNodeCount(String type) {
   final nodes = _nodeData.firstWhere(
     (item) => item['type'] == type,

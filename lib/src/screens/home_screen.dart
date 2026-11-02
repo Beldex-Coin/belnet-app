@@ -4,6 +4,9 @@ import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/country_code_list.dart';
 import 'package:belnet_mobile/node_provider.dart';
 import 'package:belnet_mobile/src/app_list_provider.dart';
+import 'package:belnet_mobile/src/map/vpn_connection_panel.dart';
+import 'package:belnet_mobile/src/map/vpn_map_provider.dart';
+import 'package:belnet_mobile/src/map/vpn_world_map.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/providers/chartData_controller.dart';
 import 'package:belnet_mobile/src/providers/introstate_provider.dart';
@@ -219,6 +222,8 @@ String capitalizeFirstLetter(String value) {
         final ipProvider = Provider.of<IpProvider>(context);
     final loaderProvider = Provider.of<LoaderVideoProvider>(context);
         final introProvider = Provider.of<IntroStateProvider>(context);
+    final mapProvider = Provider.of<VpnMapProvider>(context, listen: false);
+    final double powerSize = (mHeight * 0.14).clamp(92.0, 128.0);
     return Padding(
       padding: const EdgeInsets.only(bottom:20.0),
       child: Scaffold(
@@ -231,6 +236,10 @@ String capitalizeFirstLetter(String value) {
               child: Text('1.4.1',style: TextStyle(fontFamily: 'Poppins',color: appModel.darkTheme ? Colors.white : Color(0xff4D4D4D)),),
             ),
           leadingWidth: 100,
+          centerTitle: true,
+          title: appModel.darkTheme
+              ? SvgPicture.asset('assets/images/dark_theme/home_logo_dark_theme.svg', height: 26)
+              : SvgPicture.asset('assets/images/light_theme/home_logo_white_theme.svg', height: 26),
           actions: [
          GestureDetector(
           onTap: (){
@@ -253,216 +262,182 @@ String capitalizeFirstLetter(String value) {
           ],
           ),
          
-        body: SizedBox(
-          //height: MediaQuery.of(context).size.height*2.3/3,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        body: Column(
           children: [
-                           
-              Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 30.0),
-                    child:appModel.darkTheme ?  SvgPicture.asset('assets/images/dark_theme/home_logo_dark_theme.svg',height:40 //MediaQuery.of(context).size.height*0.20/3
-                    ) :  SvgPicture.asset('assets/images/light_theme/home_logo_white_theme.svg',height:40),
+            // Interactive world map: original location, exit server, route
+            // and live connection details.
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 2, 10, 0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: appModel.darkTheme
+                          ? const Color(0xff393A39)
+                          : const Color(0xffD0D4DA),
+                    ),
                   ),
-                  
-                  // GestureDetector(
-                  //   onTap:()=>toggleBelnet(context,appSelectingProvider,dns: '9.9.9.9',isCustomeExitNode: false),
-                  //   child: GlassContainer.clearGlass(
-                  //     height: 180,
-                  //   width: 180,
-                  //   shape: BoxShape.circle,
-                  //   borderColor: Colors.transparent,
-                  //   blur: 10,
-                  //   color: Colors.white.withOpacity(0.05),
-                      
-                  //     child:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED //|| BelnetLib.isConnected
-                  //      ? appModel.darkTheme ? SvgPicture.asset('assets/images/dark_theme/disconnect.svg') : SvgPicture.asset('assets/images/light_theme/disconnect.svg') : appModel.darkTheme ? SvgPicture.asset('assets/images/dark_theme/connect.svg') : SvgPicture.asset('assets/images/light_theme/connect.svg')),
-                  // ),
-                  // SizedBox(height: 20),
-                  !loaderProvider.isLoading ? GestureDetector(
-                    onTap:()=>toggleBelnet(context,appSelectingProvider,dns: '9.9.9.9',isCustomeExitNode: false),
-                    child: GlassContainer.clearGlass(
-                       height: MediaQuery.of(context).size.height*0.70/3, // 180,
-                    width:MediaQuery.of(context).size.height*0.70/3,// 180,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: VpnWorldMap(
+                      darkTheme: appModel.darkTheme,
+                      bottomInset: VpnConnectionPanel.collapsedHeight + 16,
+                      overlay: [
+                        Positioned(
+                          left: 10,
+                          top: 10,
+                          child: VpnMapStatusChip(dark: appModel.darkTheme),
+                        ),
+                        Positioned(
+                          left: 8,
+                          right: 8,
+                          bottom: 8,
+                          child: VpnConnectionPanel(dark: appModel.darkTheme),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                !loaderProvider.isLoading ? GestureDetector(
+                  onTap:()=>toggleBelnet(context,appSelectingProvider,dns: '9.9.9.9',isCustomeExitNode: false),
+                  child: GlassContainer.clearGlass(
+                    height: powerSize,
+                    width: powerSize,
                     shape: BoxShape.circle,
                     borderColor: Colors.transparent,
                     blur: 10,
                     color: Colors.white.withOpacity(0.05),
-                      
-                      child:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED //|| BelnetLib.isConnected
-                       ? 
-                       //appModel.darkTheme ? SvgPicture.asset('assets/images/dark_theme/disconnect.svg') : SvgPicture.asset('assets/images/light_theme/disconnect.svg') : appModel.darkTheme ? SvgPicture.asset('assets/images/dark_theme/connect.svg') : SvgPicture.asset('assets/images/light_theme/connect.svg')),
-                             appModel.darkTheme ?
-                              SvgPicture.asset('assets/images/dark_theme/disconnect.svg') 
-                              : SvgPicture.asset('assets/images/light_theme/disconnect 1.svg') 
-                              : appModel.darkTheme 
-                              ? SvgPicture.asset('assets/images/dark_theme/connect.svg',) 
-                              : SvgPicture.asset('assets/images/light_theme/connect_wht_theme.svg')
-                              ),
-                                 
-                  ):SizedBox.shrink(),
-                  SizedBox(height: 15),
-      
-      loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ? 
-    
-      GlassContainer.clearGlass(
-        height: 40,width: 100,
-        color:  appModel.darkTheme ?  Color(0xff333333).withOpacity(0.2): Color(0xffFFFFFF),
-        borderColor: Colors.transparent,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Connected', style: TextStyle(color: Color(0xff00DC00),fontFamily: 'Poppins',fontSize: 12,),),
-            SizedBox(width: 4,),
-            Container(
-              height: 7,width: 7,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0xff00DC00)
-              ),
-            )
-          ],
-        ),
-      )
-      
-      // Image.asset('assets/images/dark_theme/connected.png',height: 40,) :
-      //             Image.asset('assets/images/light_theme/connected_wht_theme.png',height: 40,) 
-      : SizedBox.shrink(),
-      
-      
-      
-
-
-      
-      //    !loaderProvider.isLoading ?
-      //             GestureDetector(
-      //               onTap:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED || !introProvider.showButton ? null :  ()=>  showCustomDialog(context,appModel),
-                  
-      //               child: 
-      //               appModel.darkTheme ? 
-      //  // loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ||
-      //    !introProvider.showButton ?
-      //         SvgPicture.asset('assets/images/dark_theme/add_exit_node_disabled.svg',height: 55,)
-      //       : loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? SvgPicture.asset('assets/images/dark_theme/add_exit_node_dark.svg',height: 55,) : SizedBox.shrink()
-      //      :  
-      //       !introProvider.showButton ? SvgPicture.asset('assets/images/light_theme/add_exit_node_wht_theme_disabled.svg',height: 55,) : loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? SvgPicture.asset('assets/images/light_theme/add_exit_node_wht theme.svg',height: 55,) : SizedBox.shrink(),
-
-      //             ):SizedBox.shrink(),  
-
-
-                Visibility(
-                  visible: loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED,
-                  child: GestureDetector(
-                    onTap:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED || !introProvider.showButton ? null :  ()=>  showCustomDialog(context,appModel),
-                    child: appModel.darkTheme ?
-                    
-                    Container(
-                      //height: 60,
-                      // constraints: BoxConstraints(),
-                      decoration: BoxDecoration(
-                        color:!introProvider.showButton ? Color(0xff222222) : Color(0xff333333),
-                        gradient:!introProvider.showButton ? null : LinearGradient(colors: [
-                          Color(0xff1A1A1A),
-                          Color(0xff1A1A1A),
-                          Color(0xff333333),
-                          
-                          
-                        ]),
-                        border: !introProvider.showButton ? appModel.darkTheme ? GradientBoxBorder(gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                           end: Alignment.bottomRight,
-                          colors:[
-                           Color(0xff444444),
-                           Color(0xff444444),
-                           Color(0xff8D8D8D)
-                        ] )) : Border.all(color:Color(0xff444444) ) : GradientBoxBorder(gradient: 
-                        LinearGradient(
-                           begin: Alignment.topLeft,
-                           end: Alignment.bottomRight,
-                          colors: [
-                           Color(0xff464663),
-                           Color(0xff00DC00)
-                        ]))
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: 16,horizontal: 26),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                            SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color: !introProvider.showButton ? Color(0xff737373) : Color(0xff00DC00)),
-                            SizedBox(width: 5,),
-                            Text('Add Exit Node',style: TextStyle(color: !introProvider.showButton ? Color(0xff737373) : Color(0xff00DC00),fontFamily: 'Poppins',fontWeight: FontWeight.w600),)
-                        ],
-                      ),
-                    ):
-                    Container(
-                    //height: 60,
-                    // constraints: BoxConstraints(),
-                    decoration: BoxDecoration(
-                      color://!introProvider.showButton ? Color(0xff222222) :
-                       Color(0xffFFFFFF),
-                      gradient:!introProvider.showButton ? null :
-                       LinearGradient(colors: [
-                        Color(0xffFFFFFF),
-                        Color(0xffFFFFFF),
-                        Color(0xffF0F0F0),
-                        
-                        
-                      ]),
-                      border:  Border.all(color:!introProvider.showButton ? Color(0xffACACAC) : Color(0xff00B400) ) 
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 16,horizontal: 26),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                          SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color: !introProvider.showButton ? Color(0xffACACAC) : Color(0xff00DC00)),
-                          SizedBox(width: 5,),
-                          Text('Add Exit Node',style: TextStyle(color: !introProvider.showButton ? Color(0xffACACAC) : Color(0xff00DC00),fontFamily: 'Poppins',fontWeight: FontWeight.w600),)
-                      ],
-                    ),
+                    child:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED
+                      ? appModel.darkTheme
+                        ? SvgPicture.asset('assets/images/dark_theme/disconnect.svg')
+                        : SvgPicture.asset('assets/images/light_theme/disconnect 1.svg')
+                      : appModel.darkTheme
+                        ? SvgPicture.asset('assets/images/dark_theme/connect.svg',)
+                        : SvgPicture.asset('assets/images/light_theme/connect_wht_theme.svg')
                   ),
+                ) : SizedBox(height: powerSize, width: powerSize),
+                const SizedBox(width: 16),
+                Flexible(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ?
+                      GlassContainer.clearGlass(
+                        height: 40,width: 100,
+                        color:  appModel.darkTheme ?  Color(0xff333333).withOpacity(0.2): Color(0xffFFFFFF),
+                        borderColor: Colors.transparent,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('Connected', style: TextStyle(color: Color(0xff00DC00),fontFamily: 'Poppins',fontSize: 12,),),
+                            SizedBox(width: 4,),
+                            Container(
+                              height: 7,width: 7,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xff00DC00)
+                              ),
+                            )
+                          ],
+                        ),
+                      ) : SizedBox.shrink(),
+                      Visibility(
+                        visible: loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED,
+                        child: GestureDetector(
+                          onTap:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED || !introProvider.showButton ? null :  ()=>  showCustomDialog(context,appModel),
+                          child: appModel.darkTheme ?
+                          Container(
+                            decoration: BoxDecoration(
+                              color:!introProvider.showButton ? Color(0xff222222) : Color(0xff333333),
+                              gradient:!introProvider.showButton ? null : LinearGradient(colors: [
+                                Color(0xff1A1A1A),
+                                Color(0xff1A1A1A),
+                                Color(0xff333333),
+                              ]),
+                              border: !introProvider.showButton ? GradientBoxBorder(gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                 end: Alignment.bottomRight,
+                                colors:[
+                                 Color(0xff444444),
+                                 Color(0xff444444),
+                                 Color(0xff8D8D8D)
+                              ] )) : GradientBoxBorder(gradient:
+                              LinearGradient(
+                                 begin: Alignment.topLeft,
+                                 end: Alignment.bottomRight,
+                                colors: [
+                                 Color(0xff464663),
+                                 Color(0xff00DC00)
+                              ]))
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 14,horizontal: 20),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                  SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color: !introProvider.showButton ? Color(0xff737373) : Color(0xff00DC00)),
+                                  SizedBox(width: 5,),
+                                  Text('Add Exit Node',style: TextStyle(color: !introProvider.showButton ? Color(0xff737373) : Color(0xff00DC00),fontFamily: 'Poppins',fontWeight: FontWeight.w600),)
+                              ],
+                            ),
+                          ):
+                          Container(
+                          decoration: BoxDecoration(
+                            color: Color(0xffFFFFFF),
+                            gradient:!introProvider.showButton ? null :
+                             LinearGradient(colors: [
+                              Color(0xffFFFFFF),
+                              Color(0xffFFFFFF),
+                              Color(0xffF0F0F0),
+                            ]),
+                            border:  Border.all(color:!introProvider.showButton ? Color(0xffACACAC) : Color(0xff00B400) )
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 14,horizontal: 20),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                                SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color: !introProvider.showButton ? Color(0xffACACAC) : Color(0xff00DC00)),
+                                SizedBox(width: 5,),
+                                Text('Add Exit Node',style: TextStyle(color: !introProvider.showButton ? Color(0xffACACAC) : Color(0xff00DC00),fontFamily: 'Poppins',fontWeight: FontWeight.w600),)
+                            ],
+                          ),
+                        ),
+                        ),
+                      ),
+                      loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED
+                        ? SizedBox(height: 10,):SizedBox.shrink(),
+                      loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED
+                       ? GestureDetector(
+                          onTap:(){
+                            widget.onNavigateToExitNodes(true);
+                          },
+                          child: GlassContainer.clearGlass(
+                            height: 44,width: 150,
+                              color: appModel.darkTheme ? Color(0xff0B0B0B).withOpacity(0.3) : Color(0xffACACAC).withOpacity(0.2),
+                              borderColor:appModel.darkTheme ? Color(0xffACACAC) : Color(0xff0B0B0B),
+                            child: Center(child: Text('Change Node',style: TextStyle(color:appModel.darkTheme ? Color(0xffEBEBEB) : Color(0xff0B0B0B),fontWeight: FontWeight.w600,fontSize: 15),)),
+                          ),
+                        ): SizedBox.shrink()
+                    ],
                   ),
                 ),
-
-
-
-
-
-
-                 loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED// && !introProvider.isCustomNode
-                  ? SizedBox(height: 15,):SizedBox.shrink(),
-                 loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED //&& !introProvider.isCustomNode 
-                 ? GestureDetector(
-                    onTap:(){
-                      widget.onNavigateToExitNodes(true);
-                    }, //(){
-                      
-                      // introProvider.setIsCustomNode(false);
-                      // swapRandomExitnode(loaderVideoProvider,logprovider,nodeProvider);
-                    //},
-                    child: GlassContainer.clearGlass(
-                      height: 50,width: 160,
-                      
-                      //decoration: BoxDecoration(
-                        color: appModel.darkTheme ? Color(0xff0B0B0B).withOpacity(0.3) : Color(0xffACACAC).withOpacity(0.2), //Colors.transparent,
-                        borderColor:appModel.darkTheme ? Color(0xffACACAC) : Color(0xff0B0B0B),
-                         //border: Border.all(color: Color(0xff00DC00)),
-                      //),
-                      child: Center(child: Text('Change Node',style: TextStyle(color:appModel.darkTheme ? Color(0xffEBEBEB) : Color(0xff0B0B0B),fontWeight: FontWeight.w600,fontSize: 16),)),
-                    ),
-                  ): SizedBox.shrink()
-                ],
-              ),
-          Column(
-                children: [
+              ],
+            ),
+            const SizedBox(height: 8),
                   SlideTransition(
                     position: _offsetAnimation,
                     child: GestureDetector(
                       onTap:loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? (){ widget.onNavigateToExitNodes(false);} : null,
                       child: GlassContainer.clearGlass(
-                          height: MediaQuery.of(context).size.height*0.37/3,
+                          height: (MediaQuery.of(context).size.height*0.30/3).clamp(72.0, 100.0),
                           width: double.infinity,
                           margin: EdgeInsets.symmetric(horizontal: 10,vertical: 5
                           ),
@@ -543,8 +518,10 @@ String capitalizeFirstLetter(String value) {
                         ),
                     ),
                   ),
-                  SizedBox(height: 5,),
-                   
+            SizedBox(height: 5,),
+            ValueListenableBuilder<VpnLiveStats>(
+              valueListenable: mapProvider.stats,
+              builder: (context, liveStats, _) =>
                     Padding(
                   padding: const EdgeInsets.symmetric(horizontal:8.0),
                   child: Row(
@@ -628,7 +605,7 @@ String capitalizeFirstLetter(String value) {
                                               SizedBox(height: 8),
                                               Text("Download", style: TextStyle(color: appModel.darkTheme ? Colors.white70 : Color(0xff4D4D4D), fontSize: 10)),
                                               SizedBox(height: 4),
-                                              Text(loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ? '${stringBeforeSpace(appModel.singleDownload)} ${stringAfterSpace(appModel.singleDownload)}' : '0.0 Mb/s', //displaySpeed(speedChartProvider.download), //"40.5 Mb/s",
+                                              Text(loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ? formatBitRate(liveStats.downloadBytesPerSec) : '0.0 Mb/s', // measured by the native status feed
                                                style: TextStyle(color:appModel.darkTheme ? Colors.white : Colors.black, fontSize: 10,// fontWeight: FontWeight.bold
                                                )),
                                                SizedBox(height: 2,)
@@ -679,7 +656,7 @@ String capitalizeFirstLetter(String value) {
                                               SizedBox(height: 8),
                                               Text("Upload", style: TextStyle(color: appModel.darkTheme ? Colors.white70 : Color(0xff4D4D4D), fontSize: 10)),
                                               SizedBox(height: 4),
-                                              Text(loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ? '${stringBeforeSpace(appModel.singleUpload)} ${stringAfterSpace(appModel.singleUpload)}': '0.0 Mb/s', //displaySpeed(speedChartProvider.upload), //"12.5 Mb/s", 
+                                              Text(loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ? formatBitRate(liveStats.uploadBytesPerSec) : '0.0 Mb/s', // measured by the native status feed
                                               style: TextStyle(color:appModel.darkTheme ? Colors.white : Colors.black, fontSize: 10, //fontWeight: FontWeight.bold
                                               )),
                                               SizedBox(height: 2,)
@@ -692,12 +669,10 @@ String capitalizeFirstLetter(String value) {
                     ],
                   ),
                 ),
-                ],
-              ),
-          ],  
-          ),
-        )
-        
+            ),
+          ],
+        ),
+
         //Center(child: Text('Working', style: TextStyle(fontSize: 24))),
       ),
     );

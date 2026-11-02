@@ -6,6 +6,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/node_provider.dart';
 import 'package:belnet_mobile/src/app_list_provider.dart';
+import 'package:belnet_mobile/src/map/vpn_map_provider.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/providers/chartData_controller.dart';
 import 'package:belnet_mobile/src/providers/introstate_provider.dart';
@@ -44,13 +45,17 @@ Future<void> toggleBelnet(BuildContext context,AppSelectingProvider appSelecting
   final appModel = Provider.of<AppModel>(context,listen:false);
   final introStateProvider = Provider.of<IntroStateProvider>(context,listen: false);
   final tunnelHealthProvider = Provider.of<TunnelHealthProvider>(context,listen: false);
+  // The world map follows the real tunnel state; it only needs to be told
+  // about the transitions ConnectionStatus cannot express (disconnecting,
+  // failed).
+  final vpnMapProvider = Provider.of<VpnMapProvider>(context,listen: false);
   resetStatevalue(introStateProvider);
 
  var isRunning = await BelnetLib.isRunning;
  if (isRunning || BelnetLib.isConnected == true) {
-    await _disconnectFromBelnet(vpnConnectionProvider,loaderVideoProvider,ipProvider,logProvider,introStateProvider,nodeProvider,tunnelHealthProvider);
+    await _disconnectFromBelnet(vpnConnectionProvider,loaderVideoProvider,ipProvider,logProvider,introStateProvider,nodeProvider,tunnelHealthProvider,vpnMapProvider: vpnMapProvider);
   } else {
-    await _connectToBelnet(context,appSelectingProvider,nodeProvider,loaderVideoProvider,vpnConnectionProvider,ipProvider,logProvider,appModel,introStateProvider,tunnelHealthProvider ,dns:dns,isCustomeExitNode: isCustomeExitNode);
+    await _connectToBelnet(context,appSelectingProvider,nodeProvider,loaderVideoProvider,vpnConnectionProvider,ipProvider,logProvider,appModel,introStateProvider,tunnelHealthProvider ,dns:dns,isCustomeExitNode: isCustomeExitNode,vpnMapProvider: vpnMapProvider);
   }
 
 
@@ -152,11 +157,23 @@ Future<void> _saveSettings(NodeProvider nodeProvider ,{String? exitvalue, String
 }
 
 
-Future<void> _disconnectFromBelnet(VpnConnectionProvider vpnConnectionProvider,LoaderVideoProvider loaderVideoProvider,IpProvider ipProvider,LogProvider logProvider,IntroStateProvider introProvider,NodeProvider nodeProvider,TunnelHealthProvider tunnelHealthProvider) async {
+Future<void> _disconnectFromBelnet(VpnConnectionProvider vpnConnectionProvider,LoaderVideoProvider loaderVideoProvider,IpProvider ipProvider,LogProvider logProvider,IntroStateProvider introProvider,NodeProvider nodeProvider,TunnelHealthProvider tunnelHealthProvider,{VpnMapProvider? vpnMapProvider}) async {
 
  // setState(() => loading = true);
-  bool disConnectValue = await BelnetLib.disconnectFromBelnet();
+  // Map: retract the route but keep the connection details until the
+  // tunnel is really down.
+  vpnMapProvider?.markDisconnecting();
+  bool disConnectValue;
+  try {
+    disConnectValue = await BelnetLib.disconnectFromBelnet();
+  } catch (e) {
+    vpnMapProvider?.cancelDisconnecting();
+    rethrow;
+  }
  // appModel.connecting_belnet = false;
+  if (!disConnectValue) {
+    vpnMapProvider?.cancelDisconnecting();
+  }
 
   if (disConnectValue) {
     vpnConnectionProvider.cancelDelay();
@@ -212,7 +229,7 @@ setForCustomExitnode(IpProvider ipProvider,IntroStateProvider introProvider,Node
 
 
 
-Future<void> _connectToBelnet(BuildContext context,AppSelectingProvider appSelectingProvider,NodeProvider nodeProvider,LoaderVideoProvider loaderVideoProvider,VpnConnectionProvider vpnConnectionProvider,IpProvider ipProvider,LogProvider logProvider,AppModel appModel,IntroStateProvider introStateProvider,TunnelHealthProvider tunnelHealthProvider ,{String? dns,bool isCustomeExitNode = false}) async {
+Future<void> _connectToBelnet(BuildContext context,AppSelectingProvider appSelectingProvider,NodeProvider nodeProvider,LoaderVideoProvider loaderVideoProvider,VpnConnectionProvider vpnConnectionProvider,IpProvider ipProvider,LogProvider logProvider,AppModel appModel,IntroStateProvider introStateProvider,TunnelHealthProvider tunnelHealthProvider ,{String? dns,bool isCustomeExitNode = false,VpnMapProvider? vpnMapProvider}) async {
 
  if(introStateProvider.grantPermissionCount == 1){ // To avoid multiple vpn permission dialogs 
 
@@ -234,6 +251,7 @@ print('THE LOADER VALUE IS 1----> ${loaderVideoProvider.isLoading}');
     // First-time bootstrap download failed on every seed URL: surface it
     // instead of failing silently (the old code swallowed this with print).
     logProvider.addLog('Bootstrap failed: ${e.message}');
+    vpnMapProvider?.markFailed('Network bootstrap could not be downloaded');
     introStateProvider.setGrantPermissionCount(1);
     loaderVideoProvider.setLoading(false);
     loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
@@ -298,6 +316,9 @@ print('CustomExitnode checking end');
       },
       onFailed: (reason) async {
          logProvider.addLog('Connection not ready in time ($reason)');
+        vpnMapProvider?.markFailed(isCustomeExitNode
+            ? 'Exit node is invalid or unreachable'
+            : 'Exit tunnel did not become ready');
         // Tear down and reset the UI unconditionally: the old code skipped
         // ALL cleanup when disconnectFromBelnet() returned false or threw,
         // leaving a spinning loader and (worse) a live tun interface - the
@@ -322,6 +343,14 @@ print('CustomExitnode checking end');
         }
       },
     );
+  } else {
+    // The native service refused to start: reset the UI instead of leaving
+    // it stuck on "Connecting".
+    logProvider.addLog('Belnet service could not be started');
+    vpnMapProvider?.markFailed('BelNet service could not be started');
+    loaderVideoProvider.setLoading(false);
+    loaderVideoProvider.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+    showMessage('Could not establish Belnet connection. Please try again.');
   }
 
 

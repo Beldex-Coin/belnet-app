@@ -1,11 +1,11 @@
 
-import 'dart:convert';
 import 'dart:math';
 
 //import 'package:beldex_browser/src/utils/screen_secure_provider.dart';
 import 'package:belnet_lib/belnet_lib.dart';
+import 'package:belnet_mobile/src/map/geo_location.dart';
+import 'package:belnet_mobile/src/map/ip_geolocation_service.dart';
 import 'package:belnet_mobile/src/providers/auto_connect_provider.dart';
-import 'package:http/http.dart' as http;
  
 import 'package:belnet_mobile/src/model/exitnodeCategoryModel.dart'
     as exitNodeModel;
@@ -14,28 +14,18 @@ class UserPosition {
   final double longitude;
   final String country;
 
+  /// Full IP-geolocation result (public IP, city, region, ISO code) when
+  /// the lookup succeeded; null for the (0, 0) "all APIs failed" fallback.
+  final GeoLocation? location;
+
   UserPosition({
     required this.latitude,
     required this.longitude,
     required this.country,
+    this.location,
   });
 }
 
-///  Get user location (lat, long, country) using free IP API
-// Future<UserPosition> getUserLocationFromAPI() async {
-//   final response = await http.get(Uri.parse('https://ipapi.co/json/'));
-
-//   if (response.statusCode == 200) {
-//     final data = jsonDecode(response.body);
-//     return UserPosition(
-//       latitude: (data['latitude'] ?? 0).toDouble(),
-//       longitude: (data['longitude'] ?? 0).toDouble(),
-//       country: data['country_name'] ?? 'Unknown',
-//     );
-//   } else {
-//     throw Exception('Failed to fetch location from IP');
-//   }
-// }
 /// In-memory geolocation cache: the user's coarse location changes rarely,
 /// while this lookup used to sit (serially) on the connect path every time.
 UserPosition? _cachedPosition;
@@ -43,6 +33,10 @@ DateTime? _cachedPositionAt;
 const _positionCacheTtl = Duration(hours: 24);
 const _geoTimeout = Duration(seconds: 3);
 
+/// Lookup currently in progress, shared by concurrent callers.
+Future<UserPosition>? _inFlightLookup;
+
+///  Get user location (lat, long, country) using free IP API
 Future<UserPosition> getUserLocationFromAPI() async {
   // Serve from cache when fresh - keeps the connect path off the network.
   final cachedAt = _cachedPositionAt;
@@ -51,54 +45,34 @@ Future<UserPosition> getUserLocationFromAPI() async {
       DateTime.now().difference(cachedAt) < _positionCacheTtl) {
     return _cachedPosition!;
   }
+  // Start-up asks for the location from several places at once (nearest
+  // node selection and the map's original-location lookup): share one
+  // request instead of geolocating the same IP twice.
+  return _inFlightLookup ??= _lookupUserPosition().whenComplete(() {
+    _inFlightLookup = null;
+  });
+}
 
-  try {
-    // Try ipwho.is
-    final res1 =
-        await http.get(Uri.parse('https://ipwho.is/')).timeout(_geoTimeout);
-    if (res1.statusCode == 200) {
-      final data = jsonDecode(res1.body);
-      return _cachePosition(UserPosition(
-        latitude: (data['latitude'] ?? 0).toDouble(),
-        longitude: (data['longitude'] ?? 0).toDouble(),
-        country: normalizeCountryName(data['country']),
-      ));
-    }
-  } catch (_) {}
-
-  try {
-    //  Fallback: ipapi.co (supports HTTPS on the free tier, unlike
-    //  ip-api.com which is HTTP-only - this is a privacy product, don't
-    //  leak geolocation lookups over plain HTTP).
-    final res2 = await http
-        .get(Uri.parse('https://ipapi.co/json/'))
-        .timeout(_geoTimeout);
-    if (res2.statusCode == 200) {
-      final data = jsonDecode(res2.body);
-      return _cachePosition(UserPosition(
-        latitude: (data['latitude'] ?? 0).toDouble(),
-        longitude: (data['longitude'] ?? 0).toDouble(),
-        country: normalizeCountryName(data['country_name']),
-      ));
-    }
-  } catch (_) {}
+Future<UserPosition> _lookupUserPosition() async {
+  // ipwho.is first, ipapi.co as fallback (HTTPS only - this is a privacy
+  // product, don't leak geolocation lookups over plain HTTP).
+  final geo = await IpGeolocationService.lookup()
+      .timeout(_geoTimeout * 3, onTimeout: () => null);
+  if (geo != null) {
+    final pos = UserPosition(
+      latitude: geo.latitude,
+      longitude: geo.longitude,
+      country: normalizeCountryName(geo.country),
+      location: geo,
+    );
+    // While the tunnel is up the lookup sees the EXIT's address, not the
+    // user's: return it to the caller but never cache it as "user position".
+    if (!BelnetLib.isConnected) _cachePosition(pos);
+    return pos;
+  }
 
   // Stale cache beats the (0,0) fallback.
   if (_cachedPosition != null) return _cachedPosition!;
-
-  // try {
-  //   // Try ipinfo.io
-  //   final res3 = await http.get(Uri.parse('https://ipinfo.io/json'));
-  //   if (res3.statusCode == 200) {
-  //     final data = jsonDecode(res3.body);
-  //     List<String> loc = (data['loc'] ?? "0,0").split(",");
-  //     return UserPosition(
-  //       latitude: double.tryParse(loc[0]) ?? 0,
-  //       longitude: double.tryParse(loc[1]) ?? 0,
-  //       country: data['country'] ?? "Unknown",
-  //     );
-  //   }
-  // } catch (_) {}
 
   // All failed → return a safe fallback, do NOT throw
   print("All IP-Location APIs failed, using default values.");

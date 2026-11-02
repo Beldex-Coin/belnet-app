@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:belnet_lib/belnet_lib.dart';
+import 'package:belnet_mobile/src/map/geo_location.dart';
+import 'package:belnet_mobile/src/map/ip_geolocation_service.dart';
+import 'package:belnet_mobile/src/widget/random_nearest_node_selection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,6 +28,39 @@ String? get customCountryCode => _customCountryCode;
 
 
 
+  static const _originalLocationKey = 'stored_original_location';
+
+  /// Approximate location of the user's REAL public IP. Detected while the
+  /// tunnel is down and persisted, so it is never replaced by the exit's
+  /// location after connecting.
+  GeoLocation? _originalLocation;
+  GeoLocation? get originalLocation => _originalLocation;
+
+  bool _originalLocationLoading = false;
+  bool get originalLocationLoading => _originalLocationLoading;
+
+  /// True when the last attempt to detect the original location failed
+  /// (offline, rate-limited, ...). Cleared by the next successful lookup.
+  bool _originalLocationFailed = false;
+  bool get originalLocationFailed => _originalLocationFailed;
+
+  /// IP-geolocation of the current exit IP (only while connected).
+  GeoLocation? _exitLocation;
+  GeoLocation? get exitLocation => _exitLocation;
+
+  /// Exit IP whose geolocation is already known / being fetched, so the
+  /// 60-second IP refresh does not re-geolocate an unchanged address.
+  String? _exitLookupIp;
+
+  /// True when [ip] is a real address rather than one of this provider's
+  /// placeholder values.
+  static bool isKnownIp(String? ip) =>
+      ip != null &&
+      ip.isNotEmpty &&
+      ip != '000.000.000.00' &&
+      ip != 'Fetching...' &&
+      (ip.contains('.') || ip.contains(':'));
+
   String get realIp => _realIp;
   String get currentIPv4 => _currentIPv4;
   String get currentIPv6 => _currentIPv6;
@@ -42,6 +78,8 @@ String? get customCountryCode => _customCountryCode;
  void resetIPS(){
   _currentIPv4 = '000.000.000.00';
   _currentIPv6 = '000.000.000.00';
+  _exitLocation = null;
+  _exitLookupIp = null;
   notifyListeners();
  }
 
@@ -64,7 +102,20 @@ String? get customCountryCode => _customCountryCode;
  /// Load stored IP from SharedPreferences
   Future<void> _loadStoredRealIp() async {
     final prefs = await SharedPreferences.getInstance();
-    _realIp = prefs.getString(_realIpKey) ?? 'Fetching...';
+    // Don't clobber a value fetchInitialIP() already obtained.
+    if (!isKnownIp(_realIp)) {
+      _realIp = prefs.getString(_realIpKey) ?? 'Fetching...';
+    }
+    if (_originalLocation == null) {
+      final stored = prefs.getString(_originalLocationKey);
+      if (stored != null && stored.isNotEmpty) {
+        try {
+          _originalLocation = GeoLocation.fromJson(jsonDecode(stored));
+        } catch (_) {
+          _originalLocation = null;
+        }
+      }
+    }
     notifyListeners();
   }
 
@@ -72,15 +123,22 @@ String? get customCountryCode => _customCountryCode;
     try {
       final isConnected = await BelnetLib.isRunning;
       if(isConnected){
-
+        // The tunnel is up: any lookup now would return the EXIT's address.
+        // Keep the persisted original IP/location untouched.
       }else{
-        final response = await http.get(Uri.parse('https://api.ipify.org'));
-      if (response.statusCode == 200) {
-        _realIp = response.body;
-        // Save to SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_realIpKey, _realIp);
-      } 
+        await _detectOriginalLocation();
+        if (!isKnownIp(_realIp) || _originalLocation?.ip == null) {
+          // Geolocation unavailable: still try the plain IP endpoint so
+          // the real IP is known for exit-IP comparisons.
+          final response = await http
+              .get(Uri.parse('https://api.ipify.org'))
+              .timeout(_fetchTimeout);
+          if (response.statusCode == 200 && isKnownIp(response.body.trim())) {
+            _realIp = response.body.trim();
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString(_realIpKey, _realIp);
+          }
+        }
       }
       
     } catch (e) {
@@ -89,9 +147,94 @@ String? get customCountryCode => _customCountryCode;
     notifyListeners();
   }
 
+  /// Detects the original (pre-VPN) public IP location if it is missing,
+  /// e.g. after the first launch happened offline. No-op while the tunnel
+  /// is running or a lookup is already in flight.
+  Future<void> ensureOriginalLocation() async {
+    if (_originalLocationLoading) return;
+    if (_originalLocation != null && !_originalLocationFailed) return;
+    try {
+      if (await BelnetLib.isRunning) return;
+    } catch (_) {
+      return;
+    }
+    await _detectOriginalLocation();
+    notifyListeners();
+  }
+
+  Future<void> _detectOriginalLocation() async {
+    if (_originalLocationLoading) return;
+    _originalLocationLoading = true;
+    notifyListeners();
+    try {
+      // Shared with nearest-node selection, which runs at the same moment
+      // on start-up: one network request serves both.
+      final pos = await getUserLocationFromAPI();
+      final geo = pos.location;
+      // Re-check: if the tunnel came up while we were waiting, the answer
+      // describes the exit, not the user.
+      final runningNow = await BelnetLib.isRunning;
+      if (geo != null && geo.hasCoordinates && !runningNow) {
+        _originalLocation = geo;
+        _originalLocationFailed = false;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_originalLocationKey, jsonEncode(geo.toJson()));
+        if (isKnownIp(geo.ip)) {
+          _realIp = geo.ip!;
+          await prefs.setString(_realIpKey, _realIp);
+        }
+      } else if (geo == null) {
+        _originalLocationFailed = true;
+      }
+    } catch (_) {
+      _originalLocationFailed = true;
+    } finally {
+      _originalLocationLoading = false;
+    }
+  }
+
 // Fetch IP
 
-  static const _fetchTimeout = Duration(seconds: 5);
+  // Requests made right after the tunnel comes up travel through a fresh
+  // onion path and are often slow; 5 s was too tight and left the exit IP
+  // (and therefore the exit country) unknown until the next 60 s refresh.
+  static const _fetchTimeout = Duration(seconds: 8);
+
+  /// Fast retries after connecting, until both the exit IP and its
+  /// geolocation are known; afterwards only the normal 60 s refresh runs.
+  static const _exitRetryDelays = [
+    Duration(seconds: 2),
+    Duration(seconds: 4),
+    Duration(seconds: 7),
+    Duration(seconds: 12),
+    Duration(seconds: 20),
+    Duration(seconds: 30),
+    Duration(seconds: 45),
+  ];
+  Timer? _exitRetryTimer;
+  int _exitRetryAttempt = 0;
+
+  bool get _exitDetailsKnown => isKnownIp(_currentIPv4) && _exitLocation != null;
+
+  void _scheduleExitRetry({bool reset = false}) {
+    if (reset) _exitRetryAttempt = 0;
+    _exitRetryTimer?.cancel();
+    _exitRetryTimer = null;
+    if (_timer == null) return; // monitoring stopped (disconnected)
+    if (_exitDetailsKnown || _exitRetryAttempt >= _exitRetryDelays.length) {
+      return;
+    }
+    _exitRetryTimer = Timer(_exitRetryDelays[_exitRetryAttempt++], () async {
+      _exitRetryTimer = null;
+      if (_timer == null) return;
+      if (!isKnownIp(_currentIPv4)) {
+        await fetchNewIPs();
+      } else if (_exitLocation == null) {
+        await checkCustomNodeCountry();
+      }
+      _scheduleExitRetry();
+    });
+  }
 
   Future<void> fetchNewIPs()async{
   try{
@@ -136,52 +279,32 @@ Future<void> refreshNow() => fetchNewIPs();
 
 
 Future<void> checkCustomNodeCountry()async{
-  // if(_currentIPv4.isNotEmpty){
-  //    final getIpDetails = await http.get(Uri.parse('http://ip-api.com/json/$_currentIPv4'));
-  //    if(getIpDetails.re)
-  // }
-
-
+  final ip = _currentIPv4;
+  if (!isKnownIp(ip)) return;
+  // The exit IP is refreshed every 60 s; only geolocate it when it changed.
+  if (_exitLookupIp == ip) return;
+  _exitLookupIp = ip;
   try {
-   if(_currentIPv4.isNotEmpty){
-    //  final response = await http.get(Uri.parse('http://ip-api.com/json/$_currentIPv4'));
-    final response = await http.get(Uri.parse('https://ipwho.is/$_currentIPv4'));
-
-
-
-if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    if (data['success'] == true) {
-        _customNodeCountry = data['country'];
-        _customCountryCode = data['country_code'];
-          final prefs = await SharedPreferences.getInstance();
-              await prefs.setString(_customCountryKey, _customNodeCountry!);
-               await prefs.setString(_customCountryCodeKey, _customCountryCode!);
-    print('Custom exitnode country name is $_customNodeCountry $customCountryCode');
-
-    } else {
-      print('API Error: ${data['message']}');
+    final geo = await IpGeolocationService.lookup(
+        ip: ip, timeout: _fetchTimeout);
+    if (_currentIPv4 != ip) return; // exit changed while we were waiting
+    if (geo == null) {
+      _exitLookupIp = null; // allow a retry on the next refresh
+      print('Failed to fetch IP info for exit IP');
+      return;
     }
-  } else {
-    print('Failed to fetch IP info: ${response.statusCode}');
-  }
-    // if (response.statusCode == 200) {
-    //   final data = json.decode(response.body);
-    //   if (data['status'] == 'success') {
-    //     _customNodeCountry = data['country'];
-    //     _customCountryCode = data['country_code'];
-    //     print('Custom exitnode country name is $_customNodeCountry $customCountryCode');
-    //     //return data['country']; // e.g., "India"
-    //   } else {
-    //     print("Error: ${data['message']}");
-    //   }
-    // } else {
-    //   print("HTTP error: ${response.statusCode}");
-    // }
-   }
-  notifyListeners();
-   
+    _exitLocation = geo;
+    if (geo.country != null) {
+      _customNodeCountry = geo.country;
+      _customCountryCode = geo.countryCode;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_customCountryKey, _customNodeCountry!);
+      await prefs.setString(_customCountryCodeKey, _customCountryCode ?? '');
+      print('Custom exitnode country name is $_customNodeCountry $customCountryCode');
+    }
+    notifyListeners();
   } catch (e) {
+    _exitLookupIp = null;
     print("Exception: $e");
   }
 
@@ -253,6 +376,9 @@ bool isIPv6(String ip) {
 
 void stopIPMonitoring(){
   _timer?.cancel();
+  _timer = null;
+  _exitRetryTimer?.cancel();
+  _exitRetryTimer = null;
   resetIPS();
 
 }
@@ -268,8 +394,11 @@ void startMonitoring()async{
     // exactly the path users want fast. Event-driven refreshes
     // (refreshNow after connect/swap/recovery) cover the cases that need
     // immediacy.
-    fetchNewIPs();
     _timer = Timer.periodic(Duration(seconds: 60), (_)=> fetchNewIPs());
+    // Retry quickly until the exit IP and its country are known, so the
+    // map and the exit-node card don't wait a full minute after a slow
+    // first request.
+    fetchNewIPs().whenComplete(() => _scheduleExitRetry(reset: true));
 
  }
 }
@@ -280,6 +409,7 @@ void startMonitoring()async{
 @override
 void dispose(){
   _timer?.cancel();
+  _exitRetryTimer?.cancel();
   super.dispose();
 }
 

@@ -6,6 +6,7 @@ import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/utils/show_toast.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart';
 import 'package:belnet_mobile/src/widget/aboutpage.dart';
+import 'package:belnet_mobile/src/widget/ad_blocker_setting_tile.dart';
 import 'package:belnet_mobile/src/widget/nointernet_connection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -178,6 +179,9 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
           //           )
           //              ],
                    padding: EdgeInsets.all(10),
+                   // Scrollable so the list still fits on short screens
+                   // now that it has one more (taller) row.
+                   child: SingleChildScrollView(
                    child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -363,9 +367,13 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
            SizedBox(height: 8,),
   
            SettingOptionContainer(onPressed:invitePeople,height: 50,name:'Invite People',icon:'assets/images/light_theme/Invite People.svg',isArrow: false,),
-           
-           
-           
+
+           SizedBox(height: 8,),
+
+           // DNS ad & tracker blocking for apps routed through BelNet.
+           const AdBlockerSettingTile(),
+
+
            SizedBox(
              height: 10,
            ),
@@ -404,6 +412,7 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
              //Navigator.push(context, MaterialPageRoute(builder: (context)=> AboutPage()))
            ,height: 50,name:'About',icon:'assets/images/light_theme/About.svg',isArrow: true,)
             ],
+                   ),
                    ),
               ),
          )

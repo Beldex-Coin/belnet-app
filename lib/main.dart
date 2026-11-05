@@ -7,6 +7,7 @@ import 'package:belnet_mobile/src/app_list_provider.dart';
 import 'package:belnet_mobile/src/map/vpn_map_provider.dart';
 import 'package:belnet_mobile/src/model/exitnodeCategoryModel.dart' as exitNodeModel;
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/providers/ad_blocker_provider.dart';
 import 'package:belnet_mobile/src/providers/auto_connect_provider.dart';
 import 'package:belnet_mobile/src/providers/internet_checking_provider.dart';
 import 'package:belnet_mobile/src/providers/introstate_provider.dart';
@@ -226,6 +227,8 @@ checkShowSpalsh()async{
         pr.ChangeNotifierProvider<AppSelectingProvider>(create: (_)=>AppSelectingProvider()),
         pr.ChangeNotifierProvider<AutoConnectProvider>(create: (_)=> AutoConnectProvider()..loadAutoConnect()),
         pr.ChangeNotifierProvider<TunnelHealthProvider>(create: (_)=> TunnelHealthProvider()),
+        // Ad Blocker setting (the filter itself runs natively in the VPN service).
+        pr.ChangeNotifierProvider<AdBlockerProvider>(create: (_)=> AdBlockerProvider()..load()),
         // Interactive world map state; observes the providers above.
         pr.ChangeNotifierProvider<VpnMapProvider>(
           create: (ctx) => VpnMapProvider(

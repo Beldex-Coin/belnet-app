@@ -51,6 +51,8 @@ import java.util.TimerTask;
 import java.util.stream.Stream;
 
 import io.beldex.belnet_lib.BelnetLibPlugin;
+import network.beldex.belnet.adblock.AdBlockEngine;
+import network.beldex.belnet.adblock.AdBlocker;
 
 // import io.beldex.belnet_lib.DisconActionReceiver;
 //import io.beldex.belnet_lib.R;
@@ -121,6 +123,12 @@ public class BelnetDaemon extends VpnService{
   ByteBuffer impl = null;
   ParcelFileDescriptor iface;
   int m_FD = -1;
+  /**
+   * Ad Blocker relay between the tun and the daemon for this connection, or
+   * null when the Ad Blocker was off at connect time (the daemon then owns
+   * the tun fd directly, exactly as before the feature existed).
+   */
+  private AdBlocker.TunSession mAdBlockSession;
   int m_UDPSocket = -1;
 
   private Timer mUpdateIsConnectedTimer;
@@ -476,7 +484,34 @@ public class BelnetDaemon extends VpnService{
         return false;
       }
 
-      m_FD = iface.detachFd();
+      // Ad Blocker: when it is on, the daemon gets one end of a packet socket
+      // pair instead of the tun, and a relay filters DNS between the tun and
+      // the daemon (see network.beldex.belnet.adblock). The daemon only
+      // reads/writes/polls/closes this fd, so nothing else changes: same
+      // config, same DNS server, same routes. When it is off - or the relay
+      // cannot start - the tun fd goes to the daemon exactly as before.
+      AdBlocker.TunSession adBlockSession = null;
+      try {
+        AdBlockEngine adBlock = AdBlocker.get(this);
+        if (adBlock.isEnabled()) {
+          adBlockSession = AdBlocker.startTunSession(this, iface);
+        }
+        if (adBlockSession != null) {
+          adBlock.onTunnelUp();
+        }
+      } catch (Throwable t) {
+        // The Ad Blocker must never stop BelNet from connecting.
+        Log.e(LOG_TAG, "Ad Blocker unavailable, connecting without it: " + t);
+        adBlockSession = null;
+      }
+      if (adBlockSession != null) {
+        mAdBlockSession = adBlockSession;
+        m_FD = adBlockSession.daemonFd;
+        Log.i(LOG_TAG, "Ad Blocker active: daemon fd " + m_FD + " relayed to the tun");
+      } else {
+        m_FD = iface.detachFd();
+        Log.i(LOG_TAG, "Ad Blocker off: daemon uses the tun directly");
+      }
 
       InjectVPNFD();
       new Thread(
@@ -535,7 +570,36 @@ public class BelnetDaemon extends VpnService{
     final int fd = m_FD;
     m_FD = -1;
     iface = null;
-    if (fd >= 0) {
+    final AdBlocker.TunSession adBlockSession = mAdBlockSession;
+    mAdBlockSession = null;
+    try {
+      AdBlocker.get(this).onTunnelDown();
+    } catch (Throwable t) {
+      Log.w(LOG_TAG, "Ad Blocker shutdown failed: " + t);
+    }
+    if (adBlockSession != null) {
+      // Relay mode: the relay owns the real tun. Closing it takes the VPN
+      // interface down; the daemon's socket end is closed by the daemon on a
+      // clean stop, or below if it never ran / hangs.
+      final boolean daemonWasRunning = running;
+      new Thread(
+          () -> {
+            // Like the plain-tun path: give a graceful stop up to 4 s.
+            for (int i = 0; daemonWasRunning && i < 16; i++) {
+              try {
+                if (!IsRunning())
+                  break;
+              } catch (Throwable t) {
+                break;
+              }
+              SystemClock.sleep(250);
+            }
+            adBlockSession.close();
+            adBlockSession.closeDaemonFdIfStillOpen();
+          },
+          "belnet-adblock-teardown")
+          .start();
+    } else if (fd >= 0) {
       if (!running) {
         // Daemon never ran: the fd is definitely leaked; close it right away.
         closeTunFd(fd);

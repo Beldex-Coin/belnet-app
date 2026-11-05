@@ -25,6 +25,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.PluginRegistry
 import network.beldex.belnet.BelnetDaemon
 import network.beldex.belnet.ConnectionTools
+import network.beldex.belnet.adblock.AdBlocker
 import kotlin.math.roundToLong
 
 
@@ -504,6 +505,23 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
            }
             "disconnectForNotification" -> {
                 result.success(boundService != null)
+            }
+            // ---- Ad Blocker -------------------------------------------------
+            // The engine is a process-wide singleton shared with BelnetDaemon,
+            // so these calls act on the running Ad Blocker relay directly: no
+            // reconnect is needed for a toggle to take effect.
+            "adBlockerSetEnabled" -> {
+                val ctx = activityBinding.activity.applicationContext
+                val enabled = call.argument<Boolean>("enabled") ?: false
+                AdBlocker.get(ctx).setEnabled(enabled)
+                result.success(AdBlocker.statusJson(ctx))
+            }
+            "adBlockerGetStatus" -> {
+                result.success(AdBlocker.statusJson(activityBinding.activity.applicationContext))
+            }
+            "adBlockerRefresh" -> {
+                AdBlocker.get(activityBinding.activity.applicationContext).refreshAsync(true)
+                result.success(true)
             }
             else -> result.notImplemented()
         }

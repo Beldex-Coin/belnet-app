@@ -307,4 +307,40 @@ static Future<dynamic> getInstalledApps()async{
     return result;
 }
 
+  // ---------------------------------------------------------------------
+  // Ad Blocker (DNS filtering inside the BelNet tunnel)
+  //
+  // The preference is stored natively (it must be readable when Android
+  // restarts the VPN service without the Flutter engine) and a change is
+  // applied to the running tunnel immediately.
+
+  /// Turns DNS ad blocking on or off and returns the resulting status.
+  static Future<Map<String, dynamic>> setAdBlockerEnabled(bool enabled) async {
+    final String? json = await _methodChannel
+        .invokeMethod<String>('adBlockerSetEnabled', {'enabled': enabled});
+    return _decodeAdBlockerStatus(json);
+  }
+
+  /// Current Ad Blocker status. Keys: enabled, filteringActive,
+  /// sessionActive, systemDnsProtected, domains, usingBuiltinList, updating,
+  /// listsUpdatedAt / lastCheckAt (epoch ms, 0 = never), lastError,
+  /// sessionQueries, sessionBlocked, privateDnsMode, privateDnsActive and
+  /// sources (per filter list: id, name, status, rules, fetchedAt, error).
+  static Future<Map<String, dynamic>> getAdBlockerStatus() async {
+    final String? json =
+        await _methodChannel.invokeMethod<String>('adBlockerGetStatus');
+    return _decodeAdBlockerStatus(json);
+  }
+
+  /// Checks every filter list for updates now (conditional download).
+  static Future<void> refreshAdBlockerLists() async {
+    await _methodChannel.invokeMethod('adBlockerRefresh');
+  }
+
+  static Map<String, dynamic> _decodeAdBlockerStatus(String? json) {
+    if (json == null || json.isEmpty) return <String, dynamic>{};
+    final decoded = jsonDecode(json);
+    return decoded is Map ? decoded.cast<String, dynamic>() : <String, dynamic>{};
+  }
+
 }

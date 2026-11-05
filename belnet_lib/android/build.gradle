@@ -49,6 +49,10 @@ dependencies {
 	// and BelnetDaemon (previously resolved only transitively).
 	implementation "androidx.core:core-ktx:1.13.1"
 	implementation "androidx.lifecycle:lifecycle-livedata:2.8.7"
+
+	// JVM unit tests for the Ad Blocker engine (network.beldex.belnet.adblock):
+	//   cd android && ./gradlew :belnet_lib:testDebugUnitTest
+	testImplementation "junit:junit:4.13.2"
 }
 
 task cleanNativeLibs(type: Delete) {

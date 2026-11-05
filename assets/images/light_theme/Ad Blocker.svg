@@ -1,0 +1,11 @@
+<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M11 1.8L18.6 4.6C18.9 4.7 19.1 5 19.1 5.3V10.3C19.1 15 15.9 18.8 11.3 20.2C11.1 20.27 10.9 20.27 10.7 20.2C6.1 18.8 2.9 15 2.9 10.3V5.3C2.9 5 3.1 4.7 3.4 4.6L11 1.8ZM11 3.5L4.5 5.9V10.3C4.5 14.1 7 17.3 11 18.6C15 17.3 17.5 14.1 17.5 10.3V5.9L11 3.5Z" fill="url(#paint0_linear_adblock)"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M14.9 10.8C14.9 12.95 13.15 14.7 11 14.7C8.85 14.7 7.1 12.95 7.1 10.8C7.1 8.65 8.85 6.9 11 6.9C13.15 6.9 14.9 8.65 14.9 10.8ZM13.6 10.8C13.6 9.36 12.44 8.2 11 8.2C9.56 8.2 8.4 9.36 8.4 10.8C8.4 12.24 9.56 13.4 11 13.4C12.44 13.4 13.6 12.24 13.6 10.8Z" fill="url(#paint0_linear_adblock)"/>
+<path d="M12.84 8.04L13.76 8.96L9.16 13.56L8.24 12.64L12.84 8.04Z" fill="url(#paint0_linear_adblock)"/>
+<defs>
+<linearGradient id="paint0_linear_adblock" x1="11" y1="1.8" x2="11" y2="20.25" gradientUnits="userSpaceOnUse">
+<stop stop-color="#8D8D8D"/>
+<stop offset="1" stop-color="#444444"/>
+</linearGradient>
+</defs>
+</svg>

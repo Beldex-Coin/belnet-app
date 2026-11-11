@@ -116,6 +116,20 @@ public class PacketFilterTest {
   }
 
   @Test
+  public void encryptedDnsToAdGuardIsRefusedButPlainDnsIsFiltered() {
+    byte[] dot = DnsTestUtil.ipv4("10.67.0.1", "94.140.14.14", 6, DnsTestUtil.tcp(50010, 853, 9, 0, 0x02));
+    assertEquals(PacketFilter.REPLY, filter.process(dot, dot.length));
+    byte[] dot6 = DnsTestUtil.ipv6("fd00::1", "2a10:50c0::ad1:ff", 6, DnsTestUtil.tcp(50011, 853, 1, 0, 0x02));
+    assertEquals(PacketFilter.DROP, filter.process(dot6, dot6.length));
+    byte[] plain = dnsPacket("94.140.14.14", "ads.example.com", false);
+    assertEquals(PacketFilter.REPLY, filter.process(plain, plain.length));
+    byte[] ok = dnsPacket("94.140.14.14", "www.example.com", false);
+    assertEquals(PacketFilter.FORWARD, filter.process(ok, ok.length));
+    byte[] cf = DnsTestUtil.ipv4("10.67.0.1", "1.1.1.3", 6, DnsTestUtil.tcp(50012, 443, 9, 0, 0x02));
+    assertEquals(PacketFilter.REPLY, filter.process(cf, cf.length));
+  }
+
+  @Test
   public void ipv6EncryptedDnsIsDroppedOtherIpv6Forwarded() {
     byte[] doh6 = DnsTestUtil.ipv6("fd00::1", "2620:fe::fe", 6, DnsTestUtil.tcp(50000, 443, 1, 0, 0x02));
     assertEquals(PacketFilter.DROP, filter.process(doh6, doh6.length));

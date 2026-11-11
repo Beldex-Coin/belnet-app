@@ -47,13 +47,15 @@ final class PacketFilter {
 
   /**
    * Addresses of public resolvers that browsers / Android upgrade to
-   * encrypted DNS automatically (Quad9, Cloudflare, Google), including the
-   * resolvers the app itself offers (9.9.9.9, 1.1.1.1, 8.8.8.8).
+   * encrypted DNS automatically (Quad9, Cloudflare, Google, AdGuard),
+   * including every resolver the app itself uses (9.9.9.9, 1.1.1.1,
+   * 8.8.8.8, 1.1.1.3 for Block malware, 94.140.14.14 for the Ad Blocker).
    */
   static final String[] ENCRYPTED_DNS_IPV4 = {
     "9.9.9.9", "149.112.112.112", "9.9.9.10", "149.112.112.10", "9.9.9.11", "149.112.112.11",
     "1.1.1.1", "1.0.0.1", "1.1.1.2", "1.0.0.2", "1.1.1.3", "1.0.0.3",
     "8.8.8.8", "8.8.4.4",
+    "94.140.14.14", "94.140.15.15", "94.140.14.15", "94.140.15.16",
   };
 
   static final String[] ENCRYPTED_DNS_IPV6 = {
@@ -62,6 +64,7 @@ final class PacketFilter {
     "2606:4700:4700::1112", "2606:4700:4700::1002",
     "2606:4700:4700::1113", "2606:4700:4700::1003",
     "2001:4860:4860::8888", "2001:4860:4860::8844",
+    "2a10:50c0::ad1:ff", "2a10:50c0::ad2:ff", "2a10:50c0::bad1:ff", "2a10:50c0::bad2:ff",
   };
 
   private final Decider decider;

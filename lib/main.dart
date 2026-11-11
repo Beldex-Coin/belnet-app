@@ -9,6 +9,7 @@ import 'package:belnet_mobile/src/model/exitnodeCategoryModel.dart' as exitNodeM
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/providers/ad_blocker_provider.dart';
 import 'package:belnet_mobile/src/providers/auto_connect_provider.dart';
+import 'package:belnet_mobile/src/providers/block_malware_provider.dart';
 import 'package:belnet_mobile/src/providers/internet_checking_provider.dart';
 import 'package:belnet_mobile/src/providers/introstate_provider.dart';
 import 'package:belnet_mobile/src/providers/ip_provider.dart';
@@ -45,6 +46,7 @@ void main() async {
   // Saved Ad Blocker preference, so Settings shows the right switch
   // position immediately after the app is reopened.
   await AdBlockerProvider.preload();
+  await BlockMalwareProvider.preload();
 
   // await LocalNotificationService.initializedNotification();
   await AwesomeNotifications()
@@ -231,8 +233,9 @@ checkShowSpalsh()async{
         pr.ChangeNotifierProvider<AutoConnectProvider>(create: (_)=> AutoConnectProvider()..loadAutoConnect()),
         pr.ChangeNotifierProvider<TunnelHealthProvider>(create: (_)=> TunnelHealthProvider()),
         // Ad Blocker setting (the filter itself runs natively in the VPN service).
-        pr.ChangeNotifierProvider<AdBlockerProvider>(create: (_)=> AdBlockerProvider()..load()),
         pr.ChangeNotifierProvider<AdBlockerProvider>(lazy: false, create: (_)=> AdBlockerProvider()..load()),
+        // Block malware setting (chooses the upstream DNS at connect time).
+        pr.ChangeNotifierProvider<BlockMalwareProvider>(lazy: false, create: (_)=> BlockMalwareProvider()),
         // Interactive world map state; observes the providers above.
         pr.ChangeNotifierProvider<VpnMapProvider>(
           create: (ctx) => VpnMapProvider(

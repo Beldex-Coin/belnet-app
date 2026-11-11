@@ -17,6 +17,7 @@ import 'package:belnet_mobile/src/providers/speed_chart_provider.dart';
 import 'package:belnet_mobile/src/providers/tunnel_health_provider.dart';
 import 'package:belnet_mobile/src/providers/vpn_provider.dart';
 import 'package:belnet_mobile/src/settings.dart';
+import 'package:belnet_mobile/src/utils/filter_dns.dart';
 import 'package:belnet_mobile/src/utils/show_toast.dart';
 import 'package:belnet_mobile/src/widget/modelResponse.dart';
 import 'package:belnet_mobile/src/widget/sampChart.dart';

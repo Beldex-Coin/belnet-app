@@ -89,6 +89,7 @@ public class AdBlockEngineTest {
   private static final String STEVEN = FilterSource.defaults().get(2).urls.get(0);
   private static final String HAGEZI = FilterSource.defaults().get(3).urls.get(0);
   private static final String HAGEZI_TIF = FilterSource.defaults().get(4).urls.get(0);
+  private static final String ADAWAY = FilterSource.defaults().get(5).urls.get(0);
   private static final int SOURCES = FilterSource.defaults().size();
 
   @Before
@@ -101,6 +102,12 @@ public class AdBlockEngineTest {
     http.bodies.put(STEVEN, bigList("sb", 12000, "hosts"));
     http.bodies.put(HAGEZI, "# Title: HaGeZi's Normal DNS Blocklist\n" + bigList("hz", 60000, "plain"));
     http.bodies.put(HAGEZI_TIF, "# Title: HaGeZi's TIF Mini\n" + bigList("tif", 55000, "plain"));
+    // AdAway style: 127.0.0.1 hosts with a localhost header; overlaps StevenBlack.
+    http.bodies.put(
+        ADAWAY,
+        "# AdAway default blocklist\n127.0.0.1  localhost\n::1  localhost\n"
+            + bigList("aw", 3000, "hosts").replace("0.0.0.0 ", "127.0.0.1 ")
+            + "127.0.0.1 sb5.adnet.example\n");
     engine = newEngine();
   }
 
@@ -160,11 +167,14 @@ public class AdBlockEngineTest {
     assertTrue(blocks("sb11999.adnet.example"));
     assertTrue(blocks("deep.sub.hz59999.adnet.example")); // wildcard-domains format
     assertTrue(blocks("tif123.adnet.example"));
+    assertTrue(blocks("aw2999.adnet.example"));
+    assertFalse(blocks("localhost.example"));
     assertTrue(blocks("shared.adnet.example"));
     assertFalse(blocks("ok.shared.adnet.example")); // exception across lists
     assertFalse(blocks("deb.beldex.io")); // essential allowlist
     assertEquals(
-        6000 + 6000 + 12000 + 60000 + 55000 + 1, engine.currentSet().blockedCount()); // de-duplicated
+        6000 + 6000 + 12000 + 60000 + 55000 + 3000 + 1,
+        engine.currentSet().blockedCount()); // de-duplicated (sb5 is in two lists)
     assertTrue(new File(dir, "compiled.bin").isFile());
 
     // A new process loads the compiled list from disk without the network.
@@ -328,7 +338,7 @@ public class AdBlockEngineTest {
       assertFalse(src.urls.isEmpty());
       for (String u : src.urls) assertTrue(u, u.startsWith("https://"));
     }
-    assertEquals(5, ids.size());
+    assertEquals(6, ids.size());
   }
 
   @Test

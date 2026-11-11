@@ -54,9 +54,23 @@ class _AdBlockerSettingTileState extends State<AdBlockerSettingTile> {
     super.dispose();
   }
 
+  /// The Ad Blocker can only be changed while BelNet is fully disconnected:
+  /// not while connected, connecting, or switching/disconnecting.
+  static bool _isLocked(LoaderVideoProvider loader) =>
+      loader.conStatus != ConnectionStatus.DISCONNECTED || loader.isLoading;
+
+  static const String _lockedMessage =
+      'Please disconnect BelNet to turn the Ad Blocker on or off.';
+
   Future<void> _onToggle(bool value) async {
     final adBlocker = context.read<AdBlockerProvider>();
     final loader = context.read<LoaderVideoProvider>();
+    // Checked again at tap time: the connection state may have changed
+    // since the last build.
+    if (_isLocked(loader)) {
+      showMessage(_lockedMessage);
+      return;
+    }
     final ok = await adBlocker.setEnabled(value);
     if (!ok) {
       showMessage('Could not change the Ad Blocker setting. Please try again.');
@@ -66,12 +80,6 @@ class _AdBlockerSettingTileState extends State<AdBlockerSettingTile> {
     if (value && s != null && s.privateDnsBypass) {
       showMessage(
           'Android Private DNS is set to a provider: turn it off in Android settings for ad blocking to work.');
-    } else if (value &&
-        loader.conStatus == ConnectionStatus.CONNECTED &&
-        s != null &&
-        !s.filteringActive) {
-      // The filter is attached to the tunnel when it is established.
-      showMessage('Ad Blocker is on. Reconnect BelNet to start blocking ads.');
     }
   }
 
@@ -88,6 +96,7 @@ class _AdBlockerSettingTileState extends State<AdBlockerSettingTile> {
     final loader = Provider.of<LoaderVideoProvider>(context);
     final adBlocker = Provider.of<AdBlockerProvider>(context);
     final connected = loader.conStatus == ConnectionStatus.CONNECTED;
+    final locked = _isLocked(loader);
     final status = _statusLine(adBlocker, connected);
 
     return LayoutBuilder(builder: (context, constraints) {
@@ -147,7 +156,11 @@ class _AdBlockerSettingTileState extends State<AdBlockerSettingTile> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Ad Blocker', style: _titleStyle),
-                        FlutterSwitch(
+                        // Dimmed while BelNet is connected or busy; a tap
+                        // then shows a message instead of changing it.
+                        Opacity(
+                          opacity: locked ? 0.45 : 1.0,
+                          child: FlutterSwitch(
                           width: 45.0,
                           height: 24.0,
                           toggleSize: 19.0,
@@ -167,9 +180,14 @@ class _AdBlockerSettingTileState extends State<AdBlockerSettingTile> {
                           activeColor: Colors.transparent,
                           inactiveColor: Colors.transparent,
                           onToggle: (value) {
+                            if (locked) {
+                              showMessage(_lockedMessage);
+                              return;
+                            }
                             if (adBlocker.busy) return;
                             _onToggle(value);
                           },
+                        ),
                         ),
                       ],
                     ),

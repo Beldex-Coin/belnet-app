@@ -51,8 +51,9 @@ void main() {
   const channel = MethodChannel('belnet_lib_method_channel');
   late _FakeNative native;
 
-  setUp(() {
+  setUp(() async {
     SharedPreferences.setMockInitialValues({});
+    await AdBlockerProvider.preload(); // reset the start-up value per test
     native = _FakeNative();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, native.handle);
@@ -61,6 +62,28 @@ void main() {
   tearDown(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, null);
+  });
+
+  test('saved ON preference is shown immediately after reopening the app',
+      () async {
+    SharedPreferences.setMockInitialValues({'ad_blocker_enabled': true});
+    native.enabled = true;
+    await AdBlockerProvider.preload();
+    final p = AdBlockerProvider();
+    // No await yet: this is what Settings draws on its first frame.
+    expect(p.enabled, isTrue);
+    final seen = <bool>[];
+    p.addListener(() => seen.add(p.enabled));
+    await p.load();
+    expect(p.enabled, isTrue);
+    expect(seen.where((v) => v == false), isEmpty,
+        reason: 'the switch must never flash OFF');
+  });
+
+  test('saved OFF preference starts OFF', () async {
+    SharedPreferences.setMockInitialValues({'ad_blocker_enabled': false});
+    await AdBlockerProvider.preload();
+    expect(AdBlockerProvider().enabled, isFalse);
   });
 
   test('load takes the native preference as the source of truth', () async {

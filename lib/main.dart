@@ -42,6 +42,9 @@ void main() async {
   //Load settings
   WidgetsFlutterBinding.ensureInitialized();
   await Settings.getInstance()!.initialize();
+  // Saved Ad Blocker preference, so Settings shows the right switch
+  // position immediately after the app is reopened.
+  await AdBlockerProvider.preload();
 
   // await LocalNotificationService.initializedNotification();
   await AwesomeNotifications()
@@ -229,6 +232,7 @@ checkShowSpalsh()async{
         pr.ChangeNotifierProvider<TunnelHealthProvider>(create: (_)=> TunnelHealthProvider()),
         // Ad Blocker setting (the filter itself runs natively in the VPN service).
         pr.ChangeNotifierProvider<AdBlockerProvider>(create: (_)=> AdBlockerProvider()..load()),
+        pr.ChangeNotifierProvider<AdBlockerProvider>(lazy: false, create: (_)=> AdBlockerProvider()..load()),
         // Interactive world map state; observes the providers above.
         pr.ChangeNotifierProvider<VpnMapProvider>(
           create: (ctx) => VpnMapProvider(

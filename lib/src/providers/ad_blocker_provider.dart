@@ -79,7 +79,24 @@ class AdBlockerStatus {
 class AdBlockerProvider extends ChangeNotifier {
   static const String _mirrorKey = 'ad_blocker_enabled';
 
-  bool _enabled = false;
+  /// Saved preference read by [preload] before the app starts, so the
+  /// switch is drawn in its real position on the very first frame instead
+  /// of starting OFF and flipping once an async read completes.
+  static bool _preloadedEnabled = false;
+
+  /// Reads the saved preference. Call (and await) in main() before runApp.
+  static Future<void> preload() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _preloadedEnabled = prefs.getBool(_mirrorKey) ?? false;
+    } catch (_) {
+      _preloadedEnabled = false;
+    }
+  }
+
+  AdBlockerProvider() : _enabled = _preloadedEnabled;
+
+  bool _enabled;
   bool get enabled => _enabled;
 
   AdBlockerStatus? _status;
@@ -92,12 +109,10 @@ class AdBlockerProvider extends ChangeNotifier {
 
   bool _disposed = false;
 
+  /// Syncs with the native state (the source of truth). The saved value is
+  /// already in place from [preload], so nothing flips on screen unless the
+  /// native state really differs.
   Future<void> load() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      _enabled = prefs.getBool(_mirrorKey) ?? false;
-      _notify();
-    } catch (_) {}
     await refreshStatus();
   }
 
@@ -112,8 +127,9 @@ class AdBlockerProvider extends ChangeNotifier {
     } on MissingPluginException catch (_) {}
   }
 
-  /// Applies the preference natively (live, no reconnect). Returns false
-  /// when the change could not be applied.
+  /// Saves the preference natively; it is used from the next connection.
+  /// The settings tile only allows this while BelNet is disconnected.
+  /// Returns false when the change could not be applied.
   Future<bool> setEnabled(bool value) async {
     if (_busy) return false;
     _busy = true;

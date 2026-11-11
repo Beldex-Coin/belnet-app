@@ -49,9 +49,8 @@ final class FilterSource {
    *       (ads, trackers, analytics), with exception rules.
    *   <li>OISD small - curated to block ads/trackers/malware "without
    *       breaking anything"; wildcard (subdomain-inclusive) format.
-   *   <li>StevenBlack unified hosts - adware + malware hosts. It already
-   *       merges the AdAway default list and Peter Lowe's ad server list,
-   *       so those are not added separately.
+   *   <li>StevenBlack unified hosts - adware + malware hosts (also merges
+   *       Peter Lowe's ad server list).
    *   <li>HaGeZi Multi NORMAL - large, actively maintained (rebuilt several
    *       times a day) ads/tracking/analytics/badware list, rated "low"
    *       breakage by its author. "Wildcard domains" format: each line
@@ -59,6 +58,8 @@ final class FilterSource {
    *   <li>HaGeZi Threat Intelligence Feeds (mini) - malware, phishing, scam
    *       and malicious-advertising domains, size-optimised for blockers on
    *       phones.
+   *   <li>AdAway default blocklist - mobile ad providers and analytics
+   *       (CC BY 3.0). Overlaps with StevenBlack; duplicates are merged.
    * </ul>
    *
    * HaGeZi lists are published through jsDelivr (the project's documented
@@ -96,7 +97,13 @@ final class FilterSource {
             50_000,
             Arrays.asList(
                 "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/tif.mini-onlydomains.txt",
-                "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/tif.mini-onlydomains.txt")));
+                "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/tif.mini-onlydomains.txt")),
+        new FilterSource(
+            "adaway",
+            "AdAway default blocklist",
+            2_000,
+            Arrays.asList(
+                "https://raw.githubusercontent.com/AdAway/adaway.github.io/master/hosts.txt")));
   }
 
   /** Defaults merged with {@code sources.conf} overrides from {@code dir}. */

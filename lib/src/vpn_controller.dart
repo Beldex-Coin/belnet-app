@@ -8,6 +8,8 @@ import 'package:belnet_mobile/node_provider.dart';
 import 'package:belnet_mobile/src/app_list_provider.dart';
 import 'package:belnet_mobile/src/map/vpn_map_provider.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
+import 'package:belnet_mobile/src/providers/ad_blocker_provider.dart';
+import 'package:belnet_mobile/src/providers/block_malware_provider.dart';
 import 'package:belnet_mobile/src/providers/chartData_controller.dart';
 import 'package:belnet_mobile/src/providers/introstate_provider.dart';
 import 'package:belnet_mobile/src/providers/ip_provider.dart';
@@ -50,13 +52,20 @@ Future<void> toggleBelnet(BuildContext context,AppSelectingProvider appSelecting
   // about the transitions ConnectionStatus cannot express (disconnecting,
   // failed).
   final vpnMapProvider = Provider.of<VpnMapProvider>(context,listen: false);
+  // DNS passed with the exit node: the Ad Blocker and Block malware toggles
+  // choose a filtering DNS, otherwise the requested/default DNS is used.
+  final upstreamDns = FilterDns.select(
+    adBlocker: Provider.of<AdBlockerProvider>(context,listen: false).enabled,
+    blockMalware: Provider.of<BlockMalwareProvider>(context,listen: false).enabled,
+    requested: dns,
+  );
   resetStatevalue(introStateProvider);
 
  var isRunning = await BelnetLib.isRunning;
  if (isRunning || BelnetLib.isConnected == true) {
     await _disconnectFromBelnet(vpnConnectionProvider,loaderVideoProvider,ipProvider,logProvider,introStateProvider,nodeProvider,tunnelHealthProvider,vpnMapProvider: vpnMapProvider);
   } else {
-    await _connectToBelnet(context,appSelectingProvider,nodeProvider,loaderVideoProvider,vpnConnectionProvider,ipProvider,logProvider,appModel,introStateProvider,tunnelHealthProvider ,dns:dns,isCustomeExitNode: isCustomeExitNode,vpnMapProvider: vpnMapProvider);
+    await _connectToBelnet(context,appSelectingProvider,nodeProvider,loaderVideoProvider,vpnConnectionProvider,ipProvider,logProvider,appModel,introStateProvider,tunnelHealthProvider ,dns:upstreamDns,isCustomeExitNode: isCustomeExitNode,vpnMapProvider: vpnMapProvider);
   }
 
 
@@ -288,6 +297,7 @@ print('THE LOADER VALUE IS 1----> ${loaderVideoProvider.isLoading}');
     upstreamDNS: dns != null && dns.isNotEmpty ? dns : "9.9.9.9",
   );
       logProvider.addLog('Exit node set by Daemon: Connecting to ${nodeProvider.selectedExitNodeName}');
+      logProvider.addLog('Upstream DNS: ${dns != null && dns.isNotEmpty ? dns : "9.9.9.9"}');
 
 print('CustomExitnode checking end');
   if (con) {

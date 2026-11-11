@@ -7,6 +7,7 @@ import 'package:belnet_mobile/src/utils/show_toast.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart';
 import 'package:belnet_mobile/src/widget/aboutpage.dart';
 import 'package:belnet_mobile/src/widget/ad_blocker_setting_tile.dart';
+import 'package:belnet_mobile/src/widget/block_malware_setting_tile.dart';
 import 'package:belnet_mobile/src/widget/nointernet_connection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -372,6 +373,11 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
 
            // DNS ad & tracker blocking for apps routed through BelNet.
            const AdBlockerSettingTile(),
+
+           SizedBox(height: 8,),
+
+           // Malware-filtering DNS for the next connection.
+           const BlockMalwareSettingTile(),
 
 
            SizedBox(

@@ -37,8 +37,10 @@ android {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            minifyEnabled false
-            shrinkResources false
+            // R8: shrink, optimize and obfuscate Java/Kotlin code (Play "DEX code
+            // optimization"). Keep rules for JNI / plugins are in proguard-rules.pro.
+            minifyEnabled = true
+            shrinkResources = true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             signingConfig = signingConfigs.debug
         }

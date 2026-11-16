@@ -30,7 +30,6 @@
 import 'package:belnet_mobile/src/utils/show_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class ConnectivityProvider with ChangeNotifier {
   bool _isConnected = true;

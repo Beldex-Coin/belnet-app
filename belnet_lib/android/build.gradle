@@ -65,14 +65,17 @@ def cleanNativeLibs = tasks.register("cleanNativeLibs", Delete) {
     delete "$projectDir/../external/belnet/build-android"
 }
 
+// Builds the native .so from external/belnet when that checkout exists.
+// When it doesn't (normal case: prebuilt .so files in src/main/jniLibs), the
+// task is skipped. It used to run the dummy command `true`, which Gradle 9
+// fails to start ("A problem occurred starting process 'command 'true''").
+def nativeBuildScript = file("$projectDir/../external/belnet/contrib/android.sh")
 def compileNativeLibs = tasks.register("compileNativeLibs", Exec) {
-    def f = new File("$projectDir/../external/belnet/contrib/android.sh")
-    if (f.exists()) {
+    onlyIf { nativeBuildScript.exists() }
+    if (nativeBuildScript.exists()) {
         workingDir "$projectDir/../external/belnet"
         environment "NDK", project.android.ndkDirectory
-        executable "./contrib/android.sh"
-    } else {
-        executable "true"
+        executable nativeBuildScript.absolutePath
     }
 }
 

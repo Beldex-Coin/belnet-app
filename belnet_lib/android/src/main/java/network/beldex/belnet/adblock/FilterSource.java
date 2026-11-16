@@ -60,7 +60,16 @@ final class FilterSource {
    *       phones.
    *   <li>AdAway default blocklist - mobile ad providers and analytics
    *       (CC BY 3.0). Overlaps with StevenBlack; duplicates are merged.
+   *   <li>HaGeZi Pop-Up Ads - annoying to malicious pop-up ad networks
+   *       (not part of Multi Normal).
+   *   <li>HaGeZi native tracker lists for Samsung, Xiaomi, OPPO/Realme and
+   *       Vivo phones - telemetry built into those devices. These are the
+   *       vendor lists AdGuard's public DNS service uses; Multi Normal only
+   *       contains part of them.
    * </ul>
+   *
+   * Native tracker lists are small, so their minimum rule count is low:
+   * the check only rejects empty or broken downloads.
    *
    * HaGeZi lists are published through jsDelivr (the project's documented
    * download links), with the GitHub raw file as the fallback mirror.
@@ -103,7 +112,42 @@ final class FilterSource {
             "AdAway default blocklist",
             2_000,
             Arrays.asList(
-                "https://raw.githubusercontent.com/AdAway/adaway.github.io/master/hosts.txt")));
+                "https://raw.githubusercontent.com/AdAway/adaway.github.io/master/hosts.txt")),
+        new FilterSource(
+            "hagezi_popupads",
+            "HaGeZi Pop-Up Ads",
+            20_000,
+            Arrays.asList(
+                "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/popupads-onlydomains.txt",
+                "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/popupads-onlydomains.txt")),
+        new FilterSource(
+            "hagezi_native_samsung",
+            "HaGeZi Samsung native tracker",
+            10,
+            Arrays.asList(
+                "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/native.samsung-onlydomains.txt",
+                "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/native.samsung-onlydomains.txt")),
+        new FilterSource(
+            "hagezi_native_xiaomi",
+            "HaGeZi Xiaomi native tracker",
+            10,
+            Arrays.asList(
+                "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/native.xiaomi-onlydomains.txt",
+                "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/native.xiaomi-onlydomains.txt")),
+        new FilterSource(
+            "hagezi_native_oppo_realme",
+            "HaGeZi OPPO & Realme native tracker",
+            10,
+            Arrays.asList(
+                "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/native.oppo-realme-onlydomains.txt",
+                "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/native.oppo-realme-onlydomains.txt")),
+        new FilterSource(
+            "hagezi_native_vivo",
+            "HaGeZi Vivo native tracker",
+            10,
+            Arrays.asList(
+                "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/native.vivo-onlydomains.txt",
+                "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/native.vivo-onlydomains.txt")));
   }
 
   /** Defaults merged with {@code sources.conf} overrides from {@code dir}. */

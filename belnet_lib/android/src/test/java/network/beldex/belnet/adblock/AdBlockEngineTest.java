@@ -91,6 +91,7 @@ public class AdBlockEngineTest {
   private static final String HAGEZI_TIF = FilterSource.defaults().get(4).urls.get(0);
   private static final String ADAWAY = FilterSource.defaults().get(5).urls.get(0);
   private static final int SOURCES = FilterSource.defaults().size();
+  private int extraDomains;
 
   @Before
   public void setUp() throws Exception {
@@ -108,6 +109,14 @@ public class AdBlockEngineTest {
         "# AdAway default blocklist\n127.0.0.1  localhost\n::1  localhost\n"
             + bigList("aw", 3000, "hosts").replace("0.0.0.0 ", "127.0.0.1 ")
             + "127.0.0.1 sb5.adnet.example\n");
+    // Every further default source gets a valid list of its own.
+    extraDomains = 0;
+    for (int i = 6; i < SOURCES; i++) {
+      FilterSource src = FilterSource.defaults().get(i);
+      int n = Math.max(src.minRules, 50) + 5;
+      http.bodies.put(src.urls.get(0), "# " + src.name + "\n" + bigList("x" + i + "n", n, "plain"));
+      extraDomains += n;
+    }
     engine = newEngine();
   }
 
@@ -173,8 +182,10 @@ public class AdBlockEngineTest {
     assertFalse(blocks("ok.shared.adnet.example")); // exception across lists
     assertFalse(blocks("deb.beldex.io")); // essential allowlist
     assertEquals(
-        6000 + 6000 + 12000 + 60000 + 55000 + 3000 + 1,
+        6000 + 6000 + 12000 + 60000 + 55000 + 3000 + 1 + extraDomains,
         engine.currentSet().blockedCount()); // de-duplicated (sb5 is in two lists)
+    assertTrue(blocks("x6n7.adnet.example")); // Pop-Up Ads
+    assertTrue(blocks("track.x" + (SOURCES - 1) + "n3.adnet.example")); // last native list
     assertTrue(new File(dir, "compiled.bin").isFile());
 
     // A new process loads the compiled list from disk without the network.
@@ -334,11 +345,11 @@ public class AdBlockEngineTest {
     for (FilterSource src : FilterSource.defaults()) {
       assertTrue(src.id, FilterSource.isSafeId(src.id));
       assertTrue("duplicate id " + src.id, ids.add(src.id));
-      assertTrue(src.minRules >= 1000);
+      assertTrue(src.minRules >= 10);
       assertFalse(src.urls.isEmpty());
       for (String u : src.urls) assertTrue(u, u.startsWith("https://"));
     }
-    assertEquals(6, ids.size());
+    assertEquals(11, ids.size());
   }
 
   @Test

@@ -1,62 +1,37 @@
 plugins {
     id "com.android.application"
-    id "kotlin-android"
+    // "kotlin-android" removed: AGP 9 compiles Kotlin itself (built-in Kotlin).
+    // The Flutter Gradle Plugin must be applied after the Android plugin.
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-def localProperties = new Properties()
-def localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localPropertiesFile.withReader("UTF-8") { reader ->
-        localProperties.load(reader)
-    }
-}
-
-def flutterRoot = localProperties.getProperty("flutter.sdk")
-if (flutterRoot == null) {
-    throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
-}
-
-def flutterVersionCode = localProperties.getProperty("flutter.versionCode") ?: "1"
-def flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "1.0"
-
 android {
-    namespace "io.beldex.belnet"
-    compileSdkVersion 36
-    ndkVersion '28.1.13356709'
+    namespace = "io.beldex.belnet"
+    compileSdk = 36
+    ndkVersion = flutter.ndkVersion   // 28.2.13676358 on Flutter 3.50
 
     sourceSets {
         main.java.srcDirs += "src/main/kotlin"
     }
 
-    lintOptions {
-        disable "Instantiatable", "InvalidPackage"
+    // lintOptions {} was removed in AGP 9; lint {} replaces it.
+    lint {
+        disable.addAll(["Instantiatable", "InvalidPackage"])
     }
 
     defaultConfig {
-        applicationId "io.beldex.belnet"
-        minSdk 24
-        targetSdk 36
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
-        //manifestPlaceholders = [applicationName: "android.app.Application"]
+        applicationId = "io.beldex.belnet"
+        minSdk = 24
+        targetSdk = 36
+        // Read from pubspec.yaml (version: x.y.z+code) by the Flutter plugin.
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
-
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
-    // Enforce Java 17 with JVM toolchain
-    // kotlin {
-    //     jvmToolchain {
-    //         languageVersion.set(JavaLanguageVersion.of(17))
-    //     }
-    // }
 
     buildTypes {
         release {
@@ -65,21 +40,23 @@ android {
             minifyEnabled false
             shrinkResources false
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
-            signingConfig signingConfigs.debug
+            signingConfig = signingConfigs.debug
         }
     }
 }
 
+// Replaces android { kotlinOptions { jvmTarget = "17" } }, which fails with KGP 2.2+.
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
+}
+
 flutter {
-    source "../.."
+    source = "../.."
 }
 
 dependencies {
-    // implementation project(':belnet_lib') // Include belnet_lib module
-    // implementation "org.jetbrains.kotlin:kotlin-stdlib:2.0.20" // Updated to support Java 17
-    // implementation "com.airbnb.android:lottie:6.4.0"
-    // implementation "androidx.constraintlayout:constraintlayout:2.1.4"
-    // Uncomment if needed:
-    // implementation "androidx.core:core-splashscreen:1.0.1"
-    // implementation "com.google.android.play:core:2.1.0"
+    // enableEdgeToEdge() for MainActivity (needs compileSdk 35+).
+    implementation "androidx.activity:activity-ktx:1.10.1"
 }

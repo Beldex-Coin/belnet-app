@@ -1,16 +1,16 @@
 package io.beldex.belnet
-import android.content.Context
-import android.content.Intent
-import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.embedding.android.FlutterActivity
-import io.flutter.plugins.GeneratedPluginRegistrant
-import android.os.Build
+
 import android.os.Bundle
-import androidx.core.view.WindowCompat
+import androidx.activity.enableEdgeToEdge
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-
-class MainActivity: FlutterActivity() {
-    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        GeneratedPluginRegistrant.registerWith(flutterEngine) // add this line
-      }
+// FlutterFragmentActivity is a ComponentActivity, so it can call AndroidX
+// enableEdgeToEdge(). That gives edge-to-edge on Android 14 and older too,
+// which clears Play's "Edge-to-edge may not display for all users" warning.
+// Plugins are registered automatically (GeneratedPluginRegistrant).
+class MainActivity : FlutterFragmentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+    }
 }

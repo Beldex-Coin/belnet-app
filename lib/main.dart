@@ -102,13 +102,12 @@ class _BelnetAppState extends State<BelnetApp>  with WidgetsBindingObserver{
   @override
   void initState() {
     super.initState();
-    //SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    // Draw behind the status and navigation bars on every Android version.
+    // Android 15+ (targetSdk 35+) forces this anyway. Don't pass statusBarColor /
+    // systemNavigationBarColor: they call Window.setStatusBarColor and
+    // setNavigationBarColor, which Play flags as deprecated edge-to-edge APIs.
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     WidgetsBinding.instance.addObserver(this);
-
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      systemNavigationBarColor: Colors.transparent,
-    ));
     checkShowSpalsh();
    // getRandomExitData();
     _initAppTheme();

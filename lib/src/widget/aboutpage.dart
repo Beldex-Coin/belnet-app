@@ -1,4 +1,4 @@
-import 'package:clipboard/clipboard.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
@@ -417,7 +417,7 @@ class _MyWidgetState extends State<AboutPage> with SingleTickerProviderStateMixi
                                  TextSpan(
                                     text: """outreach@beldex.io""",
                                     recognizer: TapGestureRecognizer()..onTap = (() {
-                                       FlutterClipboard.copy("outreach@beldex.io")
+                                       Clipboard.setData(ClipboardData(text: "outreach@beldex.io"))
                                   .then((value) => ScaffoldMessenger.of(context)
                                       .showSnackBar(SnackBar(
                                           backgroundColor: appModel.darkTheme

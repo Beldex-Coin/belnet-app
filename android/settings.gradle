@@ -20,8 +20,11 @@ pluginManagement {
 
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.2"
-    id "com.android.application" version "8.5.1" apply false
-    id "org.jetbrains.kotlin.android" version "1.9.0" apply false
+    id "com.android.application" version "9.3.1" apply false
+    // Keep this line: with "apply false" it only puts KGP on the classpath, which
+    // built-in Kotlin uses. Removing it drops Kotlin to AGP's bundled 2.2.10,
+    // which Flutter rejects.
+    id "org.jetbrains.kotlin.android" version "2.4.20" apply false
 }
 
 include ":app"

@@ -6,7 +6,7 @@
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/widget/logProvider.dart';
-import 'package:clipboard/clipboard.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
 // import 'package:flutter/rendering.dart';
@@ -247,7 +247,7 @@ class _DisplayLogState extends State<DisplayLog> {
                           count++;
                         });
                         if (logController.data.isNotEmpty && count == 1) {
-                          FlutterClipboard.copy(logController.data.toString())
+                          Clipboard.setData(ClipboardData(text: logController.data.toString()))
                               .then((value) => ScaffoldMessenger.of(context)
                                   .showSnackBar(SnackBar(
                                       backgroundColor: appModel.darkTheme

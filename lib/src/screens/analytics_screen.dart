@@ -6,7 +6,7 @@ import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/providers/log_provider.dart';
 import 'package:belnet_mobile/src/utils/show_toast.dart';
 import 'package:belnet_mobile/src/widget/LineChartSample10.dart';
-import 'package:clipboard/clipboard.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -386,7 +386,7 @@ checkRunning();
                                 ),
                                 SizedBox(width: 5,),
                                 optionButton(onPressed:logProvider.logs.isEmpty ? (){} :(){
-                                   FlutterClipboard.copy(logProvider.getAllLogs().toString())
+                                   Clipboard.setData(ClipboardData(text: logProvider.getAllLogs().toString()))
                                 .then((value) => showMessage('Copied to clipboard!')
                                 // ScaffoldMessenger.of(context)
                                 //     .showSnackBar(SnackBar(

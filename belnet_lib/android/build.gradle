@@ -1,85 +1,91 @@
 plugins {
     id "com.android.library"
-    id "kotlin-android"
-    //id "com.diffplug.spotless" // Removed version here to prevent conflict
+    // "kotlin-android" removed: AGP 9 compiles Kotlin itself (built-in Kotlin).
+    // While android.builtInKotlin=false, the Flutter Gradle Plugin applies it for us.
 }
 
 group = "io.beldex.belnet_lib"
 version = "1.0-SNAPSHOT"
 
-
-
 rootProject.allprojects {
-	repositories {
-		google()
-	    mavenCentral()
-	}
+    repositories {
+        google()
+        mavenCentral()
+    }
 }
 
-
-
 android {
-	compileSdkVersion 35
-    namespace 'io.beldex.belnet_lib'
-	ndkVersion '28.1.13356709'
-	sourceSets {
-		main.java.srcDirs += "src/main/java"
-		main.java.srcDirs += "src/main/kotlin"
-		main.jniLibs.srcDirs += "src/main/jniLibs"
-	}
-	defaultConfig {
-		minSdkVersion 23
-	}
-	lintOptions {
-		disable "InvalidPackage"
-	}
-	compileOptions {
-		sourceCompatibility JavaVersion.VERSION_17
-		targetCompatibility JavaVersion.VERSION_17
-	}
+    namespace = "io.beldex.belnet_lib"
+    // AGP 9 requires library consumers to use the same or higher compileSdk,
+    // so keep this in step with the app (36).
+    compileSdk = 36
+    ndkVersion = "28.2.13676358"
 
-	 kotlinOptions {
-        jvmTarget = "17"
+    sourceSets {
+        main.java.srcDirs += "src/main/java"
+        main.java.srcDirs += "src/main/kotlin"
+        main.jniLibs.srcDirs += "src/main/jniLibs"
+    }
+
+    defaultConfig {
+        minSdk = 23
+    }
+
+    // lintOptions {} was removed in AGP 9; lint {} replaces it.
+    lint {
+        disable.add("InvalidPackage")
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+}
+
+// Replaces android { kotlinOptions { jvmTarget = "17" } }, which fails with KGP 2.2+.
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
 dependencies {
-	//implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-	// Explicit dep for ContextCompat / NotificationCompat used by the plugin
-	// and BelnetDaemon (previously resolved only transitively).
-	implementation "androidx.core:core-ktx:1.13.1"
-	implementation "androidx.lifecycle:lifecycle-livedata:2.8.7"
+    // Explicit dep for ContextCompat / NotificationCompat used by the plugin
+    // and BelnetDaemon (previously resolved only transitively).
+    implementation "androidx.core:core-ktx:1.13.1"
+    implementation "androidx.lifecycle:lifecycle-livedata:2.8.7"
 
-	// JVM unit tests for the Ad Blocker engine (network.beldex.belnet.adblock):
-	//   cd android && ./gradlew :belnet_lib:testDebugUnitTest
-	testImplementation "junit:junit:4.13.2"
+    // JVM unit tests for the Ad Blocker engine (network.beldex.belnet.adblock):
+    //   cd android && ./gradlew :belnet_lib:testDebugUnitTest
+    testImplementation "junit:junit:4.13.2"
 }
 
-task cleanNativeLibs(type: Delete) {
-	delete "$projectDir/../external/belnet/build-android"
+// Native-lib tasks. Gradle 9: register tasks lazily instead of `task x(type: ...)`.
+def cleanNativeLibs = tasks.register("cleanNativeLibs", Delete) {
+    delete "$projectDir/../external/belnet/build-android"
 }
 
-task compileNativeLibs(type: Exec) {
-	def f = new File("$projectDir/../external/belnet/contrib/android.sh")
-	if ( f.exists() ) {
-		workingDir "$projectDir/../external/belnet"
-		environment "NDK", project.android.ndkDirectory
-		executable "./contrib/android.sh"
-	} else {
-		executable "true"
-	}
+def compileNativeLibs = tasks.register("compileNativeLibs", Exec) {
+    def f = new File("$projectDir/../external/belnet/contrib/android.sh")
+    if (f.exists()) {
+        workingDir "$projectDir/../external/belnet"
+        environment "NDK", project.android.ndkDirectory
+        executable "./contrib/android.sh"
+    } else {
+        executable "true"
+    }
 }
 
-task ensureNativeLibs(type: Copy) {
-	from("$projectDir/../external/belnet/build-android") {
-		include 'out/*/*.so'
-		eachFile { fcd ->
-			fcd.relativePath = new RelativePath(true, fcd.relativePath.segments.drop(1))
-		}
-	}
-	into "$projectDir/src/main/jniLibs/"
+def ensureNativeLibs = tasks.register("ensureNativeLibs", Copy) {
+    dependsOn compileNativeLibs
+    from("$projectDir/../external/belnet/build-android") {
+        include 'out/*/*.so'
+        eachFile { fcd ->
+            fcd.relativePath = new RelativePath(true, fcd.relativePath.segments.drop(1))
+        }
+    }
+    into "$projectDir/src/main/jniLibs/"
 }
 
-ensureNativeLibs.dependsOn compileNativeLibs
-preBuild.dependsOn ensureNativeLibs
-clean.dependsOn cleanNativeLibs
+tasks.named("preBuild") { dependsOn ensureNativeLibs }
+tasks.named("clean") { dependsOn cleanNativeLibs }

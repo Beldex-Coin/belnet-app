@@ -62,6 +62,16 @@ public final class AdBlockEngine {
   private volatile String lastError;
   private volatile List<FilterUpdater.SourceOutcome> sourceInfo = Collections.emptyList();
 
+  // Progress of the running update (read by statusJson from any thread).
+  /** Index (in {@link #sourceInfo}) of the list being checked/downloaded; -1 if none. */
+  private volatile int updIndex = -1;
+  /** Lists finished in this run, and how many the run covers. */
+  private volatile int updDone;
+  private volatile int updTotal;
+  /** Bytes of the current download so far, and its size (-1 if unknown). */
+  private volatile long updBytes;
+  private volatile long updBytesTotal = -1;
+
   // Guarded by this.
   private PacketFilter session;
   private ScheduledFuture<?> periodic;
@@ -121,12 +131,15 @@ public final class AdBlockEngine {
    * Applies immediately to a running relay (it checks this flag on every
    * packet). A tunnel that was started with the Ad Blocker off has no relay,
    * so switching it on takes effect from the next connection.
+   *
+   * <p>Switching it on also downloads any list that is missing or older than
+   * a day; up-to-date lists are skipped without network access.
    */
   public void setEnabled(boolean value) {
     enabled = value;
     settings.saveEnabled(value);
     log.info("Ad Blocker " + (value ? "enabled" : "disabled"));
-    if (value && usingBuiltinList) refreshAsync(false);
+    if (value) refreshAsync(false);
   }
 
   // ---------------------------------------------------------------------
@@ -237,7 +250,40 @@ public final class AdBlockEngine {
     try {
       List<FilterSource> sources = FilterSource.load(store.dir);
       long now = now();
-      FilterUpdater.Outcome out = updater.update(sources, force, now);
+      // Same order as `sources`, so the run's indexes match sourceInfo.
+      sourceInfo = readSourceInfo();
+      updDone = 0;
+      updTotal = sources.size();
+      updIndex = -1;
+      FilterUpdater.Outcome out =
+          updater.update(
+              sources,
+              force,
+              now,
+              new FilterUpdater.Listener() {
+                @Override
+                public void onSourceStart(int index, FilterSource source) {
+                  updBytes = 0;
+                  updBytesTotal = -1;
+                  updIndex = index;
+                }
+
+                @Override
+                public void onProgress(long read, long total) {
+                  updBytes = read;
+                  updBytesTotal = total;
+                }
+
+                @Override
+                public void onSourceDone(int index, FilterUpdater.SourceOutcome outcome) {
+                  List<FilterUpdater.SourceOutcome> list = new ArrayList<>(sourceInfo);
+                  if (index < list.size() && list.get(index).id.equals(outcome.id)) {
+                    list.set(index, outcome);
+                    sourceInfo = Collections.unmodifiableList(list);
+                  }
+                  updDone = index + 1;
+                }
+              });
       boolean anyFailed = false;
       boolean anyUsable = false;
       for (FilterUpdater.SourceOutcome so : out.sources) {
@@ -282,6 +328,8 @@ public final class AdBlockEngine {
       lastError = e.toString();
       log.warn("Ad Blocker: update failed: " + e);
     } finally {
+      updIndex = -1;
+      updTotal = 0;
       updating.set(false);
     }
   }
@@ -345,14 +393,32 @@ public final class AdBlockEngine {
     field(j, "sessionQueries", q).append(',');
     field(j, "sessionBlocked", b).append(',');
     field(j, "sessionEncryptedDnsRefused", enc).append(',');
+    boolean running = updating.get();
+    int current = updIndex;
+    field(j, "updateDone", running ? updDone : 0).append(',');
+    field(j, "updateTotal", running ? updTotal : 0).append(',');
     j.append("\"sources\":[");
-    boolean first = true;
-    for (FilterUpdater.SourceOutcome so : sourceInfo) {
-      if (!first) j.append(',');
-      first = false;
+    List<FilterUpdater.SourceOutcome> list = sourceInfo;
+    for (int i = 0; i < list.size(); i++) {
+      FilterUpdater.SourceOutcome so = list.get(i);
+      if (i > 0) j.append(',');
       j.append('{');
       field(j, "id", so.id).append(',');
       field(j, "name", so.name).append(',');
+      field(j, "site", so.site).append(',');
+      // While an update runs: the list being fetched is "downloading" (with a
+      // percentage when the size is known) and the ones after it "waiting".
+      String state = null;
+      int percent = -1;
+      if (running && i == current) {
+        state = "downloading";
+        long total = updBytesTotal;
+        if (total > 0) percent = (int) Math.min(100, updBytes * 100 / total);
+      } else if (running && i > current) {
+        state = "waiting";
+      }
+      field(j, "state", state).append(',');
+      field(j, "percent", percent).append(',');
       field(j, "status", so.status).append(',');
       field(j, "rules", so.rules).append(',');
       field(j, "fetchedAt", so.fetchedAt).append(',');

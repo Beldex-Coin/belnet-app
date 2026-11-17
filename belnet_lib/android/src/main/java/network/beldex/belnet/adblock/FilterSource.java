@@ -192,6 +192,29 @@ final class FilterSource {
     return new ArrayList<>(byId.values());
   }
 
+  /**
+   * Short "where it comes from" label for the UI: the GitHub owner for lists
+   * served from GitHub or jsDelivr ("github.com/hagezi"), otherwise the host
+   * ("small.oisd.nl").
+   */
+  String site() {
+    if (urls.isEmpty()) return "";
+    try {
+      java.net.URI uri = java.net.URI.create(urls.get(0));
+      String host = uri.getHost() == null ? "" : uri.getHost();
+      String[] path = uri.getPath() == null ? new String[0] : uri.getPath().split("/");
+      if (host.equals("cdn.jsdelivr.net") && path.length > 2 && path[1].equals("gh")) {
+        return "github.com/" + path[2];
+      }
+      if (host.equals("raw.githubusercontent.com") && path.length > 1 && !path[1].isEmpty()) {
+        return "github.com/" + path[1];
+      }
+      return host;
+    } catch (IllegalArgumentException e) {
+      return "";
+    }
+  }
+
   /** Ids become file names: keep them boring. */
   static boolean isSafeId(String id) {
     if (id.isEmpty() || id.length() > 40) return false;

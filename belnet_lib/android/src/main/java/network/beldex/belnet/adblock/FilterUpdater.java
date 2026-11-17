@@ -30,19 +30,55 @@ final class FilterUpdater {
   static final long MAX_AGE_MS = 24L * 60 * 60 * 1000;
   static final long MAX_DOWNLOAD_BYTES = 40L * 1024 * 1024;
 
+  /** Download progress of the current body: bytes so far, total (-1 if unknown). */
+  interface Progress {
+    void onBytes(long read, long total);
+  }
+
+  /** Per-list progress of an update run (for the Ad Blocker screen). */
+  interface Listener {
+    void onSourceStart(int index, FilterSource source);
+
+    void onProgress(long read, long total);
+
+    void onSourceDone(int index, SourceOutcome outcome);
+  }
+
+  static final Listener NO_LISTENER =
+      new Listener() {
+        @Override
+        public void onSourceStart(int index, FilterSource source) {}
+
+        @Override
+        public void onProgress(long read, long total) {}
+
+        @Override
+        public void onSourceDone(int index, SourceOutcome outcome) {}
+      };
+
   /** HTTP abstraction (real implementation below; tests inject fakes). */
   interface Http {
     /**
      * GET {@code url} into {@code dest}. Returns the HTTP status; on 200 the
      * body is in {@code dest} and the validators are in {@code out}.
+     * {@code progress} is told how much of the body has arrived.
      */
-    int get(String url, String etag, String lastModified, File dest, long maxBytes, Properties out)
+    int get(
+        String url,
+        String etag,
+        String lastModified,
+        File dest,
+        long maxBytes,
+        Properties out,
+        Progress progress)
         throws IOException;
   }
 
   static final class SourceOutcome {
     final String id;
     final String name;
+    /** Where the list comes from, for display (e.g. "github.com/hagezi"). */
+    final String site;
     /** updated | not_modified | fresh | failed */
     String status;
     int rules;
@@ -52,6 +88,7 @@ final class FilterUpdater {
     SourceOutcome(FilterSource s) {
       this.id = s.id;
       this.name = s.name;
+      this.site = s.site();
     }
   }
 
@@ -70,6 +107,11 @@ final class FilterUpdater {
   }
 
   Outcome update(List<FilterSource> sources, boolean force, long nowMs) {
+    return update(sources, force, nowMs, NO_LISTENER);
+  }
+
+  /** Updates the lists one after another, reporting progress to {@code listener}. */
+  Outcome update(List<FilterSource> sources, boolean force, long nowMs, Listener listener) {
     Outcome outcome = new Outcome();
     try {
       store.ensureDirs();
@@ -82,13 +124,18 @@ final class FilterUpdater {
       }
       return outcome;
     }
-    for (FilterSource s : sources) {
-      outcome.sources.add(updateOne(s, force, nowMs, outcome));
+    for (int i = 0; i < sources.size(); i++) {
+      FilterSource s = sources.get(i);
+      listener.onSourceStart(i, s);
+      SourceOutcome so = updateOne(s, force, nowMs, outcome, listener);
+      outcome.sources.add(so);
+      listener.onSourceDone(i, so);
     }
     return outcome;
   }
 
-  private SourceOutcome updateOne(FilterSource s, boolean force, long now, Outcome outcome) {
+  private SourceOutcome updateOne(
+      FilterSource s, boolean force, long now, Outcome outcome, Listener listener) {
     SourceOutcome so = new SourceOutcome(s);
     File meta = store.metaFile(s);
     Properties p = store.readProps(meta);
@@ -111,7 +158,9 @@ final class FilterUpdater {
         String etag = haveCopy && url.equals(p.getProperty("url")) ? p.getProperty("etag") : null;
         String lastMod =
             haveCopy && url.equals(p.getProperty("url")) ? p.getProperty("lastModified") : null;
-        int status = http.get(url, etag, lastMod, tmp, MAX_DOWNLOAD_BYTES, validators);
+        int status =
+            http.get(
+                url, etag, lastMod, tmp, MAX_DOWNLOAD_BYTES, validators, listener::onProgress);
         if (status == 304 && haveCopy) {
           p.setProperty("fetchedAt", Long.toString(now));
           p.remove("error");
@@ -171,7 +220,13 @@ final class FilterUpdater {
 
     @Override
     public int get(
-        String url, String etag, String lastModified, File dest, long maxBytes, Properties out)
+        String url,
+        String etag,
+        String lastModified,
+        File dest,
+        long maxBytes,
+        Properties out,
+        Progress progress)
         throws IOException {
       if (!url.startsWith("https://")) throw new IOException("refusing non-HTTPS list URL");
       HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
@@ -193,10 +248,12 @@ final class FilterUpdater {
           byte[] buf = new byte[1 << 16];
           long total = 0;
           int n;
+          progress.onBytes(0, declared);
           while ((n = in.read(buf)) > 0) {
             total += n;
             if (total > maxBytes) throw new IOException("list too large");
             o.write(buf, 0, n);
+            progress.onBytes(total, declared);
           }
         }
         String e = c.getHeaderField("ETag");

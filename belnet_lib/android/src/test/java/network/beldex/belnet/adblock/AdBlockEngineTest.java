@@ -44,12 +44,33 @@ public class AdBlockEngineTest {
     final Map<String, Integer> statuses = new HashMap<>();
     final AtomicInteger requests = new AtomicInteger();
     volatile boolean offline;
+    /** When set, a GET of this URL reports half its body, then waits for {@link #release}. */
+    volatile String pauseUrl;
+    final java.util.concurrent.CountDownLatch paused = new java.util.concurrent.CountDownLatch(1);
+    final java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch(1);
 
     @Override
     public int get(
-        String url, String etag, String lastModified, File dest, long maxBytes, Properties out)
+        String url,
+        String etag,
+        String lastModified,
+        File dest,
+        long maxBytes,
+        Properties out,
+        FilterUpdater.Progress progress)
         throws IOException {
       requests.incrementAndGet();
+      if (url.equals(pauseUrl)) {
+        String b = bodies.get(url);
+        long size = b == null ? 0 : b.length();
+        progress.onBytes(size / 2, size);
+        paused.countDown();
+        try {
+          release.await(10, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
       if (offline) throw new IOException("network unreachable");
       Integer forced = statuses.get(url);
       if (forced != null) return forced;
@@ -375,6 +396,56 @@ public class AdBlockEngineTest {
       }
       return hosts.toArray(new String[0]);
     }
+  }
+
+  @Test
+  public void sourcesReportWhereTheyComeFrom() {
+    java.util.Map<String, String> sites = new java.util.HashMap<>();
+    for (FilterSource src : FilterSource.defaults()) sites.put(src.id, src.site());
+    assertEquals("adguardteam.github.io", sites.get("adguard_dns"));
+    assertEquals("small.oisd.nl", sites.get("oisd_small"));
+    assertEquals("github.com/StevenBlack", sites.get("stevenblack"));
+    assertEquals("github.com/hagezi", sites.get("hagezi_multi"));
+    assertEquals("github.com/AdAway", sites.get("adaway"));
+    assertTrue(engine.statusJson("").contains("\"site\":\"github.com/hagezi\""));
+  }
+
+  @Test
+  public void enablingDownloadsListsAndReportsProgress() throws Exception {
+    // Pause the 4th list half way to look at the status mid-update.
+    String fourth = FilterSource.defaults().get(3).urls.get(0);
+    http.pauseUrl = fourth;
+    engine.setEnabled(true);
+    assertTrue(http.paused.await(10, java.util.concurrent.TimeUnit.SECONDS));
+    String mid = engine.statusJson("");
+    assertTrue(mid, mid.contains("\"updating\":true"));
+    assertTrue(mid, mid.contains("\"updateDone\":3"));
+    assertTrue(mid, mid.contains("\"updateTotal\":" + SOURCES));
+    // Finished lists already show their size, the current one its progress,
+    // the rest are waiting.
+    assertTrue(mid, mid.contains("\"id\":\"adguard_dns\",\"name\":\"AdGuard DNS filter\""));
+    assertTrue(mid, mid.matches("(?s).*\"id\":\"adguard_dns\".*?\"state\":null.*?\"rules\":600\\d.*"));
+    assertTrue(mid, mid.matches("(?s).*\"id\":\"hagezi_multi\".*?\"state\":\"downloading\",\"percent\":(49|50),.*"));
+    assertTrue(mid, mid.matches("(?s).*\"id\":\"hagezi_tif_mini\".*?\"state\":\"waiting\".*"));
+    http.release.countDown();
+    engine.awaitIdle();
+    String done = engine.statusJson("");
+    assertTrue(done, done.contains("\"updating\":false"));
+    assertTrue(done, done.contains("\"updateTotal\":0"));
+    assertFalse(done, done.contains("\"state\":\"downloading\""));
+    assertFalse(done, done.contains("\"state\":\"waiting\""));
+    assertTrue(blocks("hz42.adnet.example"));
+  }
+
+  @Test
+  public void enablingWithFreshListsDoesNotDownloadAgain() throws Exception {
+    engine.setEnabled(true);
+    engine.awaitIdle();
+    int after = http.requests.get();
+    engine.setEnabled(false);
+    engine.setEnabled(true); // lists are < 24 h old
+    engine.awaitIdle();
+    assertEquals(after, http.requests.get());
   }
 
   @Test

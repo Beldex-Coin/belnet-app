@@ -332,6 +332,8 @@ Widget _getScreen(int index) {
      final connectivityProvider = Provider.of<ConnectivityProvider>(context);
     //loaderProvider.initialize('assets/loader.webm');
     final appModel = Provider.of<AppModel>(context);
+    final onAdBlockerScreen = selectedIndex == 3 &&
+        Provider.of<SettingsProvider>(context).currentView == SettingsView.adBlocker;
     return connectivityProvider.isConnected ? WillPopScope(
       onWillPop: () async {
 
@@ -420,7 +422,9 @@ Widget _getScreen(int index) {
                     ),
                   ),
 
-              loaderProvider.conStatus == ConnectionStatus.CONNECTED ? 
+              // The connected / connecting globe animations are not shown
+              // behind Settings → Ad Blocker (plain background, as designed).
+              !onAdBlockerScreen && loaderProvider.conStatus == ConnectionStatus.CONNECTED ? 
               Container(
                child: Lottie.asset('assets/images/dark_theme/Dots_v1(1).json',fit: BoxFit.cover)
               ) : SizedBox(),   
@@ -429,6 +433,7 @@ Widget _getScreen(int index) {
             //         ): SizedBox(),
              
                   
+                  !onAdBlockerScreen &&
                   loaderProvider.isLoading
                   && 
                   loaderProvider.conStatus == ConnectionStatus.CONNECTING ?

@@ -32,6 +32,42 @@ class AdBlockerColors {
   /// Background of the toggle card and the counter tiles.
   static Color tile(bool dark) =>
       dark ? Colors.grey.shade600.withOpacity(0.08) : Colors.grey.withOpacity(0.2);
+
+  /// Switch track: transparent on dark, white pill on light (as in the design).
+  static Color switchTrack(bool dark) => dark ? Colors.transparent : Colors.white;
+
+  static BoxBorder switchBorder(bool dark) => dark
+      ? Border.all(color: const Color(0xffA1A1AF), width: 0.3)
+      : Border.all(color: const Color(0xffCFCFCF), width: 0.8);
+}
+
+/// Thin, flat progress bar (no Material 3 track gap, stop dot or tint).
+class _FlatProgressBar extends StatelessWidget {
+  const _FlatProgressBar({required this.value, required this.dark});
+
+  final double value;
+  final bool dark;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(2),
+      child: Container(
+        height: 3,
+        color: dark ? Colors.grey.withOpacity(0.25) : const Color(0xffDADADA),
+        alignment: Alignment.centerLeft,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(end: value.clamp(0.0, 1.0)),
+          duration: const Duration(milliseconds: 400),
+          builder: (_, v, __) => FractionallySizedBox(
+            widthFactor: v,
+            heightFactor: 1,
+            child: const ColoredBox(color: AdBlockerColors.green),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// Settings → Ad Blocker. Same structure as Split Tunneling: the on/off
@@ -54,6 +90,10 @@ class AdBlockerScreen extends StatefulWidget {
 class _AdBlockerScreenState extends State<AdBlockerScreen> {
   Timer? _poll;
   bool _fastPolling = false;
+
+  /// "Check for updates" was tapped: show the spinner straight away, until
+  /// the native side reports the download (or that nothing needed it).
+  DateTime? _refreshTappedAt;
 
   static const String _lockedMessage =
       'Please disconnect BelNet to turn the Ad Blocker on or off.';
@@ -117,6 +157,7 @@ class _AdBlockerScreenState extends State<AdBlockerScreen> {
       return;
     }
     if (p.status?.updating == true) return;
+    setState(() => _refreshTappedAt = DateTime.now());
     p.refreshLists();
     _schedulePoll(fast: true);
   }
@@ -130,6 +171,14 @@ class _AdBlockerScreenState extends State<AdBlockerScreen> {
     final locked = _isLocked(loader);
     final connected = loader.conStatus == ConnectionStatus.CONNECTED;
     final updating = adBlocker.enabled && s?.updating == true;
+    final tapped = _refreshTappedAt;
+    if (tapped != null &&
+        (updating ||
+            !adBlocker.enabled ||
+            DateTime.now().difference(tapped) > const Duration(seconds: 2))) {
+      _refreshTappedAt = null;
+    }
+    final showSpinner = updating || _refreshTappedAt != null;
     final sources = s?.sources ?? const <AdBlockerSource>[];
     final textColor = dark ? Colors.white : Colors.black;
     final muted = AdBlockerColors.muted(dark);
@@ -170,12 +219,10 @@ class _AdBlockerScreenState extends State<AdBlockerScreen> {
                 inactiveToggleColor: locked || adBlocker.busy
                     ? const Color(0xff929492).withOpacity(0.5)
                     : const Color(0xff929492),
-                activeSwitchBorder:
-                    Border.all(color: const Color(0xffA1A1AF), width: 0.3),
-                inactiveSwitchBorder:
-                    Border.all(color: const Color(0xffA1A1AF), width: 0.3),
-                activeColor: Colors.transparent,
-                inactiveColor: Colors.transparent,
+                activeSwitchBorder: AdBlockerColors.switchBorder(dark),
+                inactiveSwitchBorder: AdBlockerColors.switchBorder(dark),
+                activeColor: AdBlockerColors.switchTrack(dark),
+                inactiveColor: AdBlockerColors.switchTrack(dark),
                 onToggle: (value) {
                   if (locked) {
                     showMessage(_lockedMessage);
@@ -217,15 +264,7 @@ class _AdBlockerScreenState extends State<AdBlockerScreen> {
         if (updating && (s?.updateTotal ?? 0) > 0)
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(2),
-              child: LinearProgressIndicator(
-                minHeight: 3,
-                value: _overallProgress(s!),
-                color: AdBlockerColors.green,
-                backgroundColor: Colors.grey.withOpacity(0.25),
-              ),
-            ),
+            child: _FlatProgressBar(value: _overallProgress(s!), dark: dark),
           ),
 
         // Live counters while on and not downloading.
@@ -294,15 +333,19 @@ class _AdBlockerScreenState extends State<AdBlockerScreen> {
                               fontFamily: 'Poppins', fontSize: 14),
                         ),
                       ),
-                      updating
-                          ?  Padding(
-                              padding: EdgeInsets.all(14),
-                              child: SizedBox(
-                                height: 16,
-                                width: 16,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 1.6,
-                                    color: muted),
+                      // Spinner in place of the refresh button (same 48 px
+                      // slot) while lists download.
+                      showSpinner
+                          ? SizedBox(
+                              height: 48,
+                              width: 48,
+                              child: Center(
+                                child: SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 1.8, color: textColor),
+                                ),
                               ),
                             )
                           : IconButton(

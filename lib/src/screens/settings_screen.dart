@@ -229,12 +229,10 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
                 activeToggleColor: Color(0xff00DC00), // We’ll apply gradient manually
                 inactiveToggleColor: Color(0xff929492),
                 //switchBorder: Border.all(width: 0.2),
-                activeSwitchBorder: Border.all(
-                    color: Color(0xffA1A1AF), width: 0.3),
-                inactiveSwitchBorder:
-                    Border.all(color: Color(0xffA1A1AF), width: 0.3),
-                activeColor: Colors.transparent, // Make track transparent
-                inactiveColor: Colors.transparent,
+                activeSwitchBorder: AdBlockerColors.switchBorder(appModel.darkTheme),
+                inactiveSwitchBorder: AdBlockerColors.switchBorder(appModel.darkTheme),
+                activeColor: AdBlockerColors.switchTrack(appModel.darkTheme), // transparent on dark, white on light
+                inactiveColor: AdBlockerColors.switchTrack(appModel.darkTheme),
                 // toggleGradient: LinearGradient(
                 //   colors: [Colors.greenAccent, Colors.green],
                 //   begin: Alignment.topLeft,
@@ -326,12 +324,10 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
                         activeToggleColor: Color(0xff00DC00).withOpacity(0.5), // We’ll apply gradient manually
                         inactiveToggleColor: Color(0xff929492).withOpacity(0.5),
                         //switchBorder: Border.all(width: 0.2),
-                        activeSwitchBorder: Border.all(
-                            color: Color(0xffA1A1AF), width: 0.3),
-                        inactiveSwitchBorder:
-                            Border.all(color: Color(0xffA1A1AF), width: 0.3),
-                        activeColor: Colors.transparent, // Make track transparent
-                        inactiveColor: Colors.transparent,
+                        activeSwitchBorder: AdBlockerColors.switchBorder(appModel.darkTheme),
+                inactiveSwitchBorder: AdBlockerColors.switchBorder(appModel.darkTheme),
+                        activeColor: AdBlockerColors.switchTrack(appModel.darkTheme), // transparent on dark, white on light
+                inactiveColor: AdBlockerColors.switchTrack(appModel.darkTheme),
                         
                         onToggle: (value)=>null,
                           //showMessage("This Setting cannot be change while connecting to vpn");
@@ -348,12 +344,10 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
                 activeToggleColor: Color(0xff00DC00), // We’ll apply gradient manually
                 inactiveToggleColor: Color(0xff929492),
                 //switchBorder: Border.all(width: 0.2),
-                activeSwitchBorder: Border.all(
-                    color: Color(0xffA1A1AF), width: 0.3),
-                inactiveSwitchBorder:
-                    Border.all(color: Color(0xffA1A1AF), width: 0.3),
-                activeColor: Colors.transparent, // Make track transparent
-                inactiveColor: Colors.transparent,
+                activeSwitchBorder: AdBlockerColors.switchBorder(appModel.darkTheme),
+                inactiveSwitchBorder: AdBlockerColors.switchBorder(appModel.darkTheme),
+                activeColor: AdBlockerColors.switchTrack(appModel.darkTheme), // transparent on dark, white on light
+                inactiveColor: AdBlockerColors.switchTrack(appModel.darkTheme),
                 // toggleGradient: LinearGradient(
                 //   colors: [Colors.greenAccent, Colors.green],
                 //   begin: Alignment.topLeft,

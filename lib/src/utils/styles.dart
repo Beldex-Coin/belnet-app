@@ -18,6 +18,13 @@ ThemeData buildLightTheme() {
       ), // Replaces headline6
     ),
     scaffoldBackgroundColor: const Color(0xffF9F9F9),
+    // Material 3 tints an AppBar with the primary colour (blue in the dark
+    // theme) when content scrolls under it. The app bars here are
+    // transparent over the background, so keep them unchanged on scroll.
+    appBarTheme: base.appBarTheme.copyWith(
+      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.transparent,
+    ),
   );
 }
 
@@ -37,6 +44,13 @@ ThemeData buildDarkTheme() {
       ), // Replaces headline6
     ),
     scaffoldBackgroundColor: Colors.grey[900],
+    // Material 3 tints an AppBar with the primary colour (blue in the dark
+    // theme) when content scrolls under it. The app bars here are
+    // transparent over the background, so keep them unchanged on scroll.
+    appBarTheme: base.appBarTheme.copyWith(
+      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.transparent,
+    ),
   );
 }
 

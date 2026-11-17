@@ -191,7 +191,7 @@ void _loadToggleValue() async {
 
 /// For the settings screen navigation 
 
-enum SettingsView { general, splitTunneling }
+enum SettingsView { general, splitTunneling, adBlocker }
 
 class SettingsProvider with ChangeNotifier {
   SettingsView _currentView = SettingsView.general;
@@ -205,6 +205,11 @@ class SettingsProvider with ChangeNotifier {
 
   void showSplitTunneling() {
     _currentView = SettingsView.splitTunneling;
+    notifyListeners();
+  }
+
+  void showAdBlocker() {
+    _currentView = SettingsView.adBlocker;
     notifyListeners();
   }
 }

@@ -6,7 +6,7 @@ import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/utils/show_toast.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart';
 import 'package:belnet_mobile/src/widget/aboutpage.dart';
-import 'package:belnet_mobile/src/widget/ad_blocker_setting_tile.dart';
+import 'package:belnet_mobile/src/screens/ad_blocker_screen.dart';
 import 'package:belnet_mobile/src/widget/block_malware_setting_tile.dart';
 import 'package:belnet_mobile/src/widget/nointernet_connection.dart';
 import 'package:flutter/material.dart';
@@ -73,7 +73,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             leadingWidth: 100,
             actions: [
-             provider.currentView == SettingsView.splitTunneling ?  GestureDetector(
+             GestureDetector(
             onTap: (){
                appModel.darkTheme = !appModel.darkTheme;
                          //loaderVideoProvider.initialize(appModel.darkTheme ? 'assets/images/dark_theme/Loading_v1_slow.webm' : 'assets/images/light_theme/loading_white_theme.webm');
@@ -86,11 +86,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color:appModel.darkTheme? Colors.grey.withOpacity(0.1):Color(0xffA1A1A1).withOpacity(0.2),// Colors.grey.withOpacity(0.1),
                 ),
                 child:appModel.darkTheme? SvgPicture.asset('assets/images/dark_theme/light_Theme.svg'):SvgPicture.asset('assets/images/light_theme/dark_theme.svg') 
-           )): SizedBox.shrink()
+           ))
             ],
             bottom: PreferredSize(
-              preferredSize:Size.fromHeight(provider.currentView == SettingsView.splitTunneling ? 42 :0), // height of the bottom area
-            child:provider.currentView == SettingsView.splitTunneling ? Padding(
+              preferredSize:Size.fromHeight(provider.currentView != SettingsView.general ? 42 :0), // height of the bottom area
+            child:provider.currentView != SettingsView.general ? Padding(
                               padding: const EdgeInsets.symmetric(horizontal:  8.0,vertical: 8),
                               child: Row(
                                 children: [
@@ -100,7 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     
                                   Padding(
                                     padding: const EdgeInsets.symmetric(horizontal:  8.0),
-                                    child: Text('Split Tunneling',style: TextStyle(fontFamily: 'Poppins',fontSize: 16),),
+                                    child: Text(provider.currentView == SettingsView.adBlocker ? 'Ad Blocker' : 'Split Tunneling',style: TextStyle(fontFamily: 'Poppins',fontSize: 16),),
                                   )
                                 ],
                               ),
@@ -112,14 +112,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
+              // The screen being left is removed at once instead of fading
+              // out on top of the new one: cross-fading two screens full of
+              // blurred glass panels made Back from Ad Blocker feel slow.
+              reverseDuration: Duration.zero,
                switchInCurve: Curves.easeIn,
   switchOutCurve: Curves.easeOut,
   transitionBuilder: (child, animation) {
     return FadeTransition(opacity: animation, child: child);
   },
-              child: provider.currentView == SettingsView.general
-                  ? GeneralSettingsView(onSplitTunnelingTap: provider.showSplitTunneling)
-                  : SplitTunnelingScreen(allApps: allApps,) //const SplitTunnelingView(),
+              child: switch (provider.currentView) {
+                SettingsView.general => GeneralSettingsView(onSplitTunnelingTap: provider.showSplitTunneling),
+                SettingsView.splitTunneling => SplitTunnelingScreen(allApps: allApps,),
+                SettingsView.adBlocker => const AdBlockerScreen(),
+              },
             ),
           ),
         ),
@@ -365,29 +371,31 @@ class _GeneralSettingsViewState extends State<GeneralSettingsView> {
             ),
            ),
            
-           SizedBox(height: 8,),
-  
-           SettingOptionContainer(onPressed:invitePeople,height: 50,name:'Invite People',icon:'assets/images/light_theme/Invite People.svg',isArrow: false,),
+           Padding(
+             padding: const EdgeInsets.symmetric(vertical: 10.0),
+             child: Text('Privacy & Protection',style: TextStyle(
+                  fontFamily: 'Poppins',fontSize: 15,color:appModel.darkTheme ? Color(0xffA1A1AF): Color(0xff4D4D4D),fontWeight: FontWeight.w400
+                ),),
+           ),
 
-           SizedBox(height: 8,),
-
-           // DNS ad & tracker blocking for apps routed through BelNet.
-           const AdBlockerSettingTile(),
+           // Opens the Ad Blocker screen (switch + filter lists).
+           AdBlockerSettingsRow(onTap: provider.showAdBlocker),
 
            SizedBox(height: 8,),
 
            // Malware-filtering DNS for the next connection.
            const BlockMalwareSettingTile(),
 
-
-           SizedBox(
-             height: 10,
+           Padding(
+             padding: const EdgeInsets.symmetric(vertical: 10.0),
+             child: Text('About App',style: TextStyle(
+                  fontFamily: 'Poppins',fontSize: 15,color:appModel.darkTheme ? Color(0xffA1A1AF): Color(0xff4D4D4D),fontWeight: FontWeight.w400
+                ),),
            ),
-           Text('About App',style: TextStyle(
-                fontFamily: 'Poppins',fontSize: 15,color:appModel.darkTheme ? Color(0xffA1A1AF): Color(0xff4D4D4D),fontWeight: FontWeight.w400
-              ),),
+
+           SettingOptionContainer(onPressed:invitePeople,height: 50,name:'Invite People',icon:'assets/images/light_theme/Invite People.svg',isArrow: false,),
            SizedBox(height: 10,),
-           
+
            SettingOptionContainer(onPressed:_isReporting ? (){} : reportIssue,height: 50,name:'Report an Issue',icon:'assets/images/light_theme/Report an Issue.svg',isArrow: false,),
            SizedBox(height: 10,),
            

@@ -340,6 +340,13 @@ Widget _getScreen(int index) {
       return false;
     }
     loaderProvider.resetChangeNode();
+    // On a Settings sub-screen (Split Tunneling, Ad Blocker), back returns
+    // to the main Settings list first.
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    if (selectedIndex == 3 && settingsProvider.currentView != SettingsView.general) {
+      settingsProvider.showGeneral();
+      return false;
+    }
      if (selectedIndex != 0) {
           // Not on Home -> Go back to Home
           loaderProvider.setIndex(0);

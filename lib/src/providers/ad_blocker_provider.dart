@@ -3,6 +3,70 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// One filter list used by the Ad Blocker, as reported by the native side.
+@immutable
+class AdBlockerSource {
+  const AdBlockerSource({
+    required this.id,
+    required this.name,
+    required this.site,
+    required this.status,
+    required this.domains,
+    this.state,
+    this.percent = -1,
+    this.updatedAt,
+    this.error,
+  });
+
+  final String id;
+  final String name;
+
+  /// Where the list comes from, e.g. "github.com/hagezi" or "small.oisd.nl".
+  final String site;
+
+  /// Result of the last check: cached, fresh, updated, not_modified,
+  /// failed or missing.
+  final String status;
+
+  /// While an update runs: "downloading" or "waiting"; otherwise null.
+  final String? state;
+
+  /// Download progress 0-100 while [downloading], or -1 if unknown.
+  final int percent;
+
+  /// Domains in the cached copy; 0 if not downloaded yet.
+  final int domains;
+
+  /// When the cached copy was last downloaded or confirmed unchanged.
+  final DateTime? updatedAt;
+
+  /// Error of the most recent failed download.
+  final String? error;
+
+  bool get downloading => state == 'downloading';
+  bool get waiting => state == 'waiting';
+  bool get downloaded => domains > 0;
+  bool get failed => status == 'failed' || (error != null && error!.isNotEmpty);
+
+  static AdBlockerSource fromMap(Map<String, dynamic> m) {
+    int asInt(Object? v, [int fallback = 0]) => v is num ? v.toInt() : fallback;
+    final fetched = asInt(m['fetchedAt']);
+    final error = m['error'];
+    final state = m['state'];
+    return AdBlockerSource(
+      id: (m['id'] ?? '').toString(),
+      name: (m['name'] ?? m['id'] ?? '').toString(),
+      site: (m['site'] ?? '').toString(),
+      status: (m['status'] ?? '').toString(),
+      state: state is String && state.isNotEmpty ? state : null,
+      percent: asInt(m['percent'], -1),
+      domains: asInt(m['rules']),
+      updatedAt: fetched > 0 ? DateTime.fromMillisecondsSinceEpoch(fetched) : null,
+      error: error is String && error.isNotEmpty ? error : null,
+    );
+  }
+}
+
 /// Snapshot of the native Ad Blocker state (see BelnetLib.getAdBlockerStatus).
 @immutable
 class AdBlockerStatus {
@@ -18,7 +82,17 @@ class AdBlockerStatus {
     this.lastError,
     this.privateDnsMode,
     this.privateDnsActive = false,
+    this.updateDone = 0,
+    this.updateTotal = 0,
+    this.sources = const [],
   });
+
+  /// While lists are being updated: how many are done, out of how many.
+  final int updateDone;
+  final int updateTotal;
+
+  /// The filter lists, in the order they are downloaded and applied.
+  final List<AdBlockerSource> sources;
 
   /// User preference.
   final bool enabled;
@@ -66,6 +140,14 @@ class AdBlockerStatus {
       lastError: error is String && error.isNotEmpty ? error : null,
       privateDnsMode: m['privateDnsMode'] as String?,
       privateDnsActive: m['privateDnsActive'] == true,
+      updateDone: asInt(m['updateDone']),
+      updateTotal: asInt(m['updateTotal']),
+      sources: (m['sources'] is List)
+          ? (m['sources'] as List)
+              .whereType<Map>()
+              .map((e) => AdBlockerSource.fromMap(e.cast<String, dynamic>()))
+              .toList(growable: false)
+          : const [],
     );
   }
 }

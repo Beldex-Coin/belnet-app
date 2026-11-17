@@ -143,6 +143,63 @@ void main() {
         isFalse);
   });
 
+  test('filter lists and download progress are parsed', () {
+    final s = AdBlockerStatus.fromMap({
+      'enabled': true,
+      'updating': true,
+      'updateDone': 3,
+      'updateTotal': 11,
+      'sources': [
+        {
+          'id': 'adguard_dns',
+          'name': 'AdGuard DNS filter',
+          'site': 'adguardteam.github.io',
+          'state': null,
+          'percent': -1,
+          'status': 'updated',
+          'rules': 190357,
+          'fetchedAt': DateTime(2026, 11, 16).millisecondsSinceEpoch,
+          'error': null,
+        },
+        {
+          'id': 'hagezi_multi',
+          'name': 'HaGeZi Multi Normal',
+          'site': 'github.com/hagezi',
+          'state': 'downloading',
+          'percent': 64,
+          'status': 'missing',
+          'rules': 0,
+          'fetchedAt': 0,
+        },
+        {
+          'id': 'hagezi_tif_mini',
+          'name': 'HaGeZi Threat Intelligence (mini)',
+          'site': 'github.com/hagezi',
+          'state': 'waiting',
+          'status': 'failed',
+          'rules': 0,
+          'error': 'HTTP 503',
+        },
+        'not a map',
+      ],
+    });
+    expect(s.updateDone, 3);
+    expect(s.updateTotal, 11);
+    expect(s.sources.length, 3);
+    final a = s.sources[0];
+    expect(a.site, 'adguardteam.github.io');
+    expect(a.domains, 190357);
+    expect(a.downloaded, isTrue);
+    expect(a.downloading || a.waiting, isFalse);
+    expect(a.updatedAt, DateTime(2026, 11, 16));
+    expect(s.sources[1].downloading, isTrue);
+    expect(s.sources[1].percent, 64);
+    expect(s.sources[2].waiting, isTrue);
+    expect(s.sources[2].percent, -1);
+    expect(s.sources[2].failed, isTrue);
+    expect(AdBlockerStatus.fromMap({'enabled': false}).sources, isEmpty);
+  });
+
   test('refreshLists asks native to check for updates', () async {
     final p = AdBlockerProvider();
     await p.refreshLists();

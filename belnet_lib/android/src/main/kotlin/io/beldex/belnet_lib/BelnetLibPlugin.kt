@@ -510,20 +510,43 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             // The engine is a process-wide singleton shared with BelnetDaemon,
             // so these calls act on the running Ad Blocker relay directly: no
             // reconnect is needed for a toggle to take effect.
+            // Run off the Android main thread: the status asks the system for
+            // the Private DNS state (binder calls) and the toggle writes the
+            // setting to disk. On the main thread these delayed touch and
+            // Back events while the Ad Blocker screen polls its status.
             "adBlockerSetEnabled" -> {
                 val ctx = activityBinding.activity.applicationContext
                 val enabled = call.argument<Boolean>("enabled") ?: false
-                AdBlocker.get(ctx).setEnabled(enabled)
-                result.success(AdBlocker.statusJson(ctx))
+                adBlockerCall(result) {
+                    AdBlocker.get(ctx).setEnabled(enabled)
+                    AdBlocker.statusJson(ctx)
+                }
             }
             "adBlockerGetStatus" -> {
-                result.success(AdBlocker.statusJson(activityBinding.activity.applicationContext))
+                val ctx = activityBinding.activity.applicationContext
+                adBlockerCall(result) { AdBlocker.statusJson(ctx) }
             }
             "adBlockerRefresh" -> {
-                AdBlocker.get(activityBinding.activity.applicationContext).refreshAsync(true)
-                result.success(true)
+                val ctx = activityBinding.activity.applicationContext
+                adBlockerCall(result) {
+                    AdBlocker.get(ctx).refreshAsync(true)
+                    true
+                }
             }
             else -> result.notImplemented()
+        }
+    }
+
+    /** Runs an Ad Blocker call on a background thread, replies on the main thread. */
+    private fun adBlockerCall(result: MethodChannel.Result, work: () -> Any?) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val outcome = runCatching(work)
+            withContext(Dispatchers.Main) {
+                outcome.fold(
+                    onSuccess = { result.success(it) },
+                    onFailure = { result.error("AD_BLOCKER", it.message, null) },
+                )
+            }
         }
     }
 

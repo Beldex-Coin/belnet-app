@@ -449,6 +449,76 @@ public class AdBlockEngineTest {
   }
 
   @Test
+  public void turningOffStopsTheDownload() throws Exception {
+    String fourth = FilterSource.defaults().get(3).urls.get(0);
+    http.pauseUrl = fourth;
+    engine.setEnabled(true);
+    assertTrue(http.paused.await(10, java.util.concurrent.TimeUnit.SECONDS));
+    int before = http.requests.get();
+    engine.setEnabled(false);
+    http.release.countDown();
+    engine.awaitIdle();
+    // Nothing after the list that was downloading is fetched.
+    assertEquals(before, http.requests.get());
+    String s = engine.statusJson("");
+    assertTrue(s, s.contains("\"updating\":false"));
+    assertTrue(s, s.contains("\"lastError\":null"));
+    assertFalse(s, s.contains("\"state\":\"waiting\""));
+    // The interrupted list is not marked as failed, and is fetched next time.
+    assertTrue(s, s.matches("(?s).*\"id\":\"hagezi_multi\".*?\"status\":\"missing\".*"));
+    http.pauseUrl = null;
+    engine.setEnabled(true);
+    engine.awaitIdle();
+    assertTrue(blocks("hz42.adnet.example"));
+  }
+
+  @Test
+  public void reEnablingWithFreshListsShowsNoProgress() throws Exception {
+    engine.setEnabled(true);
+    engine.awaitIdle();
+    engine.setEnabled(false);
+    // Make one list stale: only it may show as downloading / waiting.
+    String fourth = FilterSource.defaults().get(3).urls.get(0);
+    File meta = findMeta("hagezi_multi");
+    java.util.Properties p = new java.util.Properties();
+    try (java.io.InputStream in = new java.io.FileInputStream(meta)) {
+      p.load(in);
+    }
+    p.setProperty("fetchedAt", "1");
+    try (java.io.OutputStream o = new FileOutputStream(meta)) {
+      p.store(o, null);
+    }
+    http.etags.remove(fourth);
+    http.pauseUrl = fourth;
+    engine.setEnabled(true);
+    assertTrue(http.paused.await(10, java.util.concurrent.TimeUnit.SECONDS));
+    String mid = engine.statusJson("");
+    assertTrue(mid, mid.contains("\"updateTotal\":1"));
+    assertTrue(mid, mid.contains("\"updateDone\":0"));
+    assertFalse(mid, mid.contains("\"state\":\"waiting\""));
+    assertTrue(mid, mid.matches("(?s).*\"id\":\"hagezi_multi\".*?\"state\":\"downloading\".*"));
+    http.release.countDown();
+    engine.awaitIdle();
+
+    // All fresh now: turning it off and on reports no update at all.
+    engine.setEnabled(false);
+    engine.setEnabled(true);
+    String again = engine.statusJson("");
+    assertTrue(again, again.contains("\"updating\":false"));
+    assertFalse(again, again.contains("\"state\":\"waiting\""));
+    engine.awaitIdle();
+  }
+
+  private File findMeta(String id) throws IOException {
+    try (java.util.stream.Stream<java.nio.file.Path> w = Files.walk(dir.toPath())) {
+      return w.map(java.nio.file.Path::toFile)
+          .filter(f -> f.getName().equals(id + ".properties"))
+          .findFirst()
+          .orElseThrow(() -> new IOException("no meta for " + id));
+    }
+  }
+
+  @Test
   public void statusJsonEscapesErrors() {
     StringBuilder sb = new StringBuilder();
     AdBlockEngine.field(sb, "e", "a\"b\\c\nd\u0001");

@@ -65,6 +65,8 @@ public final class AdBlockEngine {
   // Progress of the running update (read by statusJson from any thread).
   /** Index (in {@link #sourceInfo}) of the list being checked/downloaded; -1 if none. */
   private volatile int updIndex = -1;
+  /** Lists this update downloads (the others are fresh and are only checked). */
+  private volatile boolean[] updDue = new boolean[0];
   /** Lists finished in this run, and how many the run covers. */
   private volatile int updDone;
   private volatile int updTotal;
@@ -252,9 +254,18 @@ public final class AdBlockEngine {
       long now = now();
       // Same order as `sources`, so the run's indexes match sourceInfo.
       sourceInfo = readSourceInfo();
+      // Only lists that really need downloading are reported as progress, so
+      // turning the Ad Blocker on with fresh lists shows no "Waiting" rows.
+      boolean[] due = new boolean[sources.size()];
+      int dueCount = 0;
+      for (int i = 0; i < due.length; i++) {
+        due[i] = updater.isDue(sources.get(i), force, now);
+        if (due[i]) dueCount++;
+      }
+      updDue = due;
       updDone = 0;
-      updTotal = sources.size();
       updIndex = -1;
+      updTotal = dueCount;
       FilterUpdater.Outcome out =
           updater.update(
               sources,
@@ -281,9 +292,32 @@ public final class AdBlockEngine {
                     list.set(index, outcome);
                     sourceInfo = Collections.unmodifiableList(list);
                   }
-                  updDone = index + 1;
+                  if (index < due.length && due[index]) updDone++;
+                }
+
+                @Override
+                public boolean isCancelled() {
+                  return !enabled; // turned off: stop downloading at once
                 }
               });
+      if (out.cancelled) {
+        // Keep what finished before the stop; nothing counts as a failure.
+        if (out.changed) {
+          FilterStore.CompileResult r = store.compile(sources, now);
+          if (r.sourcesUsed > 0) {
+            try {
+              store.writeCompiled(r.set);
+            } catch (IOException e) {
+              log.warn("Ad Blocker: cannot save compiled list: " + e);
+            }
+            set = r.set;
+            usingBuiltinList = false;
+          }
+        }
+        sourceInfo = readSourceInfo();
+        log.info("Ad Blocker: list update stopped (turned off)");
+        return;
+      }
       boolean anyFailed = false;
       boolean anyUsable = false;
       for (FilterUpdater.SourceOutcome so : out.sources) {
@@ -330,6 +364,7 @@ public final class AdBlockEngine {
     } finally {
       updIndex = -1;
       updTotal = 0;
+      updDue = new boolean[0];
       updating.set(false);
     }
   }
@@ -385,7 +420,9 @@ public final class AdBlockEngine {
     field(j, "domains", s.blockedCount()).append(',');
     field(j, "usingBuiltinList", usingBuiltinList).append(',');
     field(j, "loaded", loaded).append(',');
-    field(j, "updating", updating.get()).append(',');
+    // "updating" only while lists are actually downloading (not while fresh
+    // lists are merely checked).
+    field(j, "updating", updating.get() && updTotal > 0).append(',');
     field(j, "listsUpdatedAt", usingBuiltinList ? 0 : Math.max(s.createdAtMs(), lastSuccessMs))
         .append(',');
     field(j, "lastCheckAt", lastCheckMs).append(',');
@@ -393,8 +430,9 @@ public final class AdBlockEngine {
     field(j, "sessionQueries", q).append(',');
     field(j, "sessionBlocked", b).append(',');
     field(j, "sessionEncryptedDnsRefused", enc).append(',');
-    boolean running = updating.get();
+    boolean running = updating.get() && updTotal > 0;
     int current = updIndex;
+    boolean[] due = updDue;
     field(j, "updateDone", running ? updDone : 0).append(',');
     field(j, "updateTotal", running ? updTotal : 0).append(',');
     j.append("\"sources\":[");
@@ -410,11 +448,12 @@ public final class AdBlockEngine {
       // percentage when the size is known) and the ones after it "waiting".
       String state = null;
       int percent = -1;
-      if (running && i == current) {
+      boolean isDue = i < due.length && due[i];
+      if (running && isDue && i == current) {
         state = "downloading";
         long total = updBytesTotal;
         if (total > 0) percent = (int) Math.min(100, updBytes * 100 / total);
-      } else if (running && i > current) {
+      } else if (running && isDue && i > current) {
         state = "waiting";
       }
       field(j, "state", state).append(',');

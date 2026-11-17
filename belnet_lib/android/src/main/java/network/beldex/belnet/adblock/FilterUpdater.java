@@ -42,6 +42,27 @@ final class FilterUpdater {
     void onProgress(long read, long total);
 
     void onSourceDone(int index, SourceOutcome outcome);
+
+    /** True to stop the update (for example the Ad Blocker was turned off). */
+    default boolean isCancelled() {
+      return false;
+    }
+  }
+
+  /** Thrown to abandon an update that was cancelled; lists on disk stay as they were. */
+  static final class Cancelled extends RuntimeException {
+    Cancelled() {
+      super("cancelled", null, false, false);
+    }
+  }
+
+  /** True when {@code s} has to be downloaded now (no copy, or older than a day, or forced). */
+  boolean isDue(FilterSource s, boolean force, long now) {
+    if (force) return true;
+    File raw = store.rawFile(s);
+    if (!(raw.isFile() && raw.length() > 0)) return true;
+    long fetchedAt = FilterStore.getLong(store.readProps(store.metaFile(s)), "fetchedAt", 0);
+    return !(now - fetchedAt < MAX_AGE_MS && now >= fetchedAt);
   }
 
   static final Listener NO_LISTENER =
@@ -95,6 +116,8 @@ final class FilterUpdater {
   static final class Outcome {
     /** At least one cached list changed, so the compiled set must be rebuilt. */
     boolean changed;
+    /** Stopped part-way through: {@link #sources} only holds the lists handled before. */
+    boolean cancelled;
     final List<SourceOutcome> sources = new ArrayList<>();
   }
 
@@ -125,9 +148,19 @@ final class FilterUpdater {
       return outcome;
     }
     for (int i = 0; i < sources.size(); i++) {
+      if (listener.isCancelled()) {
+        outcome.cancelled = true;
+        return outcome;
+      }
       FilterSource s = sources.get(i);
       listener.onSourceStart(i, s);
-      SourceOutcome so = updateOne(s, force, nowMs, outcome, listener);
+      SourceOutcome so;
+      try {
+        so = updateOne(s, force, nowMs, outcome, listener);
+      } catch (Cancelled c) {
+        outcome.cancelled = true;
+        return outcome;
+      }
       outcome.sources.add(so);
       listener.onSourceDone(i, so);
     }
@@ -160,7 +193,18 @@ final class FilterUpdater {
             haveCopy && url.equals(p.getProperty("url")) ? p.getProperty("lastModified") : null;
         int status =
             http.get(
-                url, etag, lastMod, tmp, MAX_DOWNLOAD_BYTES, validators, listener::onProgress);
+                url,
+                etag,
+                lastMod,
+                tmp,
+                MAX_DOWNLOAD_BYTES,
+                validators,
+                (read, total) -> {
+                  // Abort mid-download as soon as the update is cancelled.
+                  if (listener.isCancelled()) throw new Cancelled();
+                  listener.onProgress(read, total);
+                });
+        if (listener.isCancelled()) throw new Cancelled();
         if (status == 304 && haveCopy) {
           p.setProperty("fetchedAt", Long.toString(now));
           p.remove("error");
@@ -192,6 +236,8 @@ final class FilterUpdater {
         so.fetchedAt = now;
         outcome.changed = true;
         return so;
+      } catch (Cancelled c) {
+        throw c; // not a failure: leave the list and its metadata untouched
       } catch (IOException | RuntimeException e) {
         lastError = e.getClass().getSimpleName() + (e.getMessage() == null ? "" : ": " + e.getMessage());
       } finally {

@@ -1666,7 +1666,8 @@ class _StatusBlock extends StatelessWidget {
   static String _exitCountryName(VpnMapProvider p) {
     final name = p.exit.location?.country ?? p.exit.country;
     return (name == null || name.trim().isEmpty)
-        ? 'EXIT NODE'
+        // Shown while the exit's country is still being looked up.
+        ? 'FETCHING COUNTRY…'
         : name.trim().toUpperCase();
   }
 

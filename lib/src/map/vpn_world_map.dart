@@ -926,11 +926,40 @@ class _VpnWorldMapState extends State<VpnWorldMap>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (_userMoved && !force) return;
+      if (_takeIntroHandoff()) return;
       // Behind the globe the camera jumps; on screen it glides.
       final visible = _globeMix.value < 0.5;
       _animateTo(_focusTarget(),
           animate: visible && (!force || _tc.value != Matrix4.identity()));
     });
+  }
+
+  /// Coming from the intro globe: start from the view it ended on (same
+  /// point at the same place and size on screen), then glide to the normal
+  /// framing. Returns false when there is nothing to hand over.
+  bool _takeIntroHandoff() {
+    final shared = SharedGlobeController.instance;
+    final h = shared.introHandoff;
+    final p = _provider;
+    final origin = _origin;
+    if (h == null || p == null || origin == null) return false;
+    if (p.tunnelActive || _viewport.isEmpty || _mapSize.isEmpty) return false;
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return false;
+    shared.clearIntroHandoff();
+    final local = box.globalToLocal(h.globalPoint);
+    // Globe: pixelsPerRadian per radian of arc. Miller map: east-west scale
+    // at latitude phi is (width / 2pi) / cos(phi) per radian.
+    final cosLat = math.cos(h.latitude * math.pi / 180).clamp(0.2, 1.0);
+    final scale = (h.pixelsPerRadian * 2 * math.pi * cosLat / _mapSize.width)
+        .clamp(1.0, _maxScale * 1.5);
+    final mapPoint =
+        Offset(origin.dx * _mapSize.width, origin.dy * _mapSize.height);
+    final start = MapViewTransform(scale, local - mapPoint * scale);
+    _focus.stop();
+    _tc.value = Matrix4.fromList(start.toStorage());
+    _animateTo(_focusTarget(), animate: true);
+    return true;
   }
 
   MapViewTransform _focusTarget() {
@@ -990,6 +1019,8 @@ class _VpnWorldMapState extends State<VpnWorldMap>
 
   void _animateTo(MapViewTransform target, {bool animate = true}) {
     final end = Matrix4.fromList(target.toStorage());
+    // Already gliding there: don't restart (that would hitch).
+    if (animate && _focus.isAnimating && _focusTween?.end == end) return;
     if (!animate || _reduceMotion) {
       _focus.stop();
       _tc.value = end;

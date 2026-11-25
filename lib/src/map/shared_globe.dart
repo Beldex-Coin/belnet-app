@@ -48,6 +48,49 @@ class SharedGlobeController extends ChangeNotifier {
   void setHomeFocus(LatLon? focus) {
     homeFocus = focus;
   }
+
+  IntroHandoff? _introHandoff;
+
+  /// Left by the intro globe (onboarding / launch) as it hands over to
+  /// home: where the user's location was on screen and how large the map
+  /// was there. The home map starts from exactly that view and then glides
+  /// to its own framing, so the cross-fade shows no jump.
+  void setIntroHandoff(IntroHandoff handoff) => _introHandoff = handoff;
+
+  /// The pending hand-over, if it is recent (null otherwise).
+  IntroHandoff? get introHandoff {
+    final h = _introHandoff;
+    if (h == null) return null;
+    if (DateTime.now().difference(h.at) > const Duration(seconds: 4)) {
+      _introHandoff = null;
+      return null;
+    }
+    return h;
+  }
+
+  void clearIntroHandoff() => _introHandoff = null;
+}
+
+/// See [SharedGlobeController.setIntroHandoff].
+class IntroHandoff {
+  IntroHandoff({
+    required this.latitude,
+    required this.longitude,
+    required this.globalPoint,
+    required this.pixelsPerRadian,
+  }) : at = DateTime.now();
+
+  /// The user's location.
+  final double latitude;
+  final double longitude;
+
+  /// Where it was on screen (global logical pixels).
+  final Offset globalPoint;
+
+  /// Local map scale there: on-screen pixels per radian of arc.
+  final double pixelsPerRadian;
+
+  final DateTime at;
 }
 
 /// The globe behind every tab (design: Settings and other screens).

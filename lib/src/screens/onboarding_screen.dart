@@ -227,6 +227,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   void _goHome() {
     if (_navigated || !mounted) return;
     _navigated = true;
+    // Freeze the globe where it is: home starts from this exact view.
+    _zoom.stop();
     // Hand the globe's pose to the shared globe (other tabs / home), so
     // the next globe the user sees continues from here.
     final shared = SharedGlobeController.instance
@@ -234,22 +236,41 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     final f = _found;
     if (f != null && f.hasCoordinates) {
       shared.setHomeFocus((latitude: f.latitude, longitude: f.longitude));
+      // Where the user's location is on screen right now, and how large
+      // the map is there, so the home map can start from the same view.
+      final size = MediaQuery.sizeOf(context);
+      final rise = Curves.easeInOutCubic.transform(_rise.value);
+      final center = Offset(
+        size.width / 2,
+        size.height * 0.45 +
+            _parkOffset(size) * (1 - rise) +
+            size.height * _centerDrop * rise,
+      );
+      final radius =
+          math.min(size.width * 0.39, size.height * 0.36) * _camera.zoom;
+      final local = GlobeProjection(_camera.latitude, _camera.longitude)
+          .toScreen(f.latitude, f.longitude, center, radius);
+      final box = context.findRenderObject() as RenderBox?;
+      shared.setIntroHandoff(IntroHandoff(
+        latitude: f.latitude,
+        longitude: f.longitude,
+        globalPoint: box != null && box.hasSize
+            ? box.localToGlobal(local)
+            : local,
+        pixelsPerRadian: radius,
+      ));
     }
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 900),
+        transitionDuration: const Duration(milliseconds: 450),
         pageBuilder: (_, __, ___) => MainBottomNavbar(),
         transitionsBuilder: (_, animation, __, child) {
-          final curved =
-              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
-          // The home map settles from slightly zoomed in, continuing the
-          // globe's zoom into the same country.
+          // Plain cross-fade: home's map starts from the globe's exact view
+          // (see IntroHandoff), so nothing should move or scale here.
           return FadeTransition(
-            opacity: curved,
-            child: ScaleTransition(
-              scale: Tween<double>(begin: 1.12, end: 1).animate(curved),
-              child: child,
-            ),
+            opacity:
+                CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+            child: child,
           );
         },
       ),
@@ -263,6 +284,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     final dt = ((elapsed - last).inMicroseconds / 1e6).clamp(0.0, 0.1);
     _clock += dt;
     _camera.pulse = (_clock / 2.2) % 1.0;
+    if (_navigated) {
+      // Handed over to home: hold still while it fades in on top.
+      _camera.notify();
+      return;
+    }
     final rise = Curves.easeInOutCubic.transform(_rise.value);
     final zoomIn = Curves.easeInCubic.transform(_zoom.value);
     _camera.zoom = (_parkZoom + (_centerZoom - _parkZoom) * rise) *

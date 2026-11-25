@@ -50,68 +50,98 @@ class NodeProvider extends ChangeNotifier {
 
 
 
-Future<void> fetchNodes() async {
-  isLoading = true;
+/// The node list request in flight, shared by concurrent callers (the
+/// constructor and main.dart both start a fetch at launch).
+Future<void>? _fetching;
+
+static const String _nodeCacheKey = 'cached_node_data';
+static const String _nodeListUrl =
+    'https://belnet-exitnode.s3.ap-south-1.amazonaws.com/exitnode-bns-list/exitnode_info_list.json';
+
+/// Loads the exit node list.
+///
+/// Why it sometimes never loaded before:
+///  - a non-200 reply left [isLoading] true forever (endless spinner);
+///  - the request had no timeout, so a stalled connection (network change,
+///    VPN starting) also hung forever;
+///  - `BelnetLib.isRunning` throwing at startup (service not bound yet)
+///    escaped before any try/catch, again leaving [isLoading] true;
+///  - two fetches ran at the same time at launch;
+///  - an error showed an endless spinner with no way to retry.
+/// Now: the cached list is shown straight away when there is one, the
+/// network is tried (with a timeout and a few retries) and always ends in
+/// either a list or [hasError], never an endless load.
+Future<void> fetchNodes() => _fetching ??= _fetchNodes().whenComplete(() {
+      _fetching = null;
+    });
+
+Future<void> _fetchNodes() async {
   hasError = false;
+  // Show the last known list right away (no spinner) if there is one.
+  final cached = await _readCachedNodes();
+  if (_nodeData.isEmpty && cached != null) _nodeData = cached;
+  isLoading = _nodeData.isEmpty;
   notifyListeners();
 
-  const String nodeCacheKey = 'cached_node_data';
-  final isConnected = await BelnetLib.isRunning;
-  if(isConnected){
-    try{
-     final prefs = await SharedPreferences.getInstance();
-    final cachedData = prefs.getString(nodeCacheKey);
+  // While the VPN is up the previous behaviour was cache-only; keep that
+  // when a cache exists, otherwise still try the network (through the
+  // tunnel) instead of failing.
+  var vpnRunning = false;
+  try {
+    vpnRunning = await BelnetLib.isRunning
+        .timeout(const Duration(seconds: 3), onTimeout: () => false);
+  } catch (_) {}
 
-    if (cachedData != null) {
-      _nodeData = json.decode(cachedData);
-      print('Loaded node data from SharedPreferences fallback');
-    } else {
-      hasError = true;
+  if (!(vpnRunning && _nodeData.isNotEmpty)) {
+    const delays = [Duration.zero, Duration(seconds: 2), Duration(seconds: 4)];
+    for (final delay in delays) {
+      if (delay > Duration.zero) await Future<void>.delayed(delay);
+      final fresh = await _downloadNodes();
+      if (fresh != null) {
+        _nodeData = fresh;
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(_nodeCacheKey, json.encode(fresh));
+        } catch (_) {}
+        break;
+      }
     }
+  }
 
-    isLoading = false;
-    notifyListeners();
-    }catch(e){
-      print('$e');
+  isLoading = false;
+  hasError = _nodeData.isEmpty;
+  notifyListeners();
+}
+
+Future<List<dynamic>?> _downloadNodes() async {
+  try {
+    final response = await http
+        .get(Uri.parse(_nodeListUrl))
+        .timeout(const Duration(seconds: 12));
+    if (response.statusCode != 200) {
+      print('Node list: HTTP ${response.statusCode}');
+      return null;
     }
-  }else{
-   try {
-    final response = await http.get(Uri.parse('https://belnet-exitnode.s3.ap-south-1.amazonaws.com/exitnode-bns-list/exitnode_info_list.json'
-       // 'https://belnet-exitnode.s3.ap-south-1.amazonaws.com/exitnode-bns-list/exitnode-bns-list.json'
-        ));
-
-    if (response.statusCode == 200) {
-      _nodeData = json.decode(response.body);
-
-      // Save data to SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(nodeCacheKey, json.encode(_nodeData));
-
-      isLoading = false;
-      notifyListeners();
-    } else {
-     // throw Exception('Failed to load data');
-    }
+    final decoded = json.decode(response.body);
+    return decoded is List && decoded.isNotEmpty ? decoded : null;
   } catch (e) {
     print('Error fetching node list: $e');
-
-    // Attempt to load from cache
-    final prefs = await SharedPreferences.getInstance();
-    final cachedData = prefs.getString(nodeCacheKey);
-
-    if (cachedData != null) {
-      _nodeData = json.decode(cachedData);
-      print('Loaded node data from SharedPreferences fallback');
-    } else {
-      hasError = true;
-    }
-
-    isLoading = false;
-    notifyListeners();
+    return null;
   }
-  }
-  
 }
+
+Future<List<dynamic>?> _readCachedNodes() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_nodeCacheKey);
+    if (raw == null) return null;
+    final decoded = json.decode(raw);
+    return decoded is List && decoded.isNotEmpty ? decoded : null;
+  } catch (_) {
+    return null;
+  }
+}
+
 /// the one which is used before the cache values 
   // Future<void> fetchNodes() async {
   //   isLoading = true;

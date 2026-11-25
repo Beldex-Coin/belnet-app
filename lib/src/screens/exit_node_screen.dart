@@ -460,7 +460,39 @@ class _NodeTabScreenState extends State<NodeTabScreen> {
     }
 
     if (nodeProvider.hasError) {
-      return Center(child: CircularProgressIndicator(color: Color(0xff00DC00),));
+      // Used to be an endless spinner; now say so and let the user retry.
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Couldn't load the exit nodes",
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 14,
+                color: appModel.darkTheme
+                    ? const Color(0xffACACAC)
+                    : const Color(0xff4D4D4D),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton.icon(
+              onPressed: nodeProvider.fetchNodes,
+              icon: const Icon(Icons.refresh, color: Color(0xff00DC00)),
+              label: Text(
+                'Retry',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                  color: appModel.darkTheme
+                      ? const Color(0xffEBEBEB)
+                      : const Color(0xff222222),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     final groupedNodes = nodeProvider.groupByCountryWithIcon(selectedType);

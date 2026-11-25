@@ -85,9 +85,10 @@ class _MyWidgetState extends State<AboutPage> with SingleTickerProviderStateMixi
                                     3,
                                 //fontWeight: FontWeight.w900,
                                 fontFamily: 'Conthrax',
+                                // Light: grey ABOUT + black BELNET (design).
                                 color: appModel.darkTheme
                                     ? Color(0xff8D8D8D)
-                                    : Colors.black),
+                                    : Color(0xffA1A1A1)),
                             children: [
                           TextSpan(
                               text: ' BELNET',
@@ -98,7 +99,7 @@ class _MyWidgetState extends State<AboutPage> with SingleTickerProviderStateMixi
                                           3,
                                   //fontWeight: FontWeight.w900,
                                   fontFamily: 'Conthrax',
-                                  color:appModel.darkTheme ? const Color(0xffEBEBEB) : Color(0xff00B400)))
+                                  color:appModel.darkTheme ? const Color(0xffEBEBEB) : Color(0xff222222)))
                         ])),
                     
                   ],

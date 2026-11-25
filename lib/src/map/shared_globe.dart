@@ -246,3 +246,87 @@ class _SharedGlobeLayerState extends State<SharedGlobeLayer>
     );
   }
 }
+
+
+/// A still globe for full-screen pages outside the tabs (No internet,
+/// About): same look and resting pose as the globe behind the tabs, with
+/// only its upper curve showing. It is painted once (no ticker).
+class BackdropGlobe extends StatefulWidget {
+  const BackdropGlobe({super.key, required this.dark, this.horizon = 0.66});
+
+  final bool dark;
+
+  /// Fraction of the height where the globe's top edge sits.
+  final double horizon;
+
+  @override
+  State<BackdropGlobe> createState() => _BackdropGlobeState();
+}
+
+class _BackdropGlobeState extends State<BackdropGlobe> {
+  static const double _zoom = 3.35;
+
+  final GlobeCamera _camera = GlobeCamera();
+  WorldMapData? _data;
+
+  @override
+  void initState() {
+    super.initState();
+    // Same side of the world as the globe behind the tabs.
+    _camera
+      ..latitude = 12
+      ..longitude = SharedGlobeController.instance.longitude
+      ..zoom = _zoom;
+    WorldMapData.load().then((data) {
+      if (mounted) setState(() => _data = data);
+    }).catchError((Object _) {});
+  }
+
+  @override
+  void dispose() {
+    _camera.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final data = _data;
+    if (data == null) return const SizedBox.expand();
+    final palette = VpnMapPalette.of(widget.dark);
+    return IgnorePointer(
+      child: LayoutBuilder(builder: (context, constraints) {
+        final size = Size(constraints.maxWidth, constraints.maxHeight);
+        // GlobePainter centres the globe at 45% of the height.
+        final r = math.min(size.width * 0.39, size.height * 0.36) * _zoom;
+        final dy = size.height * (widget.horizon - 0.45) + r;
+        return ClipRect(
+          child: Transform.translate(
+            offset: Offset(0, dy),
+            child: RepaintBoundary(
+              child: CustomPaint(
+                size: Size.infinite,
+                painter: GlobePainter(
+                  geometry: GlobeGeometry.of(data),
+                  camera: _camera,
+                  palette: palette,
+                  highlight: null,
+                  highlightColor: palette.originHighlight,
+                  highlightBorder: palette.originHighlightBorder,
+                  origin: null,
+                  showOrigin: false,
+                  exit: null,
+                  exitActive: false,
+                  hops: const [],
+                  otherNodes: const [],
+                  routeArcs: const [],
+                  routeMode: GlobeRouteMode.none,
+                  showSpinArrow: false,
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}

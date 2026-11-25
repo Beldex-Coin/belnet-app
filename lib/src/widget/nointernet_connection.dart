@@ -6,6 +6,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:glass_kit/glass_kit.dart';
 import 'package:provider/provider.dart';
 
+import '../map/shared_globe.dart';
+import '../map/vpn_home_style.dart';
 import '../model/theme_set_provider.dart';
 
 class NoInternetConnection extends StatelessWidget {
@@ -19,14 +21,15 @@ class NoInternetConnection extends StatelessWidget {
       extendBody: true,
       body: Stack(
         children: [
-            Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image:appModel.darkTheme ? AssetImage('assets/images/dark_theme/BG_dark_theme.png') :AssetImage('assets/images/light_theme/BG_wht_theme.png'),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
+          // Plain page colour + the app's globe rising from the bottom
+          // (design), instead of the old background image.
+          Positioned.fill(
+            child: ColoredBox(
+                color: VpnHomeStyle.of(appModel.darkTheme).background),
+          ),
+          Positioned.fill(
+            child: BackdropGlobe(dark: appModel.darkTheme, horizon: 0.64),
+          ),
           Container(
               padding: EdgeInsets.only(
                   top: MediaQuery.of(context).size.height * 0.40 / 3),

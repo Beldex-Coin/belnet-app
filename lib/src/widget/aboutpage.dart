@@ -8,6 +8,8 @@ import 'package:glass_kit/glass_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../map/shared_globe.dart';
+import '../map/vpn_home_style.dart';
 import '../model/theme_set_provider.dart';
 
 class AboutPage extends StatefulWidget {
@@ -120,14 +122,20 @@ class _MyWidgetState extends State<AboutPage> with SingleTickerProviderStateMixi
             )
           ],
         ),
-        body: Container(
-            // color: Colors.black,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image:appModel.darkTheme ? AssetImage('assets/images/dark_theme/BG_dark_theme.png') :AssetImage('assets/images/light_theme/BG_wht_theme.png'),
-                  fit: BoxFit.cover,
-                ),
-              ),
+        body: Stack(
+          children: [
+            // Plain page colour + the app's globe rising from the bottom
+            // behind the glass panel (design), instead of the old
+            // background image.
+            Positioned.fill(
+              child: ColoredBox(
+                  color: VpnHomeStyle.of(appModel.darkTheme).background),
+            ),
+            Positioned.fill(
+              child: BackdropGlobe(dark: appModel.darkTheme, horizon: 0.60),
+            ),
+            Positioned.fill(
+              child: Container(
             // padding: EdgeInsets.only(right:mHeight*0.05/3),
             child: Container(
                 // color: appModel.darkTheme ? Colors.black.withOpacity(0.5) : Color(0x33FFFFFF).withOpacity(0.02),
@@ -537,6 +545,9 @@ class _MyWidgetState extends State<AboutPage> with SingleTickerProviderStateMixi
                 ),
               ),
             )),
+            ),
+          ],
+        ),
       ),
     );
   }

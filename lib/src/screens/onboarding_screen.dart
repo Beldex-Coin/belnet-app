@@ -75,6 +75,14 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   /// null until the preferences are read; true = first launch (onboarding).
   bool? _firstLaunch;
+
+  /// First launch: the tagline and Next appear after the splash beat.
+  bool _introTextShown = false;
+  Timer? _introTextTimer;
+
+  /// How long the splash (logo + globe only) shows on first launch before
+  /// the onboarding text and Next fade in.
+  static const Duration _splashHold = Duration(milliseconds: 1600);
   Timer? _autoStart;
 
   final GlobeCamera _camera = GlobeCamera();
@@ -146,7 +154,16 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     if (!mounted) return;
     setState(() => _firstLaunch = first);
     if (first) {
+      // Splash first (logo over the parked globe), then the onboarding
+      // text and Next fade in on the same screen.
       _ui.forward();
+      if (_reduceMotion) {
+        setState(() => _introTextShown = true);
+      } else {
+        _introTextTimer = Timer(_splashHold, () {
+          if (mounted) setState(() => _introTextShown = true);
+        });
+      }
       return;
     }
     // Launch screen: show the logo for a beat, then go.
@@ -168,6 +185,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   void dispose() {
     _poll?.cancel();
     _autoStart?.cancel();
+    _introTextTimer?.cancel();
     SharedGlobeController.instance.homeAnchor
         .removeListener(_onAnchorChanged);
     // _homeShown is still listened to by the home route: not disposed here.
@@ -209,7 +227,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // Flow
 
   Future<void> _onNext() async {
-    if (_step != _Step.intro || _firstLaunch != true) return;
+    if (_step != _Step.intro || _firstLaunch != true || !_introTextShown) {
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(kOnboardingSeenKey, true);
     await prefs.setBool('isFirstLaunch', false); // legacy flag
@@ -586,13 +606,15 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           'assets/images/dark_theme/belnet_onboard_logo.svg'),
                     ),
                     const Spacer(flex: 5),
-                    // Launch screen: logo only (same layout, so nothing
-                    // moves between the two modes).
-                    Visibility(
-                      visible: _firstLaunch == true,
-                      maintainSize: true,
-                      maintainAnimation: true,
-                      maintainState: true,
+                    // Splash: logo only. First launch: the tagline and
+                    // Next fade in after the splash beat. Same layout in
+                    // both, so nothing moves.
+                    IgnorePointer(
+                      ignoring: !_introTextShown,
+                      child: AnimatedOpacity(
+                      opacity: _introTextShown ? 1 : 0,
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.easeOut,
                       child: Column(children: [
                     Container(
                       width: double.infinity,
@@ -647,6 +669,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       ),
                     ),
                       ]),
+                    ),
                     ),
                     const SizedBox(height: 15),
                   ],

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_lib/belnet_lib.dart';
+import 'package:belnet_mobile/src/map/shared_globe.dart';
 import 'package:belnet_mobile/src/map/vpn_home_style.dart';
 import 'package:belnet_mobile/node_provider.dart';
 import 'package:belnet_mobile/src/app_list_provider.dart';
@@ -30,7 +31,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:glass_kit/glass_kit.dart';
 import 'package:loader_overlay/loader_overlay.dart';
-import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:upgrader/upgrader.dart';
@@ -337,7 +337,11 @@ Widget _getScreen(int index) {
         Provider.of<SettingsProvider>(context).currentView == SettingsView.adBlocker;
     // The home screen shows connection progress on its own globe/map, so the
     // full-screen connecting / connected animations are not drawn behind it.
-    final plainBackground = onAdBlockerScreen || selectedIndex == 0;
+    // Tell the shared globe whether Home is showing (after this frame, so
+    // listeners are not notified during build).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SharedGlobeController.instance.setOnHome(selectedIndex == 0);
+    });
     return connectivityProvider.isConnected ? WillPopScope(
       onWillPop: () async {
 
@@ -416,59 +420,37 @@ Widget _getScreen(int index) {
               extendBody: true, // lets nav bar float over body
               body: Stack(
                 children: [
-                  // Background: the home tab uses a plain dark/light page so
-                  // the map and globe read cleanly (V3 design); the other
-                  // tabs keep the textured background image.
-                  selectedIndex == 0
-                  ? Container(color: VpnHomeStyle.of(appModel.darkTheme).background)
-                  : Container(
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image:appModel.darkTheme ? AssetImage('assets/images/dark_theme/BG_dark_theme.png') :AssetImage('assets/images/light_theme/BG_wht_theme.png') ,
-                        fit: BoxFit.cover,
-                      ),
+                  // One background for every tab: the plain V3 page colour
+                  // plus the shared globe (lib/src/map/shared_globe.dart).
+                  // The globe widget stays mounted across tabs and theme
+                  // changes, so it never restarts; it rises into Home and
+                  // sinks behind the other screens.
+                  Container(color: VpnHomeStyle.of(appModel.darkTheme).background),
+                  Positioned.fill(
+                    child: AnimatedOpacity(
+                      // Settings → Ad Blocker keeps its plain background.
+                      opacity: onAdBlockerScreen ? 0 : 1,
+                      duration: const Duration(milliseconds: 300),
+                      child: SharedGlobeLayer(dark: appModel.darkTheme),
                     ),
                   ),
-
-              // The connected / connecting globe animations are not shown
-              // behind Settings → Ad Blocker (plain background, as designed).
-              !plainBackground && loaderProvider.conStatus == ConnectionStatus.CONNECTED ? 
-              Container(
-               child: Lottie.asset('assets/images/dark_theme/Dots_v1(1).json',fit: BoxFit.cover)
-              ) : SizedBox(),   
-            //  loaderProvider.conStatus == ConnectionStatus.CONNECTED ? Container(
-            //           child:appModel.darkTheme ? Lottie.asset('assets/images/dark_theme/Loadings_dark.json',fit: BoxFit.cover) : Lottie.asset('assets/images/light_theme/Loading_white.json',fit: BoxFit.cover),
-            //         ): SizedBox(),
-             
-                  
-                  !plainBackground &&
-                  loaderProvider.isLoading
-                  && 
-                  loaderProvider.conStatus == ConnectionStatus.CONNECTING ?
-                   Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height,
-                    child:appModel.darkTheme ? Lottie.asset('assets/images/dark_theme/Dark_load.json',repeat: false,fit: BoxFit.cover //dark_theme/Loading_dark_with_text.json',repeat: false //Loading_dark.json',repeat: false 
-                    ) : Lottie.asset('assets/images/light_theme/White_load.json',repeat: false ,fit: BoxFit.cover//Loading_white_theme_with_text.json',repeat: false //Loading_white_theme_v1.json',repeat: false
-                    ),
-                   ):SizedBox.shrink(),
                   // // Active screen
                   // _screens[_selectedIndex],
                   // Inside your Stack:
                      AnimatedSwitcher(
-              duration: Duration(milliseconds: 200),
+              // Going to Home the shared globe first zooms in, then the
+              // home map fades in over it; other tabs simply cross-fade
+              // while the globe sinks behind them.
+              duration: Duration(milliseconds: selectedIndex == 0 ? 650 : 280),
+              reverseDuration: const Duration(milliseconds: 220),
+              switchInCurve: selectedIndex == 0
+                  ? const Interval(0.35, 1, curve: Curves.easeOut)
+                  : Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
               transitionBuilder: (child, animation) {
-              final offsetAnimation = Tween<Offset>(
-                begin: Offset(0.0, 0.1), // slightly from bottom
-                end: Offset.zero,
-              ).animate(animation);
-                     
-              return SlideTransition(
-                position: offsetAnimation,
-                child: FadeTransition(
-                     opacity: animation,
-                     child: child,
-                ),
+              return FadeTransition(
+                opacity: animation,
+                child: child,
               );
                      },
                      
@@ -479,6 +461,8 @@ Widget _getScreen(int index) {
               //   );
               // },
               child:Padding(
+                // Keyed by tab so switching tabs actually animates.
+                key: ValueKey<int>(selectedIndex),
                 padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
                 child: _getScreen(selectedIndex),
               ) // _screens[selectedIndex],

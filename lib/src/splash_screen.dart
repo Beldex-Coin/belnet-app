@@ -1,137 +1,17 @@
-import 'dart:async';
-
-import 'package:belnet_lib/belnet_lib.dart';
-import 'package:belnet_mobile/bottom_nav_bar.dart';
-import 'package:belnet_mobile/main.dart';
-import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/screens/onboarding_screen.dart';
-import 'package:belnet_mobile/src/vpn_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:video_player/video_player.dart';
 
-
-class SplashScreens extends StatefulWidget {
+/// Launch screen.
+///
+/// It used to show the old splash GIF (Splash_1.gif, the previous globe)
+/// for 3 s on every launch and then push home with a plain page route, which
+/// is why the old splash came back on every relaunch and home appeared with
+/// a jump. Now every launch goes through the intro globe: the onboarding on
+/// first launch, and its short automatic form afterwards, which zooms
+/// straight into home.
+class SplashScreens extends StatelessWidget {
   const SplashScreens({Key? key}) : super(key: key);
 
   @override
-  State<SplashScreens> createState() => _SplashScreensState();
-}
-
-class _SplashScreensState extends State<SplashScreens>
-    with WidgetsBindingObserver {
- //AnimationController? _controller;
-
- late VideoPlayerController _videoController;
- Timer? timer;
-
-  @override
-  void initState() {
-    // _controller = AnimationController(vsync: this, duration: Duration(seconds:5));
-    super.initState();
-   // _controller = AnimationController(vsync: this, duration: Duration(seconds:5));
-
-    WidgetsBinding.instance.addObserver(this);
-    // _videoController = VideoPlayerController.asset('assets/images/dark_theme/splash_video.mp4')
-    //   ..initialize().then((_) {
-    //     setState(() {});
-    //     _videoController.play();
-    //   });
-
-    // _videoController.addListener((){
-    //   if (_videoController.value.position == _videoController.value.duration) {
-       
-    //     _goToNextScreen();
-    //   }
-    // });
-  timer = Timer(const Duration(seconds: 3), () {
-    _goToNextScreen();
-     // Navigator.pushReplacementNamed(context, '/home'); // or use Navigator.pushReplacement(...)
-    });
-
-  }
-
-void _goToNextScreen()async {
-     SharedPreferences prefs = await SharedPreferences.getInstance();
-  // Versioned key: the V3 onboarding is shown once, also to users who saw
-  // the previous one ('isFirstLaunch').
-  bool isFirstLaunch = !(prefs.getBool(kOnboardingSeenKey) ?? false);
-   //getStatus(context);
-    
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => isFirstLaunch ? OnboardingScreen() : MainBottomNavbar() //BelnetHomePage()
-      ),
-    );
-  }
-
-
-// @override
-//   void didChangeAppLifecycleState(AppLifecycleState state) {
-//   try{
-
-//      // Safely use the provider with `context.read<T>()`
-//     if (!mounted) return;
-
-//     final loaderVideoProvider = context.read<LoaderVideoProvider>();
-//    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
-
-//       //timer1?.cancel();
-//       //AwesomeNotifications().cancel(10); // Cancel the notification with id 10
-//     }
-//     if(state == AppLifecycleState.resumed){
-//       if(BelnetLib.isConnected){
-//         print('I AM INside ----->');
-//         loaderVideoProvider.setConnectionStatus(ConnectionStatus.CONNECTED);
-//         print('I AM INside 111----->${loaderVideoProvider.conStatus}');
-
-//       }
-//         print('I AM INside out 222----->${loaderVideoProvider.conStatus}');
-
-//     }
-//   }catch(e){
-// }
-   
-//   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-@override
-  void dispose() {
-    timer?.cancel();
-    //_controller!.dispose();
-   // _videoController.dispose();
-        WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-
-    return
-      Scaffold(
-        extendBody: true,
-      backgroundColor: Colors.black,// Color(0xff1C1C26),
-         body: Center(
-          child:// Lottie.asset('assets/images/dark_theme/Splash screen_new.json')
-          Image.asset('assets/images/dark_theme/Splash_1.gif',
-          height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
-          fit: BoxFit.cover,
-          ),
-         )
-       
-    );
-  }
+  Widget build(BuildContext context) => const OnboardingScreen();
 }

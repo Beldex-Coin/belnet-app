@@ -29,6 +29,13 @@ class GlobeCamera extends ChangeNotifier {
   int arrivalHop = -1;
   double arrivalT = 1;
 
+  /// Offset (px) of the moving dashes on legs still to come.
+  double dashPhase = 0;
+
+  /// Progress (0..1) of the "heading to the exit" marker along
+  /// [GlobePainter.pendingArc] while no path is known yet.
+  double seek = 0;
+
   void notify() => notifyListeners();
 }
 
@@ -154,7 +161,25 @@ class GlobePainter extends CustomPainter {
     required this.routeArcs,
     required this.routeMode,
     required this.showSpinArrow,
+    this.firstHopArc = 0,
+    this.pendingArc,
+    this.showSeek = false,
+    this.showDestination = false,
   }) : super(repaint: camera);
+
+  /// Trace position at which the first hop is reached (1 when the route
+  /// starts at the user, 0 when it starts at the first hop).
+  final int firstHopArc;
+
+  /// Leg still to be made, drawn with moving dashes: user -> exit while the
+  /// route is searched, last hop -> exit while waiting for the tunnel.
+  final List<LatLon>? pendingArc;
+
+  /// Draw the marker heading along [pendingArc] (route not known yet).
+  final bool showSeek;
+
+  /// Mark the exit (destination) with a quiet ring before it is reached.
+  final bool showDestination;
 
   final GlobeGeometry geometry;
   final GlobeCamera camera;
@@ -316,9 +341,70 @@ class GlobePainter extends CustomPainter {
 
     final pulse = camera.pulse;
 
+    // Leg still to come (towards the exit), with moving dashes.
+    final pending = pendingArc;
+    if (pending != null && pending.length > 1) {
+      final n = (pending.length - 1).toDouble();
+      final path = _arcPath(pending, 0, n, rot, center, radius);
+      canvas.drawPath(
+        _dash(path, 4, 4, -camera.dashPhase),
+        Paint()
+          ..color = palette.routeDash.withOpacity(0.85)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2
+          ..strokeCap = StrokeCap.round,
+      );
+      if (showSeek && camera.seek > 0) {
+        // Faint trail behind the marker heading to the exit, and the
+        // marker itself (searching, not a found route).
+        final trail = _arcPath(pending, 0, n * camera.seek, rot, center, radius);
+        canvas.drawPath(
+          trail,
+          Paint()
+            ..color = palette.exit.withOpacity(0.35)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.4
+            ..strokeCap = StrokeCap.round,
+        );
+        final i = (n * camera.seek).floor().clamp(0, pending.length - 2);
+        final f = n * camera.seek - i;
+        final a = rot.of(pending[i].latitude, pending[i].longitude);
+        final b = rot.of(pending[i + 1].latitude, pending[i + 1].longitude);
+        if (a.z >= 0 && b.z >= 0) {
+          final at = center +
+              Offset(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f) * radius;
+          final blink = 0.5 + 0.5 * math.cos(camera.pulse * 4 * math.pi);
+          canvas.drawCircle(at, 6,
+              Paint()..color = palette.exit.withOpacity(0.15 + 0.15 * blink));
+          canvas.drawCircle(at, 2.4, Paint()..color = palette.exit);
+        }
+      }
+    }
+
     // Route.
     if (routeMode != GlobeRouteMode.none && routeArcs.isNotEmpty) {
       _paintRoute(canvas, rot, center, radius);
+    }
+
+    // Destination (exit) before it is reached: a quiet ring, so the route
+    // visibly heads somewhere without suggesting it is connected.
+    final dest = exit;
+    if (showDestination && !exitActive && dest != null) {
+      final p = rot.of(dest.latitude, dest.longitude);
+      if (p.z > 0) {
+        final at = center + Offset(p.x, p.y) * radius;
+        final a = _fade(p.z);
+        canvas.drawCircle(
+          at,
+          5.5,
+          Paint()
+            ..color = palette.exit.withOpacity(0.55 * a)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.3,
+        );
+        canvas.drawCircle(
+            at, 1.8, Paint()..color = palette.exit.withOpacity(0.6 * a));
+      }
     }
 
     // Masternodes: white (dark) / grey (light) dots with a ring.
@@ -330,7 +416,7 @@ class GlobePainter extends CustomPainter {
       final at = hopPos[i].$1;
       final alpha = hopPos[i].$2;
       final reached = routeMode != GlobeRouteMode.tracing ||
-          camera.trace >= i - 0.001;
+          camera.trace >= i + firstHopArc - 0.001;
       if (reached && at.isFinite && alpha > 0) {
         // Soft glow on hops the route has reached.
         canvas.drawCircle(
@@ -344,7 +430,9 @@ class GlobePainter extends CustomPainter {
         );
       }
       // Ripple when the route arrives at this hop.
-      if (i == camera.arrivalHop && camera.arrivalT < 1 && at.isFinite) {
+      if (i + firstHopArc == camera.arrivalHop &&
+          camera.arrivalT < 1 &&
+          at.isFinite) {
         final t = Curves.easeOut.transform(camera.arrivalT);
         canvas.drawCircle(
           at,
@@ -423,12 +511,17 @@ class GlobePainter extends CustomPainter {
   }
 
   /// Dashes [source] ([on] / [off] logical pixels).
-  static Path _dash(Path source, double on, double off) {
+  static Path _dash(Path source, double on, double off, [double phase = 0]) {
     final out = Path();
     for (final m in source.computeMetrics()) {
-      var d = 0.0;
+      var d = -(phase % (on + off));
+      while (d + on < 0) {
+        d += on + off;
+      }
       while (d < m.length) {
-        out.addPath(m.extractPath(d, math.min(d + on, m.length)), Offset.zero);
+        out.addPath(
+            m.extractPath(math.max(0, d), math.min(d + on, m.length)),
+            Offset.zero);
         d += on + off;
       }
     }
@@ -615,5 +708,9 @@ class GlobePainter extends CustomPainter {
       !identical(old.otherNodes, otherNodes) ||
       !identical(old.routeArcs, routeArcs) ||
       old.routeMode != routeMode ||
-      old.showSpinArrow != showSpinArrow;
+      old.showSpinArrow != showSpinArrow ||
+      old.firstHopArc != firstHopArc ||
+      !identical(old.pendingArc, pendingArc) ||
+      old.showSeek != showSeek ||
+      old.showDestination != showDestination;
 }

@@ -5,6 +5,7 @@ import 'package:belnet_mobile/src/map/globe_painter.dart';
 import 'package:belnet_mobile/src/map/globe_projection.dart';
 import 'package:belnet_mobile/src/map/map_projection.dart';
 import 'package:belnet_mobile/src/map/route_snapshot.dart';
+import 'package:belnet_mobile/src/map/shared_globe.dart';
 import 'package:belnet_mobile/src/map/vpn_home_style.dart';
 import 'package:belnet_mobile/src/map/vpn_map_provider.dart';
 import 'package:belnet_mobile/src/map/world_map_data.dart';
@@ -115,6 +116,14 @@ class _VpnWorldMapState extends State<VpnWorldMap>
   /// For each route arc, the index (in [RouteSnapshot.activeHops]) of the
   /// hop it ends at, or -1 when it ends at the exit.
   List<int> _arcEndHop = const [];
+
+  /// User -> exit (searching) and last hop -> exit (waiting) legs.
+  List<LatLon>? _seekArc;
+  List<LatLon>? _pendingExitArc;
+  bool _routeHasOrigin = false;
+
+  /// Seconds spent searching (drives the marker heading to the exit).
+  double _seekClock = 0;
 
   /// Seconds since the route trace (re)started.
   double _traceClock = 0;
@@ -335,6 +344,18 @@ class _VpnWorldMapState extends State<VpnWorldMap>
     final newExit = exitLoc != null && exitLoc.hasCoordinates
         ? MapProjection.project(exitLoc.latitude, exitLoc.longitude)
         : null;
+    // Tell the shared background globe what home is looking at, so leaving
+    // and coming back to home keeps the same side of the world in view.
+    final focusLoc = phase == VpnMapPhase.connected &&
+            exitLoc != null &&
+            exitLoc.hasCoordinates
+        ? exitLoc
+        : originLoc;
+    SharedGlobeController.instance.setHomeFocus(
+      focusLoc != null && focusLoc.hasCoordinates
+          ? (latitude: focusLoc.latitude, longitude: focusLoc.longitude)
+          : null,
+    );
     final exitChanged = newExit != _exitTo;
     if (exitChanged) {
       final current = _currentExitNormalized();
@@ -516,6 +537,8 @@ class _VpnWorldMapState extends State<VpnWorldMap>
     _shownStage = ConnectStage.findingRoute;
     _stageSince = _clock;
     _restartTrace();
+    _seekClock = 0;
+    _camera.seek = 0;
     _hopShown.value = 1;
     // Start facing the user's country, like the flat map just did.
     final o = _provider?.originalLocation;
@@ -670,9 +693,13 @@ class _VpnWorldMapState extends State<VpnWorldMap>
           ),
     ];
 
-    // Route: hop 1 -> ... -> hop N (-> exit), through located hops. As in
-    // the design the legs join the masternodes; the user is not on it.
+    // Route: user -> hop 1 -> ... -> hop N (-> exit), through located
+    // points, so it travels from the source towards the destination.
     final points = <(LatLon, int)>[];
+    final o = _provider?.originalLocation;
+    if (o != null && o.hasCoordinates && hops.isNotEmpty) {
+      points.add(((latitude: o.latitude, longitude: o.longitude), -2));
+    }
     for (var i = 0; i < hops.length; i++) {
       final c = hops[i].country;
       if (c != null) {
@@ -683,6 +710,20 @@ class _VpnWorldMapState extends State<VpnWorldMap>
     final x = _exitLatLon();
     final toExit = route.routeReady || _phase == VpnMapPhase.connected;
     if (x != null && hops.isNotEmpty && toExit) points.add((x, -1));
+    // Not there yet: the last located hop -> exit is shown as the leg
+    // still to come.
+    final lastHop = points.lastIndexWhere((p) => p.$2 >= 0);
+    _pendingExitArc = (!toExit && x != null && lastHop >= 0)
+        ? greatCircle(points[lastHop].$1.latitude, points[lastHop].$1.longitude,
+            x.latitude, x.longitude,
+            segments: 28)
+        : null;
+    // Source -> destination, used while the path is still being searched.
+    _seekArc = (o != null && o.hasCoordinates && x != null)
+        ? greatCircle(o.latitude, o.longitude, x.latitude, x.longitude,
+            segments: 40)
+        : null;
+    _routeHasOrigin = points.isNotEmpty && points.first.$2 == -2;
     final arcs = <List<LatLon>>[];
     final ends = <int>[];
     for (var i = 0; i + 1 < points.length; i++) {
@@ -697,8 +738,12 @@ class _VpnWorldMapState extends State<VpnWorldMap>
     _firstHopReached = points.isNotEmpty && points.first.$2 >= 0
         ? points.first.$2 + 1
         : 0;
-    if (changedPath && _shownStage == ConnectStage.hoppingNodes) {
-      _restartTrace(); // a new path: trace it from the start
+    if (changedPath &&
+        _shownStage == ConnectStage.hoppingNodes &&
+        _camera.trace < _hopLegs - 0.001) {
+      // The daemon switched path: keep going from where the trace is
+      // (no jump back to the start); the new legs are drawn from there.
+      _traceCompleteAt = -1;
     }
     if (_shownStage == ConnectStage.routeFound) {
       _camera.trace = arcs.length.toDouble();
@@ -737,13 +782,26 @@ class _VpnWorldMapState extends State<VpnWorldMap>
       switch (stage) {
         case ConnectStage.findingRoute:
         case null:
-          // Spin the whole globe while the daemon looks for a route.
-          _camera.longitude = wrapLongitude(_camera.longitude + 16 * dt);
-          final o = _provider?.originalLocation;
-          final tilt = o != null && o.hasCoordinates
-              ? (o.latitude * 0.6).clamp(-35.0, 45.0)
-              : 15.0;
-          _camera.latitude += (tilt - _camera.latitude) * (1 - math.exp(-dt));
+          final seekArc = _seekArc;
+          if (seekArc != null) {
+            // Head from the user towards the exit while the daemon looks
+            // for a path: steady progress that slows down and never claims
+            // to arrive (at most 70% of the way), however long it takes.
+            _seekClock += dt;
+            _camera.seek = 0.7 * (1 - math.exp(-_seekClock / 6));
+            final i = ((seekArc.length - 1) * _camera.seek)
+                .round()
+                .clamp(0, seekArc.length - 1);
+            final p = seekArc[i];
+            target = (
+              latitude: p.latitude.clamp(-45.0, 55.0),
+              longitude: p.longitude,
+            );
+          } else {
+            // No source/destination known: turn the globe.
+            _camera.longitude = wrapLongitude(_camera.longitude + 16 * dt);
+            _camera.latitude += (15 - _camera.latitude) * (1 - math.exp(-dt));
+          }
           break;
         case ConnectStage.hoppingNodes:
           // Glide with the route as it is drawn from hop to hop: the globe
@@ -753,7 +811,12 @@ class _VpnWorldMapState extends State<VpnWorldMap>
             for (final arc in _routeArcs) ...[arc.first, arc.last],
           ];
           final mean = sphericalMean(pts);
-          final head = _routePointAt(_camera.trace);
+          final waitingLeg = _pendingExitArc;
+          // All hops linked but the tunnel is not ready yet: lean towards
+          // the exit (the leg still to come) and wait there.
+          final head = _traceCompleteAt >= 0 && waitingLeg != null
+              ? waitingLeg[waitingLeg.length ~/ 2]
+              : _routePointAt(_camera.trace);
           final aim = head == null
               ? mean
               : (mean == null ? head : sphericalMean([head, head, mean]));
@@ -772,6 +835,9 @@ class _VpnWorldMapState extends State<VpnWorldMap>
               : _exitLatLon();
           break;
       }
+      // Moving dashes on the leg still to come (keeps the globe alive
+      // while waiting, without suggesting a finished route).
+      _camera.dashPhase = (_camera.dashPhase + dt * 14) % 1000;
       if (target != null) {
         // Soft follow (time constant ~0.6 s): no jumps when the target
         // moves to the next hop or the path changes.
@@ -789,6 +855,7 @@ class _VpnWorldMapState extends State<VpnWorldMap>
         _camera.trace = _tracePosition(_hopLegs);
         if (_camera.trace >= _hopLegs - 0.001 && _traceCompleteAt < 0) {
           _traceCompleteAt = _clock;
+          if (mounted) setState(() {}); // status: waiting for the exit
         }
       } else if (stage == ConnectStage.routeFound) {
         // Then the last leg, to the exit.
@@ -813,6 +880,8 @@ class _VpnWorldMapState extends State<VpnWorldMap>
     }
     _updateHopShown();
     _camera.notify();
+    SharedGlobeController.instance
+        .syncRotation(_camera.latitude, _camera.longitude);
 
     // --- leave the globe once "ROUTE FOUND" has been seen ---
     if (_leavingToExit &&
@@ -1204,6 +1273,9 @@ class _VpnWorldMapState extends State<VpnWorldMap>
                         : null,
                     hopShown: _hopShown,
                     hopTotal: _route.activeHops.length,
+                    // Every hop linked, tunnel not ready yet.
+                    waiting: _shownStage == ConnectStage.hoppingNodes &&
+                        _traceCompleteAt >= 0,
                     ),
                   ),
                 ),
@@ -1295,7 +1367,8 @@ class _VpnWorldMapState extends State<VpnWorldMap>
       origin: o != null && o.hasCoordinates
           ? (latitude: o.latitude, longitude: o.longitude)
           : null,
-      showOrigin: finding,
+      // The user stays marked as the start of the route in every stage.
+      showOrigin: true,
       exit: _exitLatLon(),
       exitActive: found,
       hops: finding ? const [] : _hopDots,
@@ -1304,7 +1377,15 @@ class _VpnWorldMapState extends State<VpnWorldMap>
       routeArcs: _routeArcs,
       // Hops then exit are connected one by one (solid green, growing).
       routeMode: finding ? GlobeRouteMode.none : GlobeRouteMode.tracing,
-      showSpinArrow: !found,
+      // The route starts at the user, so the first arc is origin -> hop 1.
+      firstHopArc: _routeHasOrigin ? 1 : 0,
+      // Leg still to come, drawn as moving dashes (never as "connected").
+      pendingArc: finding ? _seekArc : (found ? null : _pendingExitArc),
+      showSeek: finding,
+      // Destination is shown as a hollow ring until the tunnel is up.
+      showDestination: stage != null,
+      // No arrow above the globe any more.
+      showSpinArrow: false,
     );
   }
 
@@ -1422,8 +1503,10 @@ class _StatusBlock extends StatelessWidget {
     required this.stage,
     required this.hopShown,
     required this.hopTotal,
+    this.waiting = false,
   });
 
+  final bool waiting;
   final bool dark;
   final VpnMapPhase phase;
 
@@ -1460,9 +1543,13 @@ class _StatusBlock extends StatelessWidget {
           detail = ValueListenableBuilder<int>(
             valueListenable: hopShown,
             builder: (context, k, _) => Text(
-              hopTotal > 0
-                  ? 'Hop ${math.min(k, hopTotal)} of $hopTotal · onion routing'
-                  : 'Onion routing',
+              waiting
+                  ? (hopTotal > 0
+                      ? 'Hop $hopTotal of $hopTotal · waiting for exit node…'
+                      : 'Waiting for exit node…')
+                  : hopTotal > 0
+                      ? 'Hop ${math.min(k, hopTotal)} of $hopTotal · onion routing'
+                      : 'Onion routing',
               style: s.mono(),
             ),
           );

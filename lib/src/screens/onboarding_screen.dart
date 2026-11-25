@@ -6,6 +6,7 @@ import 'package:belnet_mobile/src/map/geo_location.dart';
 import 'package:belnet_mobile/src/map/globe_painter.dart';
 import 'package:belnet_mobile/src/map/globe_projection.dart';
 import 'package:belnet_mobile/src/map/map_projection.dart';
+import 'package:belnet_mobile/src/map/shared_globe.dart';
 import 'package:belnet_mobile/src/map/world_map_data.dart';
 import 'package:belnet_mobile/src/map/world_map_painters.dart';
 import 'package:belnet_mobile/src/providers/ip_provider.dart';
@@ -18,7 +19,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// SharedPreferences flag: the V3 onboarding has been completed.
 const String kOnboardingSeenKey = 'onboarding_v3_seen';
 
-/// One-time onboarding (first launch).
+/// Intro globe: the one-time onboarding on first launch, and the launch
+/// (splash) screen on every later launch.
+///
+/// Both use the same globe, so the app always opens the same way and hands
+/// over to home without a jump. On later launches the text and Next are not
+/// shown: after a short beat the globe rises, finds the user and zooms into
+/// home by itself (and nothing is written to preferences).
 ///
 /// 1. Logo, "FAST & SECURE DVPN" and Next, with the globe parked at the
 ///    bottom, turning slowly.
@@ -45,7 +52,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   /// (top edge at ~70% of the height, design frame 1), then centred with a
   /// radius of ~0.76 x the width (frame 2).
   static const double _parkZoom = 3.35;
-  static const double _centerZoom = 1.95;
+  static const double _centerZoom = 2.15;
+
+  /// After Next the centred globe sits a little lower than the middle and
+  /// stays large (fraction of the height it is moved down).
+  static const double _centerDrop = 0.05;
 
   /// Extra zoom into the user's country at the end, while home fades in.
   static const double _finalZoom = 3.2;
@@ -56,6 +67,15 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   /// Give up on the location after this long and go home anyway.
   static const double _maxSearch = 10;
+
+  /// Launch (splash) mode: a much shorter search, and no long wait for a
+  /// location (home keeps looking it up).
+  static const double _splashMinSearch = 0.4;
+  static const double _splashMaxSearch = 2.5;
+
+  /// null until the preferences are read; true = first launch (onboarding).
+  bool? _firstLaunch;
+  Timer? _autoStart;
 
   final GlobeCamera _camera = GlobeCamera();
   late final Ticker _ticker;
@@ -83,8 +103,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       ..latitude = 8
       ..longitude = 18
       ..zoom = _parkZoom;
+    // Hidden until we know whether this is the first launch (the native
+    // launch screen is plain dark too, so nothing jumps).
     _ui = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 450), value: 1);
+        vsync: this, duration: const Duration(milliseconds: 450), value: 0);
     _rise = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 1300))
       ..addStatusListener((s) {
@@ -109,6 +131,28 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     // Start the location lookup right away; by the time Next is tapped it
     // is often already known.
     WidgetsBinding.instance.addPostFrameCallback((_) => _startLookup());
+    _readFirstLaunch();
+  }
+
+  Future<void> _readFirstLaunch() async {
+    var first = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      first = !(prefs.getBool(kOnboardingSeenKey) ?? false);
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() => _firstLaunch = first);
+    if (first) {
+      _ui.forward();
+      return;
+    }
+    // Launch screen: show the logo for a beat, then go.
+    if (_reduceMotion) {
+      _goHome();
+      return;
+    }
+    _ui.forward();
+    _autoStart = Timer(const Duration(milliseconds: 650), _startFlow);
   }
 
   @override
@@ -120,6 +164,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   @override
   void dispose() {
     _poll?.cancel();
+    _autoStart?.cancel();
     _ticker.dispose();
     _ui.dispose();
     _rise.dispose();
@@ -158,7 +203,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // Flow
 
   Future<void> _onNext() async {
-    if (_step != _Step.intro) return;
+    if (_step != _Step.intro || _firstLaunch != true) return;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(kOnboardingSeenKey, true);
     await prefs.setBool('isFirstLaunch', false); // legacy flag
@@ -167,6 +212,13 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       _goHome();
       return;
     }
+    _startFlow();
+  }
+
+  /// Rise, search, focus, zoom into home (onboarding Next, or automatic on
+  /// later launches).
+  void _startFlow() {
+    if (!mounted || _step != _Step.intro) return;
     setState(() => _step = _Step.rising);
     _ui.reverse();
     _rise.forward();
@@ -175,6 +227,14 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   void _goHome() {
     if (_navigated || !mounted) return;
     _navigated = true;
+    // Hand the globe's pose to the shared globe (other tabs / home), so
+    // the next globe the user sees continues from here.
+    final shared = SharedGlobeController.instance
+      ..syncRotation(_camera.latitude, _camera.longitude);
+    final f = _found;
+    if (f != null && f.hasCoordinates) {
+      shared.setHomeFocus((latitude: f.latitude, longitude: f.longitude));
+    }
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 900),
@@ -220,8 +280,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
         _camera.latitude += (tilt - _camera.latitude) * (1 - math.exp(-dt));
         if (_step == _Step.searching) {
           final searched = _clock - _searchStart;
-          final ready = _lookupDone || searched > _maxSearch;
-          if (ready && searched >= _minSearch) {
+          final splash = _firstLaunch == false;
+          final ready = _lookupDone ||
+              searched > (splash ? _splashMaxSearch : _maxSearch);
+          if (ready &&
+              searched >= (splash ? _splashMinSearch : _minSearch)) {
             final f = _found;
             if (f != null && f.hasCoordinates) {
               _country = _data?.resolveCountry(
@@ -329,7 +392,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   // position is moved here.
                   final t = Curves.easeInOutCubic.transform(_rise.value);
                   return Transform.translate(
-                    offset: Offset(0, _parkOffset(size) * (1 - t)),
+                    offset: Offset(
+                        0,
+                        _parkOffset(size) * (1 - t) +
+                            size.height * _centerDrop * t),
                     child: child,
                   );
                 },
@@ -398,6 +464,14 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           'assets/images/dark_theme/belnet_onboard_logo.svg'),
                     ),
                     const Spacer(flex: 5),
+                    // Launch screen: logo only (same layout, so nothing
+                    // moves between the two modes).
+                    Visibility(
+                      visible: _firstLaunch == true,
+                      maintainSize: true,
+                      maintainAnimation: true,
+                      maintainState: true,
+                      child: Column(children: [
                     Container(
                       width: double.infinity,
                       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -449,6 +523,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           ),
                         ),
                       ),
+                    ),
+                      ]),
                     ),
                     const SizedBox(height: 15),
                   ],

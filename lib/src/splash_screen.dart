@@ -55,7 +55,9 @@ class _SplashScreensState extends State<SplashScreens>
 
 void _goToNextScreen()async {
      SharedPreferences prefs = await SharedPreferences.getInstance();
-  bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
+  // Versioned key: the V3 onboarding is shown once, also to users who saw
+  // the previous one ('isFirstLaunch').
+  bool isFirstLaunch = !(prefs.getBool(kOnboardingSeenKey) ?? false);
    //getStatus(context);
     
     Navigator.of(context).pushReplacement(

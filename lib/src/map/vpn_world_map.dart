@@ -219,7 +219,9 @@ class _VpnWorldMapState extends State<VpnWorldMap>
       ..addListener(_onFocusTick);
     _globeMix = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      // Connect: flat map zooms out (40%), cross-fade to the globe at the
+      // same view (25%), globe settles (35%); then it starts turning.
+      duration: const Duration(milliseconds: 2200),
       // Leaving to the exit: ~60% zoom (globe only), then ~40% cross-fade.
       reverseDuration: const Duration(milliseconds: 1700),
     )
@@ -555,8 +557,61 @@ class _VpnWorldMapState extends State<VpnWorldMap>
     if (instant) {
       _globeMix.value = 1;
     } else {
+      _prepareEnterZoomOut();
       _globeMix.forward();
     }
+  }
+
+  // ---------------------------------------------------------------------
+  // Connect: the flat map itself zooms out first, then becomes the globe.
+
+  /// Fractions of the enter animation: flat zoom-out ends at [_enterFadeAt],
+  /// the cross-fade (globe held still on the flat view) at [_enterSettleAt].
+  static const double _enterFadeAt = 0.4;
+  static const double _enterSettleAt = 0.65;
+
+  ({double s0, double s1, Offset p0, Offset p1, Offset mapPoint})? _enterZoom;
+
+  bool get _splitEnter =>
+      _globeScene &&
+      !_leavingToExit &&
+      _globeMix.status == AnimationStatus.forward;
+
+  void _prepareEnterZoomOut() {
+    _enterZoom = null;
+    final origin = _origin ?? _exitTo;
+    if (origin == null || _viewport.isEmpty || _mapSize.isEmpty) return;
+    _focus.stop();
+    final from = _transform;
+    final mapPoint =
+        Offset(origin.dx * _mapSize.width, origin.dy * _mapSize.height);
+    final p0 = from.toScreen(mapPoint);
+    // Fully zoomed out, keeping the user's point where it is as far as the
+    // map edges allow.
+    final out = MapViewTransform.clamp(
+      MapViewTransform(1.0, p0 - mapPoint),
+      viewport: _viewport,
+      mapSize: _mapSize,
+    );
+    _enterZoom = (
+      s0: from.scale,
+      s1: out.scale,
+      p0: p0,
+      p1: out.toScreen(mapPoint),
+      mapPoint: mapPoint,
+    );
+  }
+
+  /// Flat map zoom-out (first part of the enter animation).
+  void _applyEnterZoomOut() {
+    final z = _enterZoom;
+    if (z == null || !_splitEnter || z.s0 <= 0) return;
+    final t = Curves.easeInOutCubic
+        .transform((_globeMix.value / _enterFadeAt).clamp(0.0, 1.0));
+    final scale = z.s0 * math.pow(z.s1 / z.s0, t).toDouble();
+    final point = Offset.lerp(z.p0, z.p1, t)!;
+    _tc.value = Matrix4.fromList(
+        MapViewTransform(scale, point - z.mapPoint * scale).toStorage());
   }
 
   void _leaveGlobe({required bool instant}) {
@@ -578,6 +633,7 @@ class _VpnWorldMapState extends State<VpnWorldMap>
   }
 
   void _onGlobeMixTick() {
+    _applyEnterZoomOut();
     _applyGlobeZoom();
     // The flat map only needs its own pulse loop while it is visible.
     _syncLoop();
@@ -622,7 +678,7 @@ class _VpnWorldMapState extends State<VpnWorldMap>
       lon: ll.longitude,
       screen: t.toScreen(
           Offset(point.dx * _mapSize.width, point.dy * _mapSize.height)),
-      zoom: (pixelsPerRadian / base).clamp(1.0, 12.0),
+      zoom: (pixelsPerRadian / base).clamp(0.5, 12.0),
     );
   }
 
@@ -639,6 +695,9 @@ class _VpnWorldMapState extends State<VpnWorldMap>
   /// Globe zoom/position progress: 1 = whole globe, 0 = flat map's view.
   double get _zoomMix {
     final v = _globeMix.value;
+    if (_splitEnter && _enterZoom != null) {
+      return ((v - _enterSettleAt) / (1 - _enterSettleAt)).clamp(0.0, 1.0);
+    }
     if (!_splitLeave) return v;
     return ((v - _leaveFade) / (1 - _leaveFade)).clamp(0.0, 1.0);
   }
@@ -647,6 +706,10 @@ class _VpnWorldMapState extends State<VpnWorldMap>
   /// Leaving to the exit, the fade starts only once the zoom is complete.
   double get _fadeMix {
     final v = _globeMix.value;
+    if (_splitEnter && _enterZoom != null) {
+      return ((v - _enterFadeAt) / (_enterSettleAt - _enterFadeAt))
+          .clamp(0.0, 1.0);
+    }
     if (!_splitLeave) return v;
     return (v / _leaveFade).clamp(0.0, 1.0);
   }
@@ -1002,6 +1065,8 @@ class _VpnWorldMapState extends State<VpnWorldMap>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (_userMoved && !force) return;
+      // The connect zoom-out drives the flat map itself.
+      if (_splitEnter && _enterZoom != null) return;
       // Behind the globe the camera jumps; on screen it glides.
       final visible = _globeMix.value < 0.5;
       final target = _focusTarget();

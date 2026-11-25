@@ -22,6 +22,23 @@ class VpnMapPalette {
     required this.pillBackground,
     required this.pillText,
     required this.inactiveExit,
+    required this.originHighlight,
+    required this.originHighlightBorder,
+    required this.globeLight,
+    required this.globeDark,
+    required this.globeShade,
+    required this.globeRim,
+    required this.globeGlow,
+    required this.hopDot,
+    required this.hopRing,
+    required this.globeLand,
+    required this.globeBorder,
+    required this.routeDash,
+    required this.exitHighlight,
+    required this.exitHighlightBorder,
+    required this.mapRing,
+    required this.spinArrow,
+    this.globeHaloWidth = 1.11,
   });
 
   final Color ocean;
@@ -38,36 +55,107 @@ class VpnMapPalette {
   final Color pillText;
   final Color inactiveExit;
 
+  /// Fill / outline of the user's own country while unprotected.
+  final Color originHighlight;
+  final Color originHighlightBorder;
+
+  /// Globe (connecting view).
+  final Color globeLight;
+  final Color globeDark;
+  final Color globeShade;
+  final Color globeRim;
+  final Color globeGlow;
+
+  /// Masternode hop dots on the globe, and the ring around them.
+  final Color hopDot;
+  final Color hopRing;
+
+  /// Countries on the globe.
+  final Color globeLand;
+  final Color globeBorder;
+
+  /// Route legs not traced (yet).
+  final Color routeDash;
+
+  /// The exit country while connected.
+  final Color exitHighlight;
+  final Color exitHighlightBorder;
+
+  /// Faint concentric rings around the active marker.
+  final Color mapRing;
+
+  /// Dashed "rotating" arrow above the globe.
+  final Color spinArrow;
+
+  /// Outer radius of the globe's halo, as a multiple of the globe radius.
+  final double globeHaloWidth;
+
   static const dark = VpnMapPalette(
-    ocean: Color(0xFF0D0F12),
-    land: Color(0xFF23272E),
-    border: Color(0xFF3A3F49),
-    graticule: Color(0x14FFFFFF),
+    ocean: Color(0x00000000), // radial glow of the home screen shows through
+    land: Color(0x06FFFFFF), // outline map: land is the background
+    border: Color(0xFF363636),
+    graticule: Color(0x10FFFFFF),
     label: Color(0x99D5D9E0),
     labelHalo: Color(0xCC0D0F12),
-    origin: Color(0xFF7FA8FF),
-    exit: Color(0xFF00DC00),
+    origin: Color(0xFFFF3D00),
+    exit: Color(0xFF00DB00),
     failed: Color(0xFFFF5252),
     markerRing: Color(0xFFFFFFFF),
     pillBackground: Color(0xE61A1D22),
     pillText: Color(0xFFEBEBEB),
     inactiveExit: Color(0xFF8D8D8D),
+    originHighlight: Color(0xFF363535),
+    originHighlightBorder: Color(0xFF6E6E6E),
+    // Sampled from the design: interior ~#252525, halo peaking ~#3d.
+    globeLight: Color(0xFF272727),
+    globeDark: Color(0xFF212121),
+    globeShade: Color(0x00000000),
+    globeRim: Color(0x30FFFFFF),
+    globeGlow: Color(0x2AFFFFFF),
+    hopDot: Color(0xFFF2F2F2),
+    hopRing: Color(0xFF5C5C5C),
+    globeLand: Color(0x08FFFFFF),
+    globeBorder: Color(0xFF525252),
+    routeDash: Color(0xFF8A8A8A),
+    exitHighlight: Color(0xFF1F261F),
+    exitHighlightBorder: Color(0xFF3F5A3F),
+    mapRing: Color(0x07FFFFFF),
+    spinArrow: Color(0xFF6A6A6A),
   );
 
   static const light = VpnMapPalette(
-    ocean: Color(0xFFEFF2F5),
-    land: Color(0xFFD5DAE1),
-    border: Color(0xFFFFFFFF),
-    graticule: Color(0x14000000),
+    ocean: Color(0x00000000),
+    land: Color(0xFFE6E6E6),
+    border: Color(0xFFB4B4B4),
+    graticule: Color(0x12000000),
     label: Color(0xA64D4D4D),
     labelHalo: Color(0xCCEFF2F5),
-    origin: Color(0xFF3D6BE0),
-    exit: Color(0xFF00B400),
+    origin: Color(0xFFFF3D00),
+    exit: Color(0xFF00C400),
     failed: Color(0xFFE53935),
     markerRing: Color(0xFFFFFFFF),
     pillBackground: Color(0xF2FFFFFF),
     pillText: Color(0xFF222222),
     inactiveExit: Color(0xFF8D8D8D),
+    originHighlight: Color(0xFFFDFDFD),
+    originHighlightBorder: Color(0xFF6E6E6E),
+    // Sampled from the light design: halo from the background (#e7) to near
+    // white (#fc) at the rim over ~25% of the radius; faint rim (#ee).
+    globeLight: Color(0xFFF7F7F7),
+    globeDark: Color(0xFFF1F1F1),
+    globeShade: Color(0x00000000),
+    globeRim: Color(0x12000000),
+    globeGlow: Color(0xFFFFFFFF),
+    globeHaloWidth: 1.26,
+    hopDot: Color(0xFF4D4D4D),
+    hopRing: Color(0xFFFFFFFF),
+    globeLand: Color(0xFFE6E6E6),
+    globeBorder: Color(0xFF9E9E9E),
+    routeDash: Color(0xFF9A9A9A),
+    exitHighlight: Color(0xFFFDFDFD),
+    exitHighlightBorder: Color(0xFF8A8A8A),
+    mapRing: Color(0x08000000),
+    spinArrow: Color(0xFFA0A0A0),
   );
 
   static VpnMapPalette of(bool dark) => dark ? VpnMapPalette.dark : light;
@@ -80,10 +168,14 @@ class BaseMapPainter extends CustomPainter {
     required this.data,
     required this.palette,
     required this.borderWidth,
+    this.showGraticule = true,
   });
 
   final WorldMapData data;
   final VpnMapPalette palette;
+
+  /// Draw latitude/longitude lines.
+  final bool showGraticule;
 
   /// Border stroke width in map units (screen width / current zoom bucket),
   /// so borders stay hairline-thin at every zoom level.
@@ -95,13 +187,15 @@ class BaseMapPainter extends CustomPainter {
       ..color = palette.graticule
       ..style = PaintingStyle.stroke
       ..strokeWidth = borderWidth;
-    for (var lon = -150; lon <= 150; lon += 30) {
-      final x = MapProjection.normX(lon.toDouble()) * size.width;
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), graticule);
-    }
-    for (final lat in const [-30.0, 0.0, 30.0, 60.0]) {
-      final y = MapProjection.normY(lat) * size.height;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), graticule);
+    if (showGraticule) {
+      for (var lon = -150; lon <= 150; lon += 30) {
+        final x = MapProjection.normX(lon.toDouble()) * size.width;
+        canvas.drawLine(Offset(x, 0), Offset(x, size.height), graticule);
+      }
+      for (final lat in const [-30.0, 0.0, 30.0, 60.0]) {
+        final y = MapProjection.normY(lat) * size.height;
+        canvas.drawLine(Offset(0, y), Offset(size.width, y), graticule);
+      }
     }
 
     final fill = Paint()
@@ -124,7 +218,8 @@ class BaseMapPainter extends CustomPainter {
   bool shouldRepaint(BaseMapPainter old) =>
       old.data != data ||
       old.palette != palette ||
-      old.borderWidth != borderWidth;
+      old.borderWidth != borderWidth ||
+      old.showGraticule != showGraticule;
 }
 
 /// Country labels in screen space: constant text size at every zoom, more
@@ -223,8 +318,12 @@ class VpnOverlayPainter extends CustomPainter {
     required this.originLabel,
     required this.exitLabel,
     required this.selectedExit,
+    this.showLabels = true,
     required Listenable repaint,
   }) : super(repaint: repaint);
+
+  /// Draw the name pills next to the markers.
+  final bool showLabels;
 
   final Size mapSize;
   final MapViewTransform Function() transform;
@@ -279,34 +378,48 @@ class VpnOverlayPainter extends CustomPainter {
     canvas.scale(t.scale);
     final sameCountry = originCountry != null && originCountry == exitCountry;
     if (originCountry != null && !(sameCountry && h > 0.5)) {
-      final a = 0.16 * (1 - h);
+      final a = 1 - h;
       if (a > 0.004) {
         canvas.drawPath(
           originCountry!.pathForSize(mapSize),
-          Paint()..color = palette.origin.withOpacity(a),
+          Paint()..color = palette.originHighlight.withOpacity(a),
         );
         canvas.drawPath(
           originCountry!.pathForSize(mapSize),
           Paint()
-            ..color = palette.origin.withOpacity(0.5 * (1 - h))
+            ..color = palette.originHighlightBorder.withOpacity(a)
             ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.0 / t.scale,
+            ..strokeWidth = 0.8 / t.scale,
         );
       }
     }
-    if (exitCountry != null && (h > 0.004 || failed)) {
+    // Connected: the exit country is lifted slightly (design); a failed exit
+    // gets a red outline.
+    if (exitCountry != null && !failed && h > 0.004 &&
+        phase == VpnMapPhase.connected) {
+      canvas.drawPath(exitCountry!.pathForSize(mapSize),
+          Paint()..color = palette.exitHighlight.withOpacity(h));
+      canvas.drawPath(
+        exitCountry!.pathForSize(mapSize),
+        Paint()
+          ..color = palette.exitHighlightBorder.withOpacity(h)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.8 / t.scale,
+      );
+    }
+    if (exitCountry != null && failed) {
       final strength = failed ? 1.0 : h;
       final breathe = phase == VpnMapPhase.connected
           ? 0.07 * math.sin(pulse * 2 * math.pi).abs()
           : 0.0;
       canvas.drawPath(
         exitCountry!.pathForSize(mapSize),
-        Paint()..color = exitColor.withOpacity((0.20 + breathe) * strength),
+        Paint()..color = exitColor.withOpacity((0.10 + breathe) * strength),
       );
       canvas.drawPath(
         exitCountry!.pathForSize(mapSize),
         Paint()
-          ..color = exitColor.withOpacity(0.75 * strength)
+          ..color = exitColor.withOpacity(0.35 * strength)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.4 / t.scale
           ..strokeJoin = StrokeJoin.round,
@@ -318,19 +431,29 @@ class VpnOverlayPainter extends CustomPainter {
     final exitN = exitNormalized;
     final exitPt = exitN == null ? null : _toScreen(t, exitN);
 
+    // --- faint concentric rings around the marker in focus ---
+    final ringCenter = active ? exitPt : originPt;
+    if (ringCenter != null) {
+      final ring = Paint()
+        ..color = palette.mapRing
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1;
+      for (var i = 1; i <= 4; i++) {
+        canvas.drawCircle(ringCenter, 64.0 * i, ring);
+      }
+    }
+
     // --- markers ---
     if (originPt != null) {
       if (active) {
-        // Tunnel up: the user's real location is hidden, show it quietly.
-        canvas.drawCircle(
-            originPt, 4, Paint()..color = palette.origin.withOpacity(0.45));
+        // Tunnel up: the user's real location is hidden; not drawn.
       } else {
         _drawMarker(
           canvas,
           originPt,
           palette.origin,
           pulse: failed ? null : pulse,
-          size: 6,
+          size: 4.5,
         );
       }
     }
@@ -341,25 +464,17 @@ class VpnOverlayPainter extends CustomPainter {
           exitPt,
           exitColor,
           pulse: failed ? null : pulse,
-          size: selectedExit ? 7.5 : 6.5,
+          size: selectedExit ? 5 : 4.5,
           doublePulse: phase == VpnMapPhase.connecting,
           halo: phase == VpnMapPhase.connected,
         );
       } else {
-        // Disconnected: show the selected server quietly.
-        canvas.drawCircle(exitPt, 5.5,
-            Paint()..color = palette.inactiveExit.withOpacity(0.35));
-        canvas.drawCircle(
-            exitPt,
-            3.5,
-            Paint()
-              ..color = palette.inactiveExit
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 1.5);
+        // Disconnected: the design shows only the user's location.
       }
     }
 
     // --- marker labels ---
+    if (!showLabels) return;
     Rect? originPill;
     if (originPt != null && originLabel != null && !active) {
       originPill = _drawPill(canvas, originLabel!, originPt,
@@ -375,6 +490,8 @@ class VpnOverlayPainter extends CustomPainter {
     }
   }
 
+  /// Blinking, glowing marker (design): soft glow that breathes, a wave
+  /// that expands and fades, a thin ring, and the dot with a bright core.
   void _drawMarker(
     Canvas canvas,
     Offset at,
@@ -384,27 +501,8 @@ class VpnOverlayPainter extends CustomPainter {
     bool doublePulse = false,
     bool halo = false,
   }) {
-    if (pulse != null) {
-      final waves = doublePulse ? [pulse, (pulse + 0.5) % 1.0] : [pulse];
-      for (final w in waves) {
-        final r = size + 4 + w * 22;
-        canvas.drawCircle(
-          at,
-          r,
-          Paint()
-            ..color = color.withOpacity((1 - w) * 0.45)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.6,
-        );
-      }
-    }
-    if (halo) {
-      canvas.drawCircle(at, size + 7, Paint()..color = color.withOpacity(0.18));
-    }
-    canvas.drawCircle(at, size + 2.2, Paint()..color = palette.markerRing);
-    canvas.drawCircle(at, size, Paint()..color = color);
-    canvas.drawCircle(
-        at, size * 0.38, Paint()..color = Colors.white.withOpacity(0.9));
+    drawBlinkingMarker(canvas, at, color,
+        pulse: pulse, size: size, doubleWave: doublePulse);
   }
 
   Rect _pillRect(TextPainter tp, Offset at, {required bool above}) {
@@ -446,5 +544,68 @@ class VpnOverlayPainter extends CustomPainter {
       old.exitCountry != exitCountry ||
       old.originLabel != originLabel ||
       old.exitLabel != exitLabel ||
-      old.selectedExit != selectedExit;
+      old.selectedExit != selectedExit ||
+      old.showLabels != showLabels;
+}
+
+
+/// The design's marker, shared by the flat map and the globe.
+///
+/// [pulse] is a 0..1 repeating clock (null = steady, e.g. failed). The glow
+/// and the core blink twice per cycle; a wave ring expands once per cycle.
+void drawBlinkingMarker(
+  Canvas canvas,
+  Offset at,
+  Color color, {
+  required double? pulse,
+  double size = 4.5,
+  double opacity = 1,
+  bool doubleWave = false,
+}) {
+  if (opacity <= 0) return;
+  final blink =
+      pulse == null ? 1.0 : 0.5 + 0.5 * math.cos(pulse * 4 * math.pi);
+  // Breathing glow.
+  final glowR = size * (2.9 + 0.5 * blink);
+  canvas.drawCircle(
+    at,
+    glowR,
+    Paint()
+      ..shader = RadialGradient(colors: [
+        color.withOpacity((0.30 + 0.30 * blink) * opacity),
+        color.withOpacity(0),
+      ]).createShader(Rect.fromCircle(center: at, radius: glowR)),
+  );
+  // Wave(s) growing from the dot out to the halo ring (never beyond it,
+  // so the marker keeps the design's size).
+  if (pulse != null) {
+    final waves = doubleWave ? [pulse, (pulse + 0.5) % 1.0] : [pulse];
+    for (final w in waves) {
+      canvas.drawCircle(
+        at,
+        size * (1.2 + 1.4 * w),
+        Paint()
+          ..color = color.withOpacity((1 - w) * 0.40 * opacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.0,
+      );
+    }
+  }
+  // Halo ring.
+  canvas.drawCircle(
+    at,
+    size * 2.7,
+    Paint()
+      ..color = color.withOpacity(0.70 * opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1,
+  );
+  // Dot and blinking core.
+  canvas.drawCircle(at, size, Paint()..color = color.withOpacity(opacity));
+  canvas.drawCircle(
+    at,
+    size * 0.45,
+    Paint()
+      ..color = Colors.white.withOpacity((0.35 + 0.45 * blink) * opacity),
+  );
 }

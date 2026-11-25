@@ -219,7 +219,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val speeds = speedMeter.sample()
         val payload = JSONObject()
         try {
-            val raw = boundService?.GetStatus()
+            val raw = boundService?.SafeGetStatus()
             payload.put(
                 "status",
                 if (raw.isNullOrEmpty()) JSONObject.NULL else JSONObject(raw)
@@ -229,7 +229,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
         payload.put("upload", speeds.first)
         payload.put("download", speeds.second)
-        payload.put("isRunning", boundService?.IsRunning() ?: false)
+        payload.put("isRunning", boundService?.SafeIsRunning() ?: false)
         sink.success(payload.toString())
     }
 
@@ -354,13 +354,15 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 result.success(true)
             }
             "isRunning" -> {
-                result.success(boundService?.IsRunning() ?: false)
+                result.success(boundService?.SafeIsRunning() ?: false)
             }
             "getStatus" -> {
                 // Return null (not false) when unbound, and do NOT call
                 // DumpStatus() a second time just for logging - it serializes
                 // the full daemon status through JNI on every poll.
-                result.success(boundService?.DumpStatus())
+                // Safe wrapper: null while the daemon is stopping (a status
+                // read during teardown crashed the app).
+                result.success(boundService?.SafeDumpStatus())
             }
             "getUploadSpeed" -> {
                 val timestamp = SystemClock.elapsedRealtime()
@@ -411,7 +413,7 @@ class BelnetLibPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     return
                 }
                 try {
-                    result.success(service.GetStatus())
+                    result.success(service.SafeGetStatus())
                 } catch (e: Exception) {
                     Log.e("BelnetLibPlugin", "Exception in getDataStatus", e)
                     result.success(null)

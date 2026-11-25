@@ -566,10 +566,12 @@ class VpnMapProvider extends ChangeNotifier {
   /// Read the path while connecting, and - if the tunnel came up before
   /// any hop was seen - while the map is still playing its sequence.
   bool get _wantsRoute =>
-      _phase == VpnMapPhase.connecting ||
-      (_phase == VpnMapPhase.connected &&
-          _sequencePlaying &&
-          !_route.hasHops);
+      // Never while disconnecting: the daemon is being torn down.
+      !_disconnectRequested &&
+      (_phase == VpnMapPhase.connecting ||
+          (_phase == VpnMapPhase.connected &&
+              _sequencePlaying &&
+              !_route.hasHops));
 
   Future<void> _pollRoute() async {
     if (_routePollInFlight || _disposed) return;

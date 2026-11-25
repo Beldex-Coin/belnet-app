@@ -120,6 +120,59 @@ public class BelnetDaemon extends VpnService{
    public native String Unmap(String exitvalue);
   public native String Status();
 
+  // ---------------------------------------------------------------------
+  // Crash guard for status reads during start / stop.
+  //
+  // The app reads the daemon's status from other threads (1 Hz status feed,
+  // map route polling, Hops screen). Reading it while Stop() tears the
+  // router down - or while connect() frees / recreates the native context -
+  // touches freed native memory and kills the whole process (SIGSEGV, no
+  // Java exception), which is the "app closes right after Disconnect"
+  // crash. All status reads now go through these wrappers: they take the
+  // same lock as Stop() / Free() / Obtain(), and return null (not running)
+  // from the moment a stop begins until the next connect.
+
+  private final Object nativeLock = new Object();
+  private volatile boolean stopping = false;
+
+  /** GetStatus(), or null while stopping / not running. Never throws. */
+  public String SafeGetStatus() {
+    synchronized (nativeLock) {
+      if (stopping || impl == null) return null;
+      try {
+        return IsRunning() ? GetStatus() : null;
+      } catch (Throwable t) {
+        Log.w(LOG_TAG, "GetStatus failed: " + t);
+        return null;
+      }
+    }
+  }
+
+  /** DumpStatus(), or null while stopping / not running. Never throws. */
+  public String SafeDumpStatus() {
+    synchronized (nativeLock) {
+      if (stopping || impl == null) return null;
+      try {
+        return IsRunning() ? DumpStatus() : null;
+      } catch (Throwable t) {
+        Log.w(LOG_TAG, "DumpStatus failed: " + t);
+        return null;
+      }
+    }
+  }
+
+  /** IsRunning(), false while stopping. Never throws. */
+  public boolean SafeIsRunning() {
+    synchronized (nativeLock) {
+      if (stopping || impl == null) return false;
+      try {
+        return IsRunning();
+      } catch (Throwable t) {
+        return false;
+      }
+    }
+  }
+
   ByteBuffer impl = null;
   ParcelFileDescriptor iface;
   int m_FD = -1;
@@ -385,11 +438,14 @@ public class BelnetDaemon extends VpnService{
 
   private boolean connect(ArrayList<ConfigValue> configVals,ArrayList<String> allowedApps) {
     if (!IsRunning()) {
-      if (impl != null) {
-        Free(impl);
-        impl = null;
+      synchronized (nativeLock) {
+        if (impl != null) {
+          Free(impl);
+          impl = null;
+        }
+        impl = Obtain();
+        stopping = false;
       }
-      impl = Obtain();
       if (impl == null) {
         Log.e(LOG_TAG, "got nullptr when creating llarp::Context in jni");
 
@@ -539,16 +595,21 @@ public class BelnetDaemon extends VpnService{
 
   private void disconnect() {
     boolean running = false;
-    try {
-      running = IsRunning();
-    } catch (Throwable t) {
-      Log.e(LOG_TAG, "IsRunning() threw during disconnect: " + t);
-    }
-    if (running) {
+    // Waits for any status read in progress, then blocks new ones (see
+    // SafeGetStatus) before the router is torn down.
+    synchronized (nativeLock) {
+      stopping = true;
       try {
-        Stop();
+        running = impl != null && IsRunning();
       } catch (Throwable t) {
-        Log.e(LOG_TAG, "Stop() threw during disconnect: " + t);
+        Log.e(LOG_TAG, "IsRunning() threw during disconnect: " + t);
+      }
+      if (running) {
+        try {
+          Stop();
+        } catch (Throwable t) {
+          Log.e(LOG_TAG, "Stop() threw during disconnect: " + t);
+        }
       }
     }
 
@@ -658,11 +719,11 @@ public class BelnetDaemon extends VpnService{
     // built paths / mapped exit blackholes ALL device traffic (we route
     // 0.0.0.0/0 and ::/0 into the tun), which users experience as
     // "Connected but no internet".
-    boolean running = IsRunning() && VpnService.prepare(BelnetDaemon.this) == null;
+    boolean running = SafeIsRunning() && VpnService.prepare(BelnetDaemon.this) == null;
     boolean ready = false;
     if (running) {
       try {
-        String raw = GetStatus();
+        String raw = SafeGetStatus();
         if (raw != null && !raw.isEmpty()) {
           JSONObject status = new JSONObject(raw);
           boolean flag = status.optBoolean("isconnected", false);

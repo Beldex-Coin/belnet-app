@@ -851,7 +851,11 @@ class _VpnWorldMapState extends State<VpnWorldMap>
     if (!_reduceMotion) {
       _camera.pulse = (_clock / 2.2) % 1.0;
       LatLon? target;
-      switch (stage) {
+      // Connect: the globe only zooms out from the flat map's view first;
+      // it starts turning (towards the exit) once fully zoomed out.
+      final zoomingOut =
+          _globeScene && !_leavingToExit && _globeMix.value < 1;
+      if (!zoomingOut) switch (stage) {
         case ConnectStage.findingRoute:
         case null:
           final seekArc = _seekArc;

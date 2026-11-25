@@ -935,22 +935,30 @@ class _VpnWorldMapState extends State<VpnWorldMap>
     });
   }
 
-  /// Publishes where the user's location sits in home's resting view (see
-  /// [SharedGlobeController.homeAnchor]) for the intro globe to zoom into.
+  /// Publishes the point home is centred on (the user's location, or the
+  /// exit while protected), where it sits in home's resting view and the
+  /// map scale there (see [SharedGlobeController.homeAnchor]). The intro
+  /// globe and the tab globe zoom into exactly this view before home fades
+  /// in over them.
   void _publishHomeAnchor(MapViewTransform target) {
     final p = _provider;
-    final origin = _origin;
-    if (p == null || origin == null || p.tunnelActive || _userMoved) return;
+    if (p == null || _userMoved) return;
     if (_viewport.isEmpty || _mapSize.isEmpty) return;
+    // Same choice as [_focusTarget].
+    final useExit = p.tunnelActive && _exitTo != null;
+    final point = useExit ? _exitTo : (_origin ?? _exitTo);
+    if (point == null) return;
     final box = context.findRenderObject() as RenderBox?;
     if (box == null || !box.hasSize || !box.attached) return;
     final local = target.toScreen(
-        Offset(origin.dx * _mapSize.width, origin.dy * _mapSize.height));
+        Offset(point.dx * _mapSize.width, point.dy * _mapSize.height));
     // Miller map: east-west scale at latitude phi is (width / 2pi) / cos(phi)
     // pixels per radian of arc.
-    final lat = MapProjection.unproject(origin).latitude;
-    final cosLat = math.cos(lat * math.pi / 180).clamp(0.2, 1.0);
+    final ll = MapProjection.unproject(point);
+    final cosLat = math.cos(ll.latitude * math.pi / 180).clamp(0.2, 1.0);
     SharedGlobeController.instance.homeAnchor.value = HomeAnchor(
+      latitude: ll.latitude,
+      longitude: ll.longitude,
       globalPoint: box.localToGlobal(local),
       pixelsPerRadian:
           target.scale * _mapSize.width / (2 * math.pi * cosLat),

@@ -59,7 +59,16 @@ class SharedGlobeController extends ChangeNotifier {
 /// See [SharedGlobeController.homeAnchor].
 @immutable
 class HomeAnchor {
-  const HomeAnchor({required this.globalPoint, required this.pixelsPerRadian});
+  const HomeAnchor({
+    required this.latitude,
+    required this.longitude,
+    required this.globalPoint,
+    required this.pixelsPerRadian,
+  });
+
+  /// The point home is centred on.
+  final double latitude;
+  final double longitude;
 
   /// The user's location on screen (global logical pixels).
   final Offset globalPoint;
@@ -70,6 +79,8 @@ class HomeAnchor {
   @override
   bool operator ==(Object other) =>
       other is HomeAnchor &&
+      (other.latitude - latitude).abs() < 0.01 &&
+      (other.longitude - longitude).abs() < 0.01 &&
       (other.globalPoint - globalPoint).distance < 0.5 &&
       (other.pixelsPerRadian - pixelsPerRadian).abs() < 0.5;
 
@@ -93,6 +104,10 @@ class SharedGlobeLayer extends StatefulWidget {
 
   final bool dark;
 
+  /// Length of the move between Home and the other tabs. The tab bar
+  /// starts fading Home in only once this is done (see MainBottomNavbar).
+  static const double moveSeconds = 0.54;
+
   @override
   State<SharedGlobeLayer> createState() => _SharedGlobeLayerState();
 }
@@ -104,8 +119,14 @@ class _SharedGlobeLayerState extends State<SharedGlobeLayer>
   static const double _backgroundZoom = 3.35;
   static const double _backgroundHorizon = 0.72;
 
-  /// Size when handing over to the home map (about the map's scale).
+  /// Fallback size at Home when the home map has not reported its view.
   static const double _homeZoom = 4.0;
+
+
+  /// At Home: wait this long after arriving (Home has faded in on top),
+  /// then fade this layer out over [_fadeSeconds] and stop drawing it.
+  static const double _hideDelay = 0.45;
+  static const double _fadeSeconds = 0.3;
 
   final SharedGlobeController _shared = SharedGlobeController.instance;
   final GlobeCamera _camera = GlobeCamera();
@@ -113,26 +134,36 @@ class _SharedGlobeLayerState extends State<SharedGlobeLayer>
   Duration? _last;
   WorldMapData? _data;
   Size _size = Size.zero;
-
-  /// Vertical shift of the globe (pixels) and how "home" the pose is.
-  double _dy = 0;
   bool _placed = false;
 
-  /// Visibility: Home draws its own map/globe, so once the zoom-in has
-  /// handed over this layer fades out and stops painting (no duplicate
-  /// globe rendering under the home screen).
+  /// Shift of the globe from its default place (centre at 45% height).
+  Offset _offset = Offset.zero;
+
+  /// Pose the current move started from, and its progress (1 = arrived).
+  bool _home = true;
+  double _t = 1;
+  double _fromZoom = _backgroundZoom;
+  Offset _fromOffset = Offset.zero;
+  double _fromLat = 0;
+  double _fromLon = 0;
+  double _sinceArrival = 0;
+
+  /// Visibility: Home draws its own map, so once Home is showing on top
+  /// this layer fades out and stops painting (no duplicate rendering).
   double _opacity = 1;
 
   @override
   void initState() {
     super.initState();
+    _home = _shared.onHome;
     _camera
       ..latitude = _shared.latitude
       ..longitude = _shared.longitude
-      ..zoom = _shared.onHome ? _homeZoom : _backgroundZoom;
-    _opacity = _shared.onHome ? 0 : 1;
+      ..zoom = _home ? _homeZoom : _backgroundZoom;
+    _opacity = _home ? 0 : 1;
     _ticker = createTicker(_tick);
     _shared.addListener(_onSharedChanged);
+    _shared.homeAnchor.addListener(_wake);
     WorldMapData.load().then((data) {
       if (!mounted) return;
       setState(() => _data = data);
@@ -143,18 +174,39 @@ class _SharedGlobeLayerState extends State<SharedGlobeLayer>
   @override
   void dispose() {
     _shared.removeListener(_onSharedChanged);
+    _shared.homeAnchor.removeListener(_wake);
     _ticker.dispose();
     _camera.dispose();
     super.dispose();
   }
 
   void _onSharedChanged() {
-    // Pick up the rotation other globes left behind, then move.
+    if (_shared.onHome == _home) return;
     if (!_ticker.isActive) {
+      // Pick up the rotation other globes left behind.
       _camera
         ..latitude = _shared.latitude
         ..longitude = _shared.longitude;
     }
+    if (!_shared.onHome && _opacity <= 0.01 && !_size.isEmpty) {
+      // Leaving Home while hidden: start from exactly what the home map
+      // shows (it may have changed since we arrived), so the cross-fade
+      // reveals the same view.
+      final h = _homePose();
+      _camera
+        ..zoom = h.zoom
+        ..latitude = h.lat ?? _camera.latitude
+        ..longitude = h.lon ?? _camera.longitude;
+      _offset = h.offset;
+    }
+    _home = _shared.onHome;
+    _fromZoom = _camera.zoom;
+    _fromOffset = _offset;
+    _fromLat = _camera.latitude;
+    _fromLon = _camera.longitude;
+    _t = 0;
+    _sinceArrival = 0;
+    if (!_home) _opacity = 1; // Home fades out on top of us
     _wake();
   }
 
@@ -165,13 +217,44 @@ class _SharedGlobeLayerState extends State<SharedGlobeLayer>
     }
   }
 
-  double _targetDy() {
-    if (_size.isEmpty) return 0;
-    if (_shared.onHome) return 0;
-    // GlobePainter centres the globe at 45% of the height.
-    final r = math.min(_size.width * 0.39, _size.height * 0.36) *
-        _backgroundZoom;
-    return _size.height * (_backgroundHorizon - 0.45) + r;
+  double get _base => math.min(_size.width * 0.39, _size.height * 0.36);
+
+  /// Home's resting view: the focus point at the place and scale the home
+  /// map shows it (SharedGlobeController.homeAnchor).
+  ({double zoom, Offset offset, double? lat, double? lon}) _homePose() {
+    final anchor = _shared.homeAnchor.value;
+    final focus = anchor != null
+        ? (latitude: anchor.latitude, longitude: anchor.longitude)
+        : _shared.homeFocus;
+    final box = context.findRenderObject() as RenderBox?;
+    if (anchor == null || box == null || !box.hasSize) {
+      return (
+        zoom: _homeZoom,
+        offset: Offset.zero,
+        lat: focus?.latitude.clamp(-60.0, 70.0),
+        lon: focus?.longitude,
+      );
+    }
+    final local = box.globalToLocal(anchor.globalPoint);
+    final center = Offset(_size.width / 2, _size.height * 0.45);
+    return (
+      zoom: anchor.pixelsPerRadian / math.max(_base, 1.0),
+      offset: local - center,
+      lat: anchor.latitude,
+      lon: anchor.longitude,
+    );
+  }
+
+  ({double zoom, Offset offset, double? lat, double? lon}) _backgroundPose() {
+    final r = _base * _backgroundZoom;
+    return (
+      zoom: _backgroundZoom,
+      // Top edge at [_backgroundHorizon] of the height.
+      offset: Offset(0, _size.height * (_backgroundHorizon - 0.45) + r),
+      // Tilt so the northern hemisphere shows along the visible curve.
+      lat: 12,
+      lon: null,
+    );
   }
 
   void _tick(Duration elapsed) {
@@ -179,46 +262,37 @@ class _SharedGlobeLayerState extends State<SharedGlobeLayer>
     _last = elapsed;
     if (last == null || _size.isEmpty) return;
     final dt = ((elapsed - last).inMicroseconds / 1e6).clamp(0.0, 0.1);
-    // Critically-damped-like follow (~0.25 s time constant): smooth, no
-    // overshoot, and it starts from the current state when re-targeted.
-    final k = 1 - math.exp(-dt * 4.0);
 
-    final home = _shared.onHome;
-    final targetZoom = home ? _homeZoom : _backgroundZoom;
-    final targetDy = _targetDy();
-    final focus = home ? _shared.homeFocus : null;
-
-    _camera.zoom += (targetZoom - _camera.zoom) * k;
-    _dy += (targetDy - _dy) * k;
-    // Fade out on Home only once the zoom-in is mostly done; fade back in
-    // straight away when leaving.
-    final targetOpacity =
-        home ? ((_camera.zoom - _homeZoom).abs() < 0.25 ? 0.0 : 1.0) : 1.0;
-    _opacity += (targetOpacity - _opacity) * (1 - math.exp(-dt * 6.0));
-    if ((_opacity - targetOpacity).abs() < 0.01) _opacity = targetOpacity;
-    var rotating = false;
-    if (focus != null) {
-      final dLon = angleDelta(_camera.longitude, focus.longitude);
-      final dLat = focus.latitude.clamp(-60.0, 70.0) - _camera.latitude;
-      _camera.longitude = wrapLongitude(_camera.longitude + dLon * k);
-      _camera.latitude += dLat * k;
-      rotating = dLon.abs() > 0.05 || dLat.abs() > 0.05;
-    } else if (!home) {
-      // Background: tilt gently so the northern hemisphere shows along the
-      // visible curve.
-      final dLat = 12 - _camera.latitude;
-      _camera.latitude += dLat * k;
-      rotating = dLat.abs() > 0.05;
+    // One eased move (in and out) from where we were to the target pose;
+    // the target is re-read every frame, a new move starts from wherever
+    // the globe is.
+    final pose = _home ? _homePose() : _backgroundPose();
+    _t = math.min(1.0, _t + dt / SharedGlobeLayer.moveSeconds);
+    final e = Curves.easeInOutCubic.transform(_t);
+    _camera.zoom = _fromZoom + (pose.zoom - _fromZoom) * e;
+    _offset = Offset.lerp(_fromOffset, pose.offset, e)!;
+    final lat = pose.lat;
+    if (lat != null) _camera.latitude = _fromLat + (lat - _fromLat) * e;
+    final lon = pose.lon;
+    if (lon != null) {
+      _camera.longitude =
+          wrapLongitude(_fromLon + angleDelta(_fromLon, lon) * e);
     }
+
+    var targetOpacity = 1.0;
+    if (_home && _t >= 1) {
+      _sinceArrival += dt;
+      if (_sinceArrival > _hideDelay) {
+        targetOpacity = 0;
+        _opacity = math.max(0.0, _opacity - dt / _fadeSeconds);
+      }
+    }
+
     _shared.syncRotation(_camera.latitude, _camera.longitude);
     _camera.notify();
     if (mounted) setState(() {});
 
-    final settled = (_camera.zoom - targetZoom).abs() < 0.002 &&
-        (_dy - targetDy).abs() < 0.5 &&
-        _opacity == targetOpacity &&
-        !rotating;
-    if (settled) {
+    if (_t >= 1 && _opacity == targetOpacity) {
       // Nothing moves: stop rendering (saves battery / GPU behind the
       // blurred panels of the settings screens).
       _ticker.stop();
@@ -235,9 +309,9 @@ class _SharedGlobeLayerState extends State<SharedGlobeLayer>
         final size = Size(constraints.maxWidth, constraints.maxHeight);
         if (size != _size) {
           _size = size;
-          if (!_placed && !size.isEmpty) {
+          if (!_placed && !size.isEmpty && !_home) {
             _placed = true;
-            _dy = _targetDy();
+            _offset = _backgroundPose().offset;
           }
           WidgetsBinding.instance.addPostFrameCallback((_) => _wake());
         }
@@ -245,7 +319,7 @@ class _SharedGlobeLayerState extends State<SharedGlobeLayer>
         return Opacity(
           opacity: _opacity.clamp(0.0, 1.0),
           child: Transform.translate(
-          offset: Offset(0, _dy),
+          offset: _offset,
           child: RepaintBoundary(
             child: CustomPaint(
               size: Size.infinite,

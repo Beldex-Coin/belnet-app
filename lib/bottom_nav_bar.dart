@@ -44,6 +44,10 @@ class MainBottomNavbar extends StatefulWidget {
 }
 
 class _MainBottomNavbarState extends State<MainBottomNavbar> with WidgetsBindingObserver{
+  /// Going to Home: the globe's move (plus a couple of frames of slack),
+  /// then Home's fade (ms).
+  static const double _homeMove = SharedGlobeLayer.moveSeconds + 0.05;
+  static const int _homeFade = 380;
  int _selectedIndex = 0;
 
   final List<Widget> _screens = [];
@@ -434,10 +438,20 @@ Widget _getScreen(int index) {
               // Going to Home the shared globe first zooms in, then the
               // home map fades in over it; other tabs simply cross-fade
               // while the globe sinks behind them.
-              duration: Duration(milliseconds: selectedIndex == 0 ? 650 : 280),
+              // The globe takes SharedGlobeLayer.moveSeconds to come to rest
+              // on exactly home's view; Home starts fading in only then, so
+              // the fade happens with nothing moving.
+              duration: Duration(
+                  milliseconds: selectedIndex == 0
+                      ? (_homeMove * 1000).round() + _homeFade
+                      : 280),
               reverseDuration: const Duration(milliseconds: 220),
               switchInCurve: selectedIndex == 0
-                  ? const Interval(0.35, 1, curve: Curves.easeOut)
+                  ? Interval(
+                      (_homeMove * 1000) /
+                          ((_homeMove * 1000).round() + _homeFade),
+                      1,
+                      curve: Curves.easeInOut)
                   : Curves.easeOut,
               switchOutCurve: Curves.easeIn,
               transitionBuilder: (child, animation) {

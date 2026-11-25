@@ -244,6 +244,13 @@ static const EventChannel disconnectEventChannel = EventChannel('belnet_lib_noti
     return null;
   }
 
+  /// The daemon's full status (DumpStatus) as raw JSON, or null when the
+  /// service is not bound / not running. Decode it off the UI isolate.
+  static Future<String?> getStatusJson() async {
+    final status = await _methodChannel.invokeMethod('getStatus');
+    return status is String && status.isNotEmpty ? status : null;
+  }
+
   static Future<Map<String, dynamic>?> getStatus() async {
     var status = await _methodChannel.invokeMethod('getStatus') as String?;
     if (status != null && status.isNotEmpty) return jsonDecode(status);

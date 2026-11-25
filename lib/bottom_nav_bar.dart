@@ -333,10 +333,6 @@ Widget _getScreen(int index) {
      final connectivityProvider = Provider.of<ConnectivityProvider>(context);
     //loaderProvider.initialize('assets/loader.webm');
     final appModel = Provider.of<AppModel>(context);
-    final onAdBlockerScreen = selectedIndex == 3 &&
-        Provider.of<SettingsProvider>(context).currentView == SettingsView.adBlocker;
-    // The home screen shows connection progress on its own globe/map, so the
-    // full-screen connecting / connected animations are not drawn behind it.
     // Tell the shared globe whether Home is showing (after this frame, so
     // listeners are not notified during build).
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -426,13 +422,10 @@ Widget _getScreen(int index) {
                   // changes, so it never restarts; it rises into Home and
                   // sinks behind the other screens.
                   Container(color: VpnHomeStyle.of(appModel.darkTheme).background),
+                  // Shown behind every tab and settings page, Ad Blocker
+                  // included.
                   Positioned.fill(
-                    child: AnimatedOpacity(
-                      // Settings → Ad Blocker keeps its plain background.
-                      opacity: onAdBlockerScreen ? 0 : 1,
-                      duration: const Duration(milliseconds: 300),
-                      child: SharedGlobeLayer(dark: appModel.darkTheme),
-                    ),
+                    child: SharedGlobeLayer(dark: appModel.darkTheme),
                   ),
                   // // Active screen
                   // _screens[_selectedIndex],

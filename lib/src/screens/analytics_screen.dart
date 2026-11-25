@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/graph_ui.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
@@ -323,7 +324,14 @@ checkRunning();
               Flexible(
                 child: SlideTransition(
                   position: _slideAnimation,
-                  child: AnimatedBuilder(
+                  child: LayoutBuilder(builder: (context, area) {
+                  // The panel grows from 20% to full width when the screen
+                  // opens. Its content is laid out at the final width and
+                  // clipped while it grows, so the header row no longer
+                  // overflows ("RenderFlex overflowed") during the animation.
+                  final contentWidth =
+                      math.max(0.0, math.min(screenWidth, area.maxWidth) - 20);
+                  return AnimatedBuilder(
                     builder: (context, snapshot) {
                       return GlassContainer.clearGlass(
                         blur: 1.0,
@@ -331,7 +339,12 @@ checkRunning();
                         width: screenWidth * _widthAnimation.value,
                         borderColor: Colors.transparent,
                         padding: EdgeInsets.all(10),
-                        child: Column(
+                        child: ClipRect(
+                          child: OverflowBox(
+                            minWidth: contentWidth,
+                            maxWidth: contentWidth,
+                            alignment: Alignment.topCenter,
+                            child: Column(
                           children: [
                             Row(
                               //mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -412,15 +425,19 @@ checkRunning();
                               ],
                             ),
                             Expanded(
-                    child: RawScrollbar(
+                    // Scroll thumb (design), drawn by _LogsScrollThumb so it
+                    // always shows whenever the logs can scroll.
+                    child: _LogsScrollThumb(
                       controller: _scrollController,
-                      thumbVisibility: true,
-                      thickness: 3,
-                      radius: Radius.circular(5),
+                      color: appModel.darkTheme
+                          ? const Color(0xff737373)
+                          : const Color(0xffACACAC),
                       child: SingleChildScrollView(
                         controller: _scrollController,
+                        physics: const ClampingScrollPhysics(),
                         child: Padding(
-                          padding: const EdgeInsets.all(8),
+                          // Room on the right so text never runs under the thumb.
+                          padding: const EdgeInsets.fromLTRB(8, 8, 14, 8),
                           child: SelectableText.rich(
                             TextSpan(
                               children: logProvider.logs.map(_buildStyledLog).toList(),
@@ -432,9 +449,12 @@ checkRunning();
                   ),
                           ],
                         ),
+                          ),
+                        ),
                       );
                     }, animation: _widthAnimation,
-                  ),
+                  );
+                  }),
                 ),
               ),
             ],
@@ -579,3 +599,115 @@ class optionButton extends StatelessWidget {
   }
 }
 
+/// Always-visible scroll thumb for the Logs list (3 px, rounded, can be
+/// dragged). Drawn here rather than with RawScrollbar, whose thumb did not
+/// show up on this screen. Follows scrolling and new log lines.
+class _LogsScrollThumb extends StatefulWidget {
+  const _LogsScrollThumb({
+    required this.controller,
+    required this.color,
+    required this.child,
+  });
+
+  final ScrollController controller;
+  final Color color;
+  final Widget child;
+
+  @override
+  State<_LogsScrollThumb> createState() => _LogsScrollThumbState();
+}
+
+class _LogsScrollThumbState extends State<_LogsScrollThumb> {
+  static const double _thickness = 3;
+  static const double _minLength = 24;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_refresh);
+    // The scroll view attaches after the first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+  }
+
+  @override
+  void didUpdateWidget(covariant _LogsScrollThumb old) {
+    super.didUpdateWidget(old);
+    if (old.controller != widget.controller) {
+      old.controller.removeListener(_refresh);
+      widget.controller.addListener(_refresh);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_refresh);
+    super.dispose();
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: NotificationListener<ScrollMetricsNotification>(
+            // New log lines change the content size without scrolling.
+            onNotification: (_) {
+              _refresh();
+              return false;
+            },
+            child: widget.child,
+          ),
+        ),
+        Positioned(
+          top: 0,
+          bottom: 0,
+          right: 0,
+          width: 16, // touch area
+          child: LayoutBuilder(builder: (context, box) {
+            final c = widget.controller;
+            if (!c.hasClients || !c.position.hasContentDimensions) {
+              return const SizedBox.shrink();
+            }
+            final pos = c.position;
+            final max = pos.maxScrollExtent;
+            if (max <= 0) return const SizedBox.shrink();
+            final track = box.maxHeight;
+            final view = pos.viewportDimension;
+            final length =
+                (track * view / (view + max)).clamp(_minLength, track);
+            final travel = track - length;
+            final top = travel * (pos.pixels / max).clamp(0.0, 1.0);
+            return GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onVerticalDragUpdate: (d) {
+                if (travel <= 0) return;
+                c.jumpTo((pos.pixels + d.delta.dy * max / travel)
+                    .clamp(0.0, max));
+              },
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: top,
+                    right: 2,
+                    width: _thickness,
+                    height: length,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: widget.color,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+}

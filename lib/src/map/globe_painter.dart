@@ -642,18 +642,18 @@ class GlobePainter extends CustomPainter {
     canvas.drawPath(
       solid,
       Paint()
-        ..color = palette.exit.withOpacity(0.30)
+        ..color = palette.exit.withOpacity(0.20)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 5
+        ..strokeWidth = 3.5
         ..strokeCap = StrokeCap.round
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.5),
     );
     canvas.drawPath(
       solid,
       Paint()
         ..color = palette.exit
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.8
+        ..strokeWidth = 1.2
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round,
     );

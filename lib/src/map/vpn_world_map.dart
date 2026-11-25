@@ -220,7 +220,8 @@ class _VpnWorldMapState extends State<VpnWorldMap>
     _globeMix = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
-      reverseDuration: const Duration(milliseconds: 1100),
+      // Leaving to the exit: ~60% zoom (globe only), then ~40% cross-fade.
+      reverseDuration: const Duration(milliseconds: 1700),
     )
       ..addListener(_onGlobeMixTick)
       ..addStatusListener(_onGlobeMixStatus);
@@ -602,7 +603,10 @@ class _VpnWorldMapState extends State<VpnWorldMap>
   ({double lat, double lon, Offset screen, double zoom})? _flatMatch() {
     final p = _provider;
     if (p == null || _viewport.isEmpty || _mapSize.isEmpty) return null;
-    final useExit = p.tunnelActive && _exitTo != null;
+    // Connecting: the flat map was showing the user's country. Otherwise
+    // the same choice as [_focusTarget] (the exit once protected).
+    final entering = _globeScene && !_leavingToExit;
+    final useExit = !entering && p.tunnelActive && _exitTo != null;
     final point = useExit ? _exitTo : (_origin ?? _exitTo);
     if (point == null) return null;
     final t = _transform;
@@ -625,8 +629,30 @@ class _VpnWorldMapState extends State<VpnWorldMap>
   /// Globe <-> flat map blend. At the flat end the globe shows the focused
   /// point at exactly the flat map's place and size (so the cross-fade has
   /// no jump), and eases from there to the whole globe.
+  /// Fraction of the leave (to the exit) used by the cross-fade; the rest
+  /// is the zoom, done by the globe alone.
+  static const double _leaveFade = 0.4;
+
+  bool get _splitLeave =>
+      _leavingToExit && _globeMix.status == AnimationStatus.reverse;
+
+  /// Globe zoom/position progress: 1 = whole globe, 0 = flat map's view.
+  double get _zoomMix {
+    final v = _globeMix.value;
+    if (!_splitLeave) return v;
+    return ((v - _leaveFade) / (1 - _leaveFade)).clamp(0.0, 1.0);
+  }
+
+  /// Globe vs flat map visibility: 1 = globe only, 0 = flat map only.
+  /// Leaving to the exit, the fade starts only once the zoom is complete.
+  double get _fadeMix {
+    final v = _globeMix.value;
+    if (!_splitLeave) return v;
+    return (v / _leaveFade).clamp(0.0, 1.0);
+  }
+
   void _applyGlobeZoom() {
-    final mix = Curves.easeInOutCubic.transform(_globeMix.value);
+    final mix = Curves.easeInOutCubic.transform(_zoomMix);
     final match = _flatMatch();
     if (match == null) {
       final far = _leavingToExit ? 2.2 : 1.9;
@@ -1191,7 +1217,7 @@ class _VpnWorldMapState extends State<VpnWorldMap>
         }
 
         final data = _data;
-        final flatOpacity = ReverseAnimation(_globeMix);
+        final flatOpacity = _DerivedAnimation(_globeMix, () => 1 - _fadeMix);
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTapUp: _onTapUp,
@@ -1277,12 +1303,12 @@ class _VpnWorldMapState extends State<VpnWorldMap>
                       builder: (context, child) => _globeMix.value == 0
                           ? const SizedBox.shrink()
                           : Transform.translate(
-                              offset: _globeMix.value >= 1
+                              offset: _zoomMix >= 1
                                   ? Offset.zero
                                   : _globeShift,
                               child: Opacity(
                                 opacity: Curves.easeIn
-                                    .transform(_globeMix.value)
+                                    .transform(_fadeMix)
                                     .clamp(0.0, 1.0),
                                 child: child,
                               ),
@@ -1983,4 +2009,18 @@ class _MapControls extends StatelessWidget {
       ],
     );
   }
+}
+
+
+/// An animation whose value is computed from [parent] (same listeners).
+class _DerivedAnimation extends Animation<double>
+    with AnimationWithParentMixin<double> {
+  _DerivedAnimation(this.parent, this._value);
+
+  @override
+  final Animation<double> parent;
+  final double Function() _value;
+
+  @override
+  double get value => _value().clamp(0.0, 1.0);
 }

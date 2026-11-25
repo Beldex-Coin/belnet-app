@@ -3,7 +3,6 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:glass_kit/glass_kit.dart';
 import 'package:provider/provider.dart';
 
 import '../map/shared_globe.dart';
@@ -37,8 +36,9 @@ class NoInternetConnection extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // Icon and text sit a little higher (design).
                   Spacer(
-                    flex: 4,
+                    flex: 3,
                   ),
                   Container(
                       height: MediaQuery.of(context).size.height * 1 / 3,
@@ -81,7 +81,7 @@ class NoInternetConnection extends StatelessWidget {
                                       fontSize: 15,
                                       fontWeight: FontWeight.w300,
                                   fontFamily: 'Poppins')))),
-                  Spacer(flex: 3,),
+                  Spacer(flex: 4,),
                 appModel.darkTheme ?  Padding(
                     padding: EdgeInsets.only(
                         top: MediaQuery.of(context).size.height * 0.14 / 3,
@@ -89,15 +89,23 @@ class NoInternetConnection extends StatelessWidget {
 
                         ),
 
-                    child: GlassContainer.clearGlass(
+                    // Solid dark button (design): the old see-through glass
+                    // let the globe lines show through it.
+                    child: Container(
                         height: MediaQuery.of(context).size.height * 0.20 / 3,
                         width: MediaQuery.of(context).size.height * 0.70 / 3,
-                       // decoration: BoxDecoration(
-                            color:appModel.darkTheme ? Color(0xffEBEBEB).withOpacity(0.05) : Color(0xff00DC00).withOpacity(0.02),// Color(0xff00DC00),
-                            borderColor:Color(0xff444444),
-                            borderWidth: 1,
-                               // Border.all(color: Color(0xff00DC00), width: 1)
-                               // ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xff1F1F1F),
+                          border: Border.all(
+                              color: const Color(0xff3A3A3A), width: 1),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.45),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
                         child: TextButton(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,

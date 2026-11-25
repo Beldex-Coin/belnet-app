@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/node_provider.dart';
 import 'package:belnet_mobile/src/map/geo_location.dart';
+import 'package:belnet_mobile/src/map/ip_country_db.dart';
+import 'package:belnet_mobile/src/map/route_snapshot.dart';
 import 'package:belnet_mobile/src/map/world_map_data.dart'
     show normalizeCountryKey;
 import 'package:belnet_mobile/src/providers/internet_checking_provider.dart';
@@ -19,6 +21,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// daemon status polling) plus two transient phases the existing
 /// three-value enum cannot express: [disconnecting] and [failed].
 enum VpnMapPhase { disconnected, connecting, connected, disconnecting, failed }
+
+/// Progress of a connection attempt, read from the daemon's real onion-path
+/// state while [VpnMapPhase.connecting]:
+///  * [findingRoute] - no path has been chosen yet;
+///  * [hoppingNodes] - a path through masternodes is being built;
+///  * [routeFound]   - a path to the exit is established, the tunnel is
+///    being verified.
+enum ConnectStage { findingRoute, hoppingNodes, routeFound }
 
 /// The default BelNet exit node and where it is hosted.
 const String kDefaultExitNodeName = 'exit.bdx';
@@ -114,13 +124,18 @@ class VpnMapProvider extends ChangeNotifier {
     ConnectivityProvider? connectivity,
     Stream<Map<String, dynamic>> Function()? statusStream,
     DateTime Function()? clock,
+    Future<Map<String, dynamic>?> Function()? routeStatus,
+    Future<IpCountryDb?> Function()? ipCountryDb,
     this.failureDisplayDuration = const Duration(seconds: 5),
+    this.routePollInterval = const Duration(seconds: 1),
   })  : _loader = loader,
         _nodes = nodes,
         _ip = ip,
         _intro = intro,
         _connectivity = connectivity,
         _statusStreamFactory = statusStream ?? (() => BelnetLib.statusStream),
+        _routeStatus = routeStatus ?? _fetchRouteStatus,
+        _ipCountryDb = ipCountryDb ?? _loadIpCountryDb,
         _clock = clock ?? DateTime.now {
     _loader.addListener(_sync);
     _nodes.addListener(_sync);
@@ -138,6 +153,27 @@ class VpnMapProvider extends ChangeNotifier {
   final ConnectivityProvider? _connectivity;
   final Stream<Map<String, dynamic>> Function() _statusStreamFactory;
   final DateTime Function() _clock;
+  final Future<Map<String, dynamic>?> Function() _routeStatus;
+  final Future<IpCountryDb?> Function() _ipCountryDb;
+
+  /// How often the daemon's path state is read while connecting.
+  final Duration routePollInterval;
+
+  /// Reads the daemon's full status (DumpStatus) and reduces it to the
+  /// route on a background isolate.
+  static Future<Map<String, dynamic>?> _fetchRouteStatus() async {
+    final raw = await BelnetLib.getStatusJson();
+    if (raw == null || raw.isEmpty) return null;
+    return compute(pruneRouteStatus, raw);
+  }
+
+  static Future<IpCountryDb?> _loadIpCountryDb() async {
+    try {
+      return await IpCountryDb.load();
+    } catch (_) {
+      return null; // hops are then drawn without a location (not at all)
+    }
+  }
 
   /// How long the FAILED phase stays on screen before the map returns to
   /// its disconnected state.
@@ -180,6 +216,47 @@ class VpnMapProvider extends ChangeNotifier {
   /// Public IP seen through the tunnel; null until it has been measured.
   String? get exitIp => _exitIp;
 
+  RouteSnapshot _route = RouteSnapshot.empty;
+
+  /// Real onion route reported by the daemon for the current (or last)
+  /// connection attempt. Kept after connecting so the map can finish its
+  /// "route found" animation; cleared when a new attempt starts or the
+  /// tunnel goes down.
+  RouteSnapshot get route => _route;
+
+  Timer? _routeTimer;
+  bool _routePollInFlight = false;
+
+  bool _sequencePlaying = false;
+
+  /// The map is still finishing its connecting animation (globe, "ROUTE
+  /// FOUND") although the tunnel is already up.
+  bool get sequencePlaying => _sequencePlaying;
+
+  /// Set by the map widget so the rest of the home screen (button, exit
+  /// node card) stays in step with what the map shows.
+  void setSequencePlaying(bool value) {
+    if (_sequencePlaying == value || _disposed) return;
+    _sequencePlaying = value;
+    _updateRoutePolling();
+    notifyListeners();
+  }
+
+  /// [phase] as the home screen should present it: "connecting" until the
+  /// map's connecting sequence has finished.
+  VpnMapPhase get displayPhase =>
+      _phase == VpnMapPhase.connected && _sequencePlaying
+          ? VpnMapPhase.connecting
+          : _phase;
+
+  /// Sub-stage of [VpnMapPhase.connecting]; null in every other phase.
+  ConnectStage? get connectStage {
+    if (_phase != VpnMapPhase.connecting) return null;
+    if (_route.routeReady) return ConnectStage.routeFound;
+    if (_route.hasHops) return ConnectStage.hoppingNodes;
+    return ConnectStage.findingRoute;
+  }
+
   /// True while the tunnel exists (connecting, up, or tearing down).
   bool get tunnelActive =>
       _phase == VpnMapPhase.connecting ||
@@ -214,6 +291,7 @@ class VpnMapProvider extends ChangeNotifier {
       unawaited(_ip.ensureOriginalLocation());
     }
     _updateLiveFeed();
+    _updateRoutePolling();
   }
 
   /// vpn_controller: a user-initiated disconnect has started.
@@ -303,6 +381,7 @@ class VpnMapProvider extends ChangeNotifier {
     _exit = exit;
 
     _updateLiveFeed();
+    _updateRoutePolling();
     if (changed) notifyListeners();
   }
 
@@ -313,6 +392,7 @@ class VpnMapProvider extends ChangeNotifier {
         _connectingFromConnected = from == VpnMapPhase.connected ||
             (from == VpnMapPhase.connecting && _connectingFromConnected);
         if (!_connectingFromConnected) _resetSession();
+        _route = RouteSnapshot.empty; // a new attempt builds new paths
         break;
       case VpnMapPhase.connected:
         if (_connectedSince == null) {
@@ -334,6 +414,7 @@ class VpnMapProvider extends ChangeNotifier {
       case VpnMapPhase.failed:
         _connectingFromConnected = false;
         _resetSession();
+        _route = RouteSnapshot.empty;
         break;
     }
   }
@@ -468,6 +549,53 @@ class VpnMapProvider extends ChangeNotifier {
   }
 
   // ---------------------------------------------------------------------
+  // Onion route (daemon DumpStatus), polled only while connecting and only
+  // while the map is on screen.
+
+  void _updateRoutePolling() {
+    final want = _mapVisible && !_disposed && _wantsRoute;
+    if (want && _routeTimer == null) {
+      _routeTimer = Timer.periodic(routePollInterval, (_) => _pollRoute());
+      unawaited(_pollRoute());
+    } else if (!want && _routeTimer != null) {
+      _routeTimer?.cancel();
+      _routeTimer = null;
+    }
+  }
+
+  /// Read the path while connecting, and - if the tunnel came up before
+  /// any hop was seen - while the map is still playing its sequence.
+  bool get _wantsRoute =>
+      _phase == VpnMapPhase.connecting ||
+      (_phase == VpnMapPhase.connected &&
+          _sequencePlaying &&
+          !_route.hasHops);
+
+  Future<void> _pollRoute() async {
+    if (_routePollInFlight || _disposed) return;
+    _routePollInFlight = true;
+    try {
+      final status = await _routeStatus();
+      final db = await _ipCountryDb();
+      // The attempt may have ended while the native call was running.
+      if (_disposed || !_wantsRoute) return;
+      final next = RouteSnapshot.fromStatus(status, db: db);
+      // Never go backwards to "no route" because one poll came back empty
+      // (daemon busy, paths rotating): keep the last real route instead.
+      if (!next.hasHops && _route.hasHops) return;
+      if (next != _route) {
+        _route = next;
+        _updateRoutePolling(); // stops once hops are known after connect
+        notifyListeners();
+      }
+    } catch (_) {
+      // Daemon not ready / plugin detached: try again on the next tick.
+    } finally {
+      _routePollInFlight = false;
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Live feed
 
   void _updateLiveFeed() {
@@ -545,6 +673,8 @@ class VpnMapProvider extends ChangeNotifier {
     _failureTimer?.cancel();
     _statusSub?.cancel();
     _durationTimer?.cancel();
+    _routeTimer?.cancel();
+    _routeTimer = null;
     _stats.dispose();
     super.dispose();
   }

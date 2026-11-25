@@ -12,6 +12,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'route_snapshot_test.dart' show dumpStatus, path, testDb;
+
 /// Builds the real providers with the native channel mocked as "tunnel not
 /// running". (Network requests return HTTP 400 inside testWidgets.)
 Future<
@@ -262,5 +264,69 @@ void main() {
   test('default exit node metadata', () {
     expect(kDefaultExitNodeLocation.hasCoordinates, isTrue);
     expect(kDefaultExitNodeLocation.source, GeoLocationSource.builtInDefault);
+  });
+
+  testWidgets('connecting stages follow the daemon\'s real paths',
+      (tester) async {
+    final p = await _providers(tester);
+    Map<String, dynamic>? daemon;
+    final map = VpnMapProvider(
+      loader: p.loader,
+      nodes: p.nodes,
+      ip: p.ip,
+      intro: p.intro,
+      statusStream: () => const Stream.empty(),
+      routeStatus: () async => daemon,
+      ipCountryDb: () async => testDb(),
+      routePollInterval: const Duration(milliseconds: 100),
+    );
+    map.setMapVisible(true);
+    expect(map.connectStage, isNull);
+
+    p.loader.setConnectionStatus(ConnectionStatus.CONNECTING);
+    await tester.pump(const Duration(milliseconds: 150));
+    expect(map.connectStage, ConnectStage.findingRoute);
+    expect(map.route.hasHops, isFalse);
+
+    daemon = dumpStatus(paths: [
+      path('building', [('aa', '5.1.1.1'), ('bb', '51.1.1.1')]),
+    ]);
+    await tester.pump(const Duration(milliseconds: 150));
+    expect(map.connectStage, ConnectStage.hoppingNodes);
+    expect(map.route.activeHops.map((h) => h.country?.code), ['DE', 'NL']);
+
+    // An empty poll does not throw the route away.
+    daemon = null;
+    await tester.pump(const Duration(milliseconds: 150));
+    expect(map.connectStage, ConnectStage.hoppingNodes);
+
+    daemon = dumpStatus(remoteSessions: [
+      {
+        'readyToSend': true,
+        'paths': [
+          path('established', [('cc', '95.1.1.1')]),
+        ],
+      },
+    ]);
+    await tester.pump(const Duration(milliseconds: 150));
+    expect(map.connectStage, ConnectStage.routeFound);
+
+    // Connected: the stage is over, the route is kept for the animation.
+    p.loader.setConnectionStatus(ConnectionStatus.CONNECTED);
+    expect(map.connectStage, isNull);
+    expect(map.route.routeReady, isTrue);
+
+    // While the map finishes its globe sequence the home screen still
+    // presents "connecting".
+    expect(map.displayPhase, VpnMapPhase.connected);
+    map.setSequencePlaying(true);
+    expect(map.displayPhase, VpnMapPhase.connecting);
+    map.setSequencePlaying(false);
+    expect(map.displayPhase, VpnMapPhase.connected);
+
+    // Disconnected: cleared, and no more polling.
+    p.loader.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+    expect(map.route.hasHops, isFalse);
+    map.dispose();
   });
 }

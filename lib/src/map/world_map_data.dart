@@ -18,6 +18,7 @@ class CountryShape {
     required this.mainBounds,
     required this.labelAnchor,
     required this.area,
+    this.geoRings = const [],
   });
 
   /// Short display name ("United States", "Czech Rep.").
@@ -41,6 +42,10 @@ class CountryShape {
 
   /// Projected area of the largest polygon, used for label priority.
   final double area;
+
+  /// The same outline in geographic coordinates, each ring
+  /// [lon0, lat0, lon1, lat1, ...]. Used by the globe view.
+  final List<Float32List> geoRings;
 
   /// Cache of [path] scaled to a concrete map size.
   Path? _scaledPath;
@@ -114,6 +119,7 @@ class WorldMapData {
             Rect.fromLTRB(p.mainMinX, p.mainMinY, p.mainMaxX, p.mainMaxY),
         labelAnchor: Offset(p.labelX, p.labelY),
         area: p.area,
+        geoRings: p.geoRings,
       ));
     }
     // Largest first: label placement gives big countries priority.
@@ -271,6 +277,7 @@ class ParsedCountry {
     required this.mainMinY,
     required this.mainMaxX,
     required this.mainMaxY,
+    this.geoRings = const [],
   });
 
   final String name;
@@ -285,6 +292,9 @@ class ParsedCountry {
 
   /// Bounds of the largest outer ring.
   final double mainMinX, mainMinY, mainMaxX, mainMaxY;
+
+  /// Each ring is [lon0, lat0, lon1, lat1, ...] in degrees.
+  final List<Float32List> geoRings;
 }
 
 /// Parses a GeoJSON FeatureCollection of Polygon/MultiPolygon countries
@@ -318,6 +328,7 @@ List<ParsedCountry> parseWorldMapGeoJson(String raw) {
     }
 
     final rings = <Float64List>[];
+    final geoRings = <Float32List>[];
     var minX = double.infinity, minY = double.infinity;
     var maxX = -double.infinity, maxY = -double.infinity;
     var bestArea = -1.0;
@@ -332,6 +343,7 @@ List<ParsedCountry> parseWorldMapGeoJson(String raw) {
           continue;
         }
         final pts = Float64List(ring.length * 2);
+        final geo = Float32List(ring.length * 2);
         var n = 0;
         var rMinX = double.infinity, rMinY = double.infinity;
         var rMaxX = -double.infinity, rMaxY = -double.infinity;
@@ -341,6 +353,8 @@ List<ParsedCountry> parseWorldMapGeoJson(String raw) {
           final lat = (pt[1] as num).toDouble();
           final x = MapProjection.normX(lon);
           final y = MapProjection.normY(lat);
+          geo[n] = lon;
+          geo[n + 1] = lat;
           pts[n++] = x;
           pts[n++] = y;
           if (x < minX) minX = x;
@@ -354,6 +368,7 @@ List<ParsedCountry> parseWorldMapGeoJson(String raw) {
         }
         final trimmed = n == pts.length ? pts : Float64List.sublistView(pts, 0, n);
         rings.add(trimmed);
+        geoRings.add(n == geo.length ? geo : Float32List.sublistView(geo, 0, n));
 
         if (outerRingIndex) {
           // Shoelace area + centroid of the outer ring.
@@ -398,6 +413,7 @@ List<ParsedCountry> parseWorldMapGeoJson(String raw) {
       mainMinY: bestArea < 0 ? minY : mainMinY,
       mainMaxX: bestArea < 0 ? maxX : mainMaxX,
       mainMaxY: bestArea < 0 ? maxY : mainMaxY,
+      geoRings: geoRings,
     ));
   }
   return result;

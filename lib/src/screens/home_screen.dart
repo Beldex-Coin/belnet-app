@@ -1,11 +1,10 @@
 import 'dart:async';
 
 import 'package:belnet_lib/belnet_lib.dart';
-import 'package:belnet_mobile/country_code_list.dart';
 import 'package:belnet_mobile/node_provider.dart';
 import 'package:belnet_mobile/src/app_list_provider.dart';
-import 'package:belnet_mobile/src/map/vpn_connection_panel.dart';
-import 'package:belnet_mobile/src/map/vpn_map_provider.dart';
+import 'package:belnet_mobile/src/map/vpn_home_panel.dart';
+import 'package:belnet_mobile/src/map/vpn_home_style.dart';
 import 'package:belnet_mobile/src/map/vpn_world_map.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/providers/chartData_controller.dart';
@@ -13,17 +12,13 @@ import 'package:belnet_mobile/src/providers/introstate_provider.dart';
 import 'package:belnet_mobile/src/providers/ip_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/providers/log_provider.dart';
-import 'package:belnet_mobile/src/providers/speed_chart_provider.dart';
-import 'package:belnet_mobile/src/providers/tunnel_health_provider.dart';
 import 'package:belnet_mobile/src/providers/vpn_provider.dart';
 import 'package:belnet_mobile/src/screens/add_exitnode_screen.dart';
 import 'package:belnet_mobile/src/utils/show_toast.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:glass_kit/glass_kit.dart';
-import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 class HomeScreen extends StatefulWidget {
@@ -37,8 +32,6 @@ final Function(bool) onNavigateToExitNodes;
 
 class _HomeScreenState extends State<HomeScreen>  with TickerProviderStateMixin, WidgetsBindingObserver{
 
-late AnimationController _controller;
-  late Animation<Offset> _offsetAnimation;
 
   // late AnimationController _bounceButtonController;
   // late Animation<Offset> _bounceButtonAnimationOffset;
@@ -55,6 +48,10 @@ late ChartDataController chartController;
 
  bool isInitialAddExitNode = false;
 
+ /// Bottom panel expanded (stats + protection); the map shrinks and hides
+ /// its status block, as in the design.
+ bool _panelExpanded = false;
+
 
  String swapText = 'Swap to exit.bdx';
 
@@ -65,20 +62,6 @@ void initState() {
   super.initState();
   WidgetsBinding.instance.addObserver(this);
 
-  _controller = AnimationController(
-    duration: const Duration(milliseconds: 400),// 600
-    vsync: this,
-  );
-
-  _offsetAnimation = Tween<Offset>(
-    begin: const Offset(0.0, -0.2),
-    end: Offset.zero,
-  ).animate(CurvedAnimation(
-    parent: _controller,
-    curve: Curves.bounceIn,
-  ));
-
-  _controller.forward();
 
 
 // /// For the power button
@@ -179,10 +162,6 @@ void initState() {
 
 
 
-String displaySpeed(int data){
-  double rate = (data * 8) / 1000000.0;
-  return '${rate.toStringAsFixed(2)} Mb/s';
-}
 
 
 checkCanAddExitNodeEnabled()async{
@@ -194,7 +173,7 @@ checkCanAddExitNodeEnabled()async{
 
 @override
   void dispose() {
-    _controller.dispose();
+    _isConnectedEventSubscription?.cancel();
        WidgetsBinding.instance.removeObserver(this);
        //_bounceButtonController.dispose();
    // _videoLoaderController.dispose();
@@ -212,468 +191,88 @@ String capitalizeFirstLetter(String value) {
 
   @override
   Widget build(BuildContext context) {
-    final nodeProvider = Provider.of<NodeProvider>(context);
     final appSelectingProvider = Provider.of<AppSelectingProvider>(context);
-    final loaderVideoProvider = Provider.of<LoaderVideoProvider>(context);
-    final logprovider = Provider.of<LogProvider>(context);
-  //  final speedChartProvider = Provider.of<SpeedChartProvider>(context);
     final appModel = Provider.of<AppModel>(context);
-    final mHeight = MediaQuery.of(context).size.height;
-        final ipProvider = Provider.of<IpProvider>(context);
-    final loaderProvider = Provider.of<LoaderVideoProvider>(context);
-        final introProvider = Provider.of<IntroStateProvider>(context);
-    final mapProvider = Provider.of<VpnMapProvider>(context, listen: false);
-    final double powerSize = (mHeight * 0.14).clamp(92.0, 128.0);
+    final style = VpnHomeStyle.of(appModel.darkTheme);
     return Padding(
-      padding: const EdgeInsets.only(bottom:20.0),
+      padding: const EdgeInsets.only(bottom: 20.0),
       child: Scaffold(
-         backgroundColor: Colors.transparent,
-        //resizeToAvoidBottomInset: false,
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
+          backgroundColor: style.headerBackground,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
           leading: Padding(
-              padding: const EdgeInsets.symmetric(vertical:  10.0,horizontal: 15),
-              child: Text('1.4.1',style: TextStyle(fontFamily: 'Poppins',color: appModel.darkTheme ? Colors.white : Color(0xff4D4D4D)),),
+            padding: const EdgeInsets.only(left: 18),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text('1.4.1',
+                  style: style.body(size: 12, color: style.labelColor)),
             ),
+          ),
           leadingWidth: 100,
           centerTitle: true,
           title: appModel.darkTheme
-              ? SvgPicture.asset('assets/images/dark_theme/home_logo_dark_theme.svg', height: 26)
-              : SvgPicture.asset('assets/images/light_theme/home_logo_white_theme.svg', height: 26),
+              ? SvgPicture.asset('assets/images/dark_theme/home_logo_dark_theme.svg', height: 19)
+              : SvgPicture.asset('assets/images/light_theme/home_logo_white_theme.svg', height: 19),
           actions: [
-         GestureDetector(
-          onTap: (){
-            try{
-              appModel.darkTheme = !appModel.darkTheme;
-            }catch(e){
-      
-            }
-                      // loaderVideoProvider.initialize(appModel.darkTheme ? 'assets/images/dark_theme/Loading_v1_slow.webm' : 'assets/images/light_theme/loading_white_theme.webm');
-      
-             },
-           child: Container(
-              padding: EdgeInsets.all(7),
-              margin: EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(
-                color:appModel.darkTheme? Colors.grey.withOpacity(0.1):Color(0xffA1A1A1).withOpacity(0.2),
+            // Theme toggle in a small square, as designed.
+            Tooltip(
+              message: appModel.darkTheme ? 'Light theme' : 'Dark theme',
+              child: Material(
+                color: style.themeToggleFill,
+                borderRadius: BorderRadius.circular(3),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () {
+                    try {
+                      appModel.darkTheme = !appModel.darkTheme;
+                    } catch (e) {}
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: appModel.darkTheme
+                        ? SvgPicture.asset('assets/images/dark_theme/light_Theme.svg', height: 18, width: 18)
+                        : SvgPicture.asset('assets/images/light_theme/dark_theme.svg', height: 18, width: 18),
+                  ),
+                ),
               ),
-              child:appModel.darkTheme? SvgPicture.asset('assets/images/dark_theme/light_Theme.svg'):SvgPicture.asset('assets/images/light_theme/dark_theme.svg') ),
-         )
+            ),
+            const SizedBox(width: 16),
           ],
-          ),
-         
+        ),
         body: Column(
           children: [
-            // Interactive world map: original location, exit server, route
-            // and live connection details.
+            // Map: own country while unprotected, rotating globe with the
+            // real onion route while connecting, exit country when
+            // protected. The status block lives inside the map.
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 2, 10, 0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: appModel.darkTheme
-                          ? const Color(0xff393A39)
-                          : const Color(0xffD0D4DA),
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: VpnWorldMap(
-                      darkTheme: appModel.darkTheme,
-                      bottomInset: VpnConnectionPanel.collapsedHeight + 16,
-                      overlay: [
-                        Positioned(
-                          left: 10,
-                          top: 10,
-                          child: VpnMapStatusChip(dark: appModel.darkTheme),
-                        ),
-                        Positioned(
-                          left: 8,
-                          right: 8,
-                          bottom: 8,
-                          child: VpnConnectionPanel(dark: appModel.darkTheme),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              child: VpnWorldMap(
+                darkTheme: appModel.darkTheme,
+                bottomInset: 70,
+                compact: _panelExpanded,
               ),
             ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                !loaderProvider.isLoading ? GestureDetector(
-                  onTap:()=>toggleBelnet(context,appSelectingProvider,dns: '9.9.9.9',isCustomeExitNode: false),
-                  child: GlassContainer.clearGlass(
-                    height: powerSize,
-                    width: powerSize,
-                    shape: BoxShape.circle,
-                    borderColor: Colors.transparent,
-                    blur: 10,
-                    color: Colors.white.withOpacity(0.05),
-                    child:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED
-                      ? appModel.darkTheme
-                        ? SvgPicture.asset('assets/images/dark_theme/disconnect.svg')
-                        : SvgPicture.asset('assets/images/light_theme/disconnect 1.svg')
-                      : appModel.darkTheme
-                        ? SvgPicture.asset('assets/images/dark_theme/connect.svg',)
-                        : SvgPicture.asset('assets/images/light_theme/connect_wht_theme.svg')
-                  ),
-                ) : SizedBox(height: powerSize, width: powerSize),
-                const SizedBox(width: 16),
-                Flexible(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ?
-                      GlassContainer.clearGlass(
-                        height: 40,width: 100,
-                        color:  appModel.darkTheme ?  Color(0xff333333).withOpacity(0.2): Color(0xffFFFFFF),
-                        borderColor: Colors.transparent,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text('Connected', style: TextStyle(color: Color(0xff00DC00),fontFamily: 'Poppins',fontSize: 12,),),
-                            SizedBox(width: 4,),
-                            Container(
-                              height: 7,width: 7,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xff00DC00)
-                              ),
-                            )
-                          ],
-                        ),
-                      ) : SizedBox.shrink(),
-                      Visibility(
-                        visible: loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED,
-                        child: GestureDetector(
-                          onTap:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED || !introProvider.showButton ? null :  ()=>  showCustomDialog(context,appModel),
-                          child: appModel.darkTheme ?
-                          Container(
-                            decoration: BoxDecoration(
-                              color:!introProvider.showButton ? Color(0xff222222) : Color(0xff333333),
-                              gradient:!introProvider.showButton ? null : LinearGradient(colors: [
-                                Color(0xff1A1A1A),
-                                Color(0xff1A1A1A),
-                                Color(0xff333333),
-                              ]),
-                              border: !introProvider.showButton ? GradientBoxBorder(gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                 end: Alignment.bottomRight,
-                                colors:[
-                                 Color(0xff444444),
-                                 Color(0xff444444),
-                                 Color(0xff8D8D8D)
-                              ] )) : GradientBoxBorder(gradient:
-                              LinearGradient(
-                                 begin: Alignment.topLeft,
-                                 end: Alignment.bottomRight,
-                                colors: [
-                                 Color(0xff464663),
-                                 Color(0xff00DC00)
-                              ]))
-                            ),
-                            padding: EdgeInsets.symmetric(vertical: 14,horizontal: 20),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                  SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color: !introProvider.showButton ? Color(0xff737373) : Color(0xff00DC00)),
-                                  SizedBox(width: 5,),
-                                  Text('Add Exit Node',style: TextStyle(color: !introProvider.showButton ? Color(0xff737373) : Color(0xff00DC00),fontFamily: 'Poppins',fontWeight: FontWeight.w600),)
-                              ],
-                            ),
-                          ):
-                          Container(
-                          decoration: BoxDecoration(
-                            color: Color(0xffFFFFFF),
-                            gradient:!introProvider.showButton ? null :
-                             LinearGradient(colors: [
-                              Color(0xffFFFFFF),
-                              Color(0xffFFFFFF),
-                              Color(0xffF0F0F0),
-                            ]),
-                            border:  Border.all(color:!introProvider.showButton ? Color(0xffACACAC) : Color(0xff00B400) )
-                          ),
-                          padding: EdgeInsets.symmetric(vertical: 14,horizontal: 20),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                                SvgPicture.asset('assets/images/dark_theme/add_exit_node.svg',color: !introProvider.showButton ? Color(0xffACACAC) : Color(0xff00DC00)),
-                                SizedBox(width: 5,),
-                                Text('Add Exit Node',style: TextStyle(color: !introProvider.showButton ? Color(0xffACACAC) : Color(0xff00DC00),fontFamily: 'Poppins',fontWeight: FontWeight.w600),)
-                            ],
-                          ),
-                        ),
-                        ),
-                      ),
-                      loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED
-                        ? SizedBox(height: 10,):SizedBox.shrink(),
-                      loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED
-                       ? GestureDetector(
-                          onTap:(){
-                            widget.onNavigateToExitNodes(true);
-                          },
-                          child: GlassContainer.clearGlass(
-                            height: 44,width: 150,
-                              color: appModel.darkTheme ? Color(0xff0B0B0B).withOpacity(0.3) : Color(0xffACACAC).withOpacity(0.2),
-                              borderColor:appModel.darkTheme ? Color(0xffACACAC) : Color(0xff0B0B0B),
-                            child: Center(child: Text('Change Node',style: TextStyle(color:appModel.darkTheme ? Color(0xffEBEBEB) : Color(0xff0B0B0B),fontWeight: FontWeight.w600,fontSize: 15),)),
-                          ),
-                        ): SizedBox.shrink()
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-                  SlideTransition(
-                    position: _offsetAnimation,
-                    child: GestureDetector(
-                      onTap:loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? (){ widget.onNavigateToExitNodes(false);} : null,
-                      child: GlassContainer.clearGlass(
-                          height: (MediaQuery.of(context).size.height*0.30/3).clamp(72.0, 100.0),
-                          width: double.infinity,
-                          margin: EdgeInsets.symmetric(horizontal: 10,vertical: 5
-                          ),
-                           
-                            color:appModel.darkTheme ? Color(0xff707070).withOpacity(0.07) //s.white.withOpacity(0.02) 
-                            : Colors.white.withOpacity(0.6), // Color(0xFF00B400).withOpacity(0.02),
-                            // borderColor: //Border.all(color: 
-                            // appModel.darkTheme ? Color(0xff00DC00) :Color(0xFF00B400),
-                            borderWidth:appModel.darkTheme ? 0.8 : 0.3,//),
-                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                          decoration: BoxDecoration(
-                            border: GradientBoxBorder(gradient: LinearGradient(
-                              colors: loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? 
-                             appModel.darkTheme ? [
-                                  Color(0xff393A39),
-                                  Color(0xffAEB0AE),
-                                  Color(0xffAEB0AE)
-
-                              ] : [
-                                 Color(0xff8D8D8D),
-                                  Color(0xffFFFFFF),
-                                  Color(0xffFFFFFF)
-                              ]
-                              :[
-                                Color(0xff007300),
-                                Color(0xff007300),
-                                Color(0xff5EFF5E)
-                            ]
-                            )),
-                            
-                          ),
-                           child: Row(
-                            children: [
-                                Container(
-                                  height: 45,width: 45,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                   color: appModel.darkTheme ? Color(0xff707070).withOpacity(0.3) //s.white.withOpacity(0.1)
-                                    : Color(0xffFFFFFF).withOpacity(0.5)
-                                  ),
-                                  padding: EdgeInsets.all(10),
-                                  child:introProvider.isCustomNode ? Image.asset('${countryCodeToFlag[ipProvider.customCountryCode?.toUpperCase()]}',
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Icon(Icons.broken_image,color: appModel.darkTheme ? Colors.white : Colors.black);
-                                    },
-                                    ) : Image.asset('assets/images/flags/${nodeProvider.selectedExitNodeCountry ?? 'France'}.png',
-                                     errorBuilder: (context, error, stackTrace) {
-                                      return Icon(Icons.broken_image,color: appModel.darkTheme ? Colors.white : Colors.black);
-                                    },
-                                    ),
-                                ),
-                                SizedBox(width: 8,),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                     introProvider.isCustomNode ? Text('${ipProvider.customNodeCountry ?? 'Fetching country name...'}', style: TextStyle(fontFamily: 'Poppins',fontSize: 12,color:appModel.darkTheme ? Color(0xffACACAC) : Colors.black)) : Text('${nodeProvider.selectedExitNodeCountry ?? 'France'}', style: TextStyle(fontFamily: 'Poppins',fontSize: 12,color:appModel.darkTheme ? Color(0xffACACAC) : Colors.black)),
-                                      SizedBox(height: 5,),
-                                      Text('${nodeProvider.selectedExitNodeName ?? 'exit.bdx'}', maxLines: 2, style: TextStyle(overflow: TextOverflow.ellipsis,fontFamily: 'Poppins',fontSize: 12),)
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(width: 10,),
-                               loaderVideoProvider.conStatus == ConnectionStatus.DISCONNECTED ? Container(
-                                  height: 35,width: 35,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color:appModel.darkTheme ? Color(0xff707070).withOpacity(0.07) : Color(0xffBEBEBE).withOpacity(0.3)
-                                  ),
-                                  padding: EdgeInsets.all(9),
-                                  child: SvgPicture.asset('assets/images/dark_theme/arrow_settings.svg',height: 20,color:appModel.darkTheme ? Colors.white : Colors.black,))
-                                  : SizedBox.shrink()
-                            ],
-                           ),
-                         ),
-                        ),
-                    ),
-                  ),
-            SizedBox(height: 5,),
-            ValueListenableBuilder<VpnLiveStats>(
-              valueListenable: mapProvider.stats,
-              builder: (context, liveStats, _) =>
-                    Padding(
-                  padding: const EdgeInsets.symmetric(horizontal:8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: GlassContainer(
-                          height:55,// MediaQuery.of(context).size.height * 0.10,
-                          //borderRadius: BorderRadius.circular(10),
-                          color:appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.05):Colors.white.withOpacity(0.4) , //s.black12,
-                          blur: 5.0,
-                          borderColor: Colors.transparent, //(0xffACACAC),
-                          borderWidth: 0.5,
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          child: Row(
-                            
-                            children: [
-                              Container(
-                                                decoration: BoxDecoration(
-                                                  //border: Border.all(color:appModel.darkTheme ? Colors.transparent : Color(0xffA1A1AF),width: 0.2),
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                child: 
-                                                CircleAvatar(
-                                                  backgroundColor:appModel.darkTheme ? Colors.white.withOpacity(0.1) : Color(0xffFFFFFF),
-                                                  radius: 13,
-                                                  child: SvgPicture.asset('assets/images/dark_theme/connection.svg',height: 13,width: 13, color: appModel.darkTheme ? Colors.white : Colors.black,) //Icon(Icons.download, color: Colors.white, size: 20),
-                                                ),
-                                              ),
-                                              SizedBox(width: 5),
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                   
-                                              // CircleAvatar(
-                                              //   backgroundColor: Colors.white.withOpacity(0.1),
-                                              //   radius: 20,
-                                              //   child: SvgPicture.asset('assets/images/dark_theme/connection.svg',color: appModel.darkTheme ? Colors.white : Colors.black,) //Icon(Icons.link, color: Colors.white, size: 20),
-                                              // ),
-                                              SizedBox(height: 8),
-                                              Text("Status", style: TextStyle(color:appModel.darkTheme ? Colors.white70 : Color(0xff4D4D4D), fontSize: 10)),
-                                              SizedBox(height: 4),
-                                              Text(capitalizeFirstLetter(loaderVideoProvider.conStatus.name), style: TextStyle(color:loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ?  Color(0xff00DC00) : appModel.darkTheme ? Colors.white : Colors.black, fontSize: 9, fontWeight: FontWeight.bold,overflow: TextOverflow.ellipsis),maxLines: 1,),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 5),
-                      Expanded(
-                        child: GlassContainer(
-                          height:55, //MediaQuery.of(context).size.height * 0.10,
-                          //borderRadius: BorderRadius.circular(10),
-                          color:appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.05):Colors.white.withOpacity(0.4), 
-                          blur: 5.0,
-                          borderColor: Colors.transparent, //(0xffACACAC),
-                          borderWidth: 0.5,
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          child: Row(
-                            children: [
-                              Container(
-                                                decoration: BoxDecoration(
-                                                  //border: Border.all(color:appModel.darkTheme ? Colors.transparent : Color(0xffA1A1AF),width: 0.2),
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                child: 
-                                                CircleAvatar(
-                                                  backgroundColor:appModel.darkTheme ? Colors.white.withOpacity(0.1) : Color(0xffFFFFFF),
-                                                  radius: 13,
-                                                  child: SvgPicture.asset('assets/images/dark_theme/Download.svg',height: 13,width: 13,) //Icon(Icons.download, color: Colors.white, size: 20),
-                                                ),
-                                              ),
-                                              SizedBox(width: 5),
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                              
-                                              SizedBox(height: 8),
-                                              Text("Download", style: TextStyle(color: appModel.darkTheme ? Colors.white70 : Color(0xff4D4D4D), fontSize: 10)),
-                                              SizedBox(height: 4),
-                                              Text(loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ? formatBitRate(liveStats.downloadBytesPerSec) : '0.0 Mb/s', // measured by the native status feed
-                                               style: TextStyle(color:appModel.darkTheme ? Colors.white : Colors.black, fontSize: 10,// fontWeight: FontWeight.bold
-                                               )),
-                                               SizedBox(height: 2,)
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 5),
-                      Expanded(
-                        child: GlassContainer(
-                          height: 55, // MediaQuery.of(context).size.height * 0.10,
-                          //borderRadius: BorderRadius.circular(10),
-                          color: appModel.darkTheme ? Color(0xffACACAC).withOpacity(0.05):Colors.white.withOpacity(0.4) ,
-                          blur: 5.0,
-                          borderColor: Colors.transparent, //(0xffACACAC),
-                          borderWidth: 0.5,
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-      
-                            children: [
-                              Container(
-                                                decoration: BoxDecoration(
-                                                  //border: Border.all(color:appModel.darkTheme ? Colors.transparent : Color(0xffA1A1AF),width: 0.2),
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                child: 
-                                                CircleAvatar(
-                                                  backgroundColor:appModel.darkTheme ? Colors.white.withOpacity(0.1) : Color(0xffFFFFFF),
-                                                  radius: 13,
-                                                  child: SvgPicture.asset('assets/images/dark_theme/upload.svg',height: 13,width: 13,color: Color(0xff8D8D8D),) //Icon(Icons.download, color: Colors.white, size: 20),
-                                                ),
-                                              ),
-                                              SizedBox(width: 5),
-                                             // Spacer(),
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                      
-                                              // CircleAvatar(
-                                              //   backgroundColor: Colors.white.withOpacity(0.1),
-                                              //   radius: 20,
-                                              //   child: SvgPicture.asset('assets/images/dark_theme/upload.svg') //Icon(Icons.upload, color: Colors.white, size: 20),
-                                              // ),
-                                              SizedBox(height: 8),
-                                              Text("Upload", style: TextStyle(color: appModel.darkTheme ? Colors.white70 : Color(0xff4D4D4D), fontSize: 10)),
-                                              SizedBox(height: 4),
-                                              Text(loaderVideoProvider.conStatus == ConnectionStatus.CONNECTED ? formatBitRate(liveStats.uploadBytesPerSec) : '0.0 Mb/s', // measured by the native status feed
-                                              style: TextStyle(color:appModel.darkTheme ? Colors.white : Colors.black, fontSize: 10, //fontWeight: FontWeight.bold
-                                              )),
-                                              SizedBox(height: 2,)
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+            // Panel: its own block under the map (design).
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: style.panelBackground,
+                border: Border(top: BorderSide(color: style.panelTopLine)),
+              ),
+              child: VpnHomePanel(
+              dark: appModel.darkTheme,
+              onConnectToggle: () => toggleBelnet(context, appSelectingProvider,
+                  dns: '9.9.9.9', isCustomeExitNode: false),
+              onAddExitNode: () => showCustomDialog(context, appModel),
+              onChangeNode: () => widget.onNavigateToExitNodes(true),
+              onOpenExitNodes: () => widget.onNavigateToExitNodes(false),
+              expanded: _panelExpanded,
+              onExpandedChanged: (v) => setState(() => _panelExpanded = v),
+              ),
             ),
           ],
         ),
-
-        //Center(child: Text('Working', style: TextStyle(fontSize: 24))),
       ),
     );
   }

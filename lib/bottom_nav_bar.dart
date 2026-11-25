@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:belnet_lib/belnet_lib.dart';
+import 'package:belnet_mobile/src/map/vpn_home_style.dart';
 import 'package:belnet_mobile/node_provider.dart';
 import 'package:belnet_mobile/src/app_list_provider.dart';
 import 'package:belnet_mobile/src/model/theme_set_provider.dart';
@@ -334,6 +335,9 @@ Widget _getScreen(int index) {
     final appModel = Provider.of<AppModel>(context);
     final onAdBlockerScreen = selectedIndex == 3 &&
         Provider.of<SettingsProvider>(context).currentView == SettingsView.adBlocker;
+    // The home screen shows connection progress on its own globe/map, so the
+    // full-screen connecting / connected animations are not drawn behind it.
+    final plainBackground = onAdBlockerScreen || selectedIndex == 0;
     return connectivityProvider.isConnected ? WillPopScope(
       onWillPop: () async {
 
@@ -412,8 +416,12 @@ Widget _getScreen(int index) {
               extendBody: true, // lets nav bar float over body
               body: Stack(
                 children: [
-                  // Background image
-                  Container(
+                  // Background: the home tab uses a plain dark/light page so
+                  // the map and globe read cleanly (V3 design); the other
+                  // tabs keep the textured background image.
+                  selectedIndex == 0
+                  ? Container(color: VpnHomeStyle.of(appModel.darkTheme).background)
+                  : Container(
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image:appModel.darkTheme ? AssetImage('assets/images/dark_theme/BG_dark_theme.png') :AssetImage('assets/images/light_theme/BG_wht_theme.png') ,
@@ -424,7 +432,7 @@ Widget _getScreen(int index) {
 
               // The connected / connecting globe animations are not shown
               // behind Settings → Ad Blocker (plain background, as designed).
-              !onAdBlockerScreen && loaderProvider.conStatus == ConnectionStatus.CONNECTED ? 
+              !plainBackground && loaderProvider.conStatus == ConnectionStatus.CONNECTED ? 
               Container(
                child: Lottie.asset('assets/images/dark_theme/Dots_v1(1).json',fit: BoxFit.cover)
               ) : SizedBox(),   
@@ -433,7 +441,7 @@ Widget _getScreen(int index) {
             //         ): SizedBox(),
              
                   
-                  !onAdBlockerScreen &&
+                  !plainBackground &&
                   loaderProvider.isLoading
                   && 
                   loaderProvider.conStatus == ConnectionStatus.CONNECTING ?
@@ -519,16 +527,17 @@ class CustomBottomNavBar extends StatelessWidget {
        final appModel = Provider.of<AppModel>(context);
 
     return Padding(
-      padding: EdgeInsets.only(right:9,left: 9), // little bottom space
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8), // inset like the V3 panel
       child:
        ClipRRect(
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: 
           Container(
-            padding: EdgeInsets.symmetric( vertical: 15),
+            padding: EdgeInsets.symmetric( vertical: 12),
              decoration: BoxDecoration(
-    color: appModel.darkTheme ? Colors.white.withOpacity(0.05) : Color(0xffC0C0C0).withOpacity(0.2),
+    // V3 design: solid bar in the panel colour family.
+    color: VpnHomeStyle.of(appModel.darkTheme).navBar,
     //border: Border. //all(color: Color(0xff3A496266).withOpacity(0.1)),
   ),
            // color: Colors.black.withOpacity(0.3),
@@ -550,17 +559,19 @@ class CustomBottomNavBar extends StatelessWidget {
 
   Widget _buildNavItem(String icon, int index, {Color activeColor = Colors.white,AppModel? appModel}) {
     bool isSelected = selectedIndex == index;
+    final navStyle = VpnHomeStyle.of(appModel?.darkTheme ?? true);
     return GestureDetector(
       onTap: () => onItemTapped(index),
       child: Container(
-        padding: EdgeInsets.all(10),
+        padding: EdgeInsets.all(9),
         decoration: BoxDecoration(
-          color:isSelected ? 
-           Colors.white 
-          : appModel!.darkTheme ? Color(0xff555555).withOpacity(0.2) : Color(0xffA1A1A1).withOpacity(0.3), // Colors.grey.shade900.withOpacity(0.7),
+          color: isSelected ? Colors.white : navStyle.navItem,
           shape: BoxShape.rectangle,
+          boxShadow: isSelected && !navStyle.dark
+              ? [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 4)]
+              : null,
         ),
-        child: SvgPicture.asset(icon, color: isSelected ? Colors.black : appModel!.darkTheme ? Colors.grey : Color(0xff222222),height: 20,)
+        child: SvgPicture.asset(icon, color: isSelected ? Colors.black : navStyle.navIcon,height: 20,)
         // Icon(
         //   icon,
         //   color: isSelected ? activeColor : Colors.grey,

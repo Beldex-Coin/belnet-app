@@ -230,7 +230,9 @@ class _VpnWorldMapState extends State<VpnWorldMap>
       if (!mounted) return;
       setState(() => _data = data);
       _refreshCountries();
-      _scheduleFocus(force: true);
+      // Countries are known now, so the framing can change: jump to it
+      // (a glide here is the map 'settling' right after Home appears).
+      _scheduleFocus(force: true, instant: true);
     }).catchError((Object e) {
       if (mounted) setState(() => _loadError = e);
     });
@@ -592,10 +594,54 @@ class _VpnWorldMapState extends State<VpnWorldMap>
 
   /// Entering: zoom out from close-up. Leaving to the exit: zoom into the
   /// exit country. Either way the globe is large while it is faint.
+  /// Globe shift while it blends with the flat map (see [_applyGlobeZoom]).
+  Offset _globeShift = Offset.zero;
+
+  /// The point the flat map is centred on and how it shows it: its place
+  /// on screen and the globe zoom with the same local scale there.
+  ({double lat, double lon, Offset screen, double zoom})? _flatMatch() {
+    final p = _provider;
+    if (p == null || _viewport.isEmpty || _mapSize.isEmpty) return null;
+    final useExit = p.tunnelActive && _exitTo != null;
+    final point = useExit ? _exitTo : (_origin ?? _exitTo);
+    if (point == null) return null;
+    final t = _transform;
+    final ll = MapProjection.unproject(point);
+    // Miller map: east-west scale at latitude phi is (width / 2pi) / cos(phi)
+    // pixels per radian of arc; on the globe it is the radius.
+    final cosLat = math.cos(ll.latitude * math.pi / 180).clamp(0.2, 1.0);
+    final pixelsPerRadian = t.scale * _mapSize.width / (2 * math.pi * cosLat);
+    final base = math.min(_viewport.width * 0.39, _viewport.height * 0.36);
+    if (base <= 0) return null;
+    return (
+      lat: ll.latitude,
+      lon: ll.longitude,
+      screen: t.toScreen(
+          Offset(point.dx * _mapSize.width, point.dy * _mapSize.height)),
+      zoom: (pixelsPerRadian / base).clamp(1.0, 12.0),
+    );
+  }
+
+  /// Globe <-> flat map blend. At the flat end the globe shows the focused
+  /// point at exactly the flat map's place and size (so the cross-fade has
+  /// no jump), and eases from there to the whole globe.
   void _applyGlobeZoom() {
     final mix = Curves.easeInOutCubic.transform(_globeMix.value);
-    final far = _leavingToExit ? 2.2 : 1.9;
-    _camera.zoom = far + (1.0 - far) * mix;
+    final match = _flatMatch();
+    if (match == null) {
+      final far = _leavingToExit ? 2.2 : 1.9;
+      _camera.zoom = far + (1.0 - far) * mix;
+      _globeShift = Offset.zero;
+      return;
+    }
+    _camera.zoom = match.zoom + (1.0 - match.zoom) * mix;
+    final center = Offset(_viewport.width / 2, _viewport.height * 0.45);
+    final radius =
+        math.min(_viewport.width * 0.39, _viewport.height * 0.36) *
+            _camera.zoom;
+    final onGlobe = GlobeProjection(_camera.latitude, _camera.longitude)
+        .toScreen(match.lat, match.lon, center, radius);
+    _globeShift = (match.screen - onGlobe) * (1 - mix);
   }
 
   /// Tells the provider (and so the panel) whether the connecting sequence
@@ -922,16 +968,20 @@ class _VpnWorldMapState extends State<VpnWorldMap>
   // ---------------------------------------------------------------------
   // Camera (flat map)
 
-  void _scheduleFocus({bool force = false}) {
+  void _scheduleFocus({bool force = false, bool instant = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (_userMoved && !force) return;
       // Behind the globe the camera jumps; on screen it glides.
       final visible = _globeMix.value < 0.5;
       final target = _focusTarget();
-      _publishHomeAnchor(target);
+      // Only a final framing is published (country outline known), so the
+      // intro / tab globe never aims at a provisional view.
+      if (_data != null) _publishHomeAnchor(target);
       _animateTo(target,
-          animate: visible && (!force || _tc.value != Matrix4.identity()));
+          animate: !instant &&
+              visible &&
+              (!force || _tc.value != Matrix4.identity()));
     });
   }
 
@@ -1132,7 +1182,7 @@ class _VpnWorldMapState extends State<VpnWorldMap>
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted && !_userMoved) {
                   final target = _focusTarget();
-                  _publishHomeAnchor(target);
+                  if (_data != null) _publishHomeAnchor(target);
                   _animateTo(target, animate: false);
                 }
               });
@@ -1226,11 +1276,16 @@ class _VpnWorldMapState extends State<VpnWorldMap>
                       animation: _globeMix,
                       builder: (context, child) => _globeMix.value == 0
                           ? const SizedBox.shrink()
-                          : Opacity(
-                              opacity: Curves.easeIn
-                                  .transform(_globeMix.value)
-                                  .clamp(0.0, 1.0),
-                              child: child,
+                          : Transform.translate(
+                              offset: _globeMix.value >= 1
+                                  ? Offset.zero
+                                  : _globeShift,
+                              child: Opacity(
+                                opacity: Curves.easeIn
+                                    .transform(_globeMix.value)
+                                    .clamp(0.0, 1.0),
+                                child: child,
+                              ),
                             ),
                       child: RepaintBoundary(
                         child: CustomPaint(

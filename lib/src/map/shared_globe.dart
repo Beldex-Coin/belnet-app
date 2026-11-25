@@ -49,48 +49,33 @@ class SharedGlobeController extends ChangeNotifier {
     homeFocus = focus;
   }
 
-  IntroHandoff? _introHandoff;
-
-  /// Left by the intro globe (onboarding / launch) as it hands over to
-  /// home: where the user's location was on screen and how large the map
-  /// was there. The home map starts from exactly that view and then glides
-  /// to its own framing, so the cross-fade shows no jump.
-  void setIntroHandoff(IntroHandoff handoff) => _introHandoff = handoff;
-
-  /// The pending hand-over, if it is recent (null otherwise).
-  IntroHandoff? get introHandoff {
-    final h = _introHandoff;
-    if (h == null) return null;
-    if (DateTime.now().difference(h.at) > const Duration(seconds: 4)) {
-      _introHandoff = null;
-      return null;
-    }
-    return h;
-  }
-
-  void clearIntroHandoff() => _introHandoff = null;
+  /// Published by the home map: where the user's location sits on screen
+  /// in home's resting view, and how large the map is there. The intro
+  /// globe (onboarding / launch) zooms into exactly this view before home
+  /// appears, so the hand-over is a still cross-fade with no jump.
+  final ValueNotifier<HomeAnchor?> homeAnchor = ValueNotifier(null);
 }
 
-/// See [SharedGlobeController.setIntroHandoff].
-class IntroHandoff {
-  IntroHandoff({
-    required this.latitude,
-    required this.longitude,
-    required this.globalPoint,
-    required this.pixelsPerRadian,
-  }) : at = DateTime.now();
+/// See [SharedGlobeController.homeAnchor].
+@immutable
+class HomeAnchor {
+  const HomeAnchor({required this.globalPoint, required this.pixelsPerRadian});
 
-  /// The user's location.
-  final double latitude;
-  final double longitude;
-
-  /// Where it was on screen (global logical pixels).
+  /// The user's location on screen (global logical pixels).
   final Offset globalPoint;
 
   /// Local map scale there: on-screen pixels per radian of arc.
   final double pixelsPerRadian;
 
-  final DateTime at;
+  @override
+  bool operator ==(Object other) =>
+      other is HomeAnchor &&
+      (other.globalPoint - globalPoint).distance < 0.5 &&
+      (other.pixelsPerRadian - pixelsPerRadian).abs() < 0.5;
+
+  @override
+  int get hashCode => Object.hash(
+      globalPoint.dx.round(), globalPoint.dy.round(), pixelsPerRadian.round());
 }
 
 /// The globe behind every tab (design: Settings and other screens).

@@ -118,9 +118,12 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     _zoom = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 1500))
       ..addListener(() {
-        // Home starts fading in while the globe is still zooming, so the
-        // zoom flows straight into the home map.
-        if (_zoom.value >= 0.45) _goHome();
+        // Without home's anchor: home fades in during the zoom.
+        if (_anchor == null && _zoom.value >= 0.45) _goHome();
+      })
+      ..addStatusListener((s) {
+        // With it: the globe has come to rest on home's exact view.
+        if (s == AnimationStatus.completed) _goHome();
       });
     _ticker = createTicker(_tick)..start();
 
@@ -165,6 +168,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   void dispose() {
     _poll?.cancel();
     _autoStart?.cancel();
+    SharedGlobeController.instance.homeAnchor
+        .removeListener(_onAnchorChanged);
+    // _homeShown is still listened to by the home route: not disposed here.
     _ticker.dispose();
     _ui.dispose();
     _rise.dispose();
@@ -224,55 +230,133 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     _rise.forward();
   }
 
+  // ---------------------------------------------------------------------
+  // Hand-over to home
+  //
+  // Home is pushed early, invisible, on top of this screen. It lays out its
+  // map and publishes where the user's location will sit and how large the
+  // map is there (SharedGlobeController.homeAnchor). The globe then zooms
+  // and slides into exactly that view, comes to rest, and only then home
+  // fades in over it - a still cross-fade, so the map simply carries on.
+
+  NavigatorState? _navigator;
+  Route<void>? _homeRoute;
+  final ValueNotifier<bool> _homeShown = ValueNotifier(false);
+  double _homePushedAt = -1;
+  double _anchorChangedAt = -1;
+
+  /// The view the zoom ends on (null: no anchor, plain zoom + fade).
+  HomeAnchor? _anchor;
+  double _zoomFrom = _centerZoom;
+
+  /// Screen size, from the last build (used by the ticker).
+  Size _size = Size.zero;
+
+  /// Wait this long for home's anchor before zooming without it.
+  static const double _anchorTimeout = 2.5;
+
+  /// Anchor must be unchanged this long (home finished laying out).
+  static const double _anchorSettle = 0.25;
+
+  void _onAnchorChanged() => _anchorChangedAt = _clock;
+
+  void _pushHomeHidden() {
+    if (_homeRoute != null || !mounted) return;
+    _homePushedAt = _clock;
+    final anchors = SharedGlobeController.instance.homeAnchor;
+    anchors.addListener(_onAnchorChanged);
+    if (anchors.value != null) _anchorChangedAt = _clock;
+    final shown = _homeShown;
+    final route = PageRouteBuilder<void>(
+      opaque: false,
+      transitionDuration: Duration.zero,
+      reverseTransitionDuration: Duration.zero,
+      pageBuilder: (_, __, ___) => ValueListenableBuilder<bool>(
+        valueListenable: shown,
+        child: MainBottomNavbar(),
+        builder: (_, visible, child) => IgnorePointer(
+          ignoring: !visible,
+          child: AnimatedOpacity(
+            opacity: visible ? 1 : 0,
+            duration: const Duration(milliseconds: 420),
+            curve: Curves.easeInOut,
+            onEnd: _removeSelf,
+            child: child,
+          ),
+        ),
+      ),
+    );
+    _homeRoute = route;
+    _navigator = Navigator.of(context)..push(route);
+  }
+
+  /// Home is fully visible: drop this screen from under it.
+  void _removeSelf() {
+    final nav = _navigator;
+    final route = _homeRoute;
+    if (!_homeShown.value || nav == null || route == null) return;
+    if (route.isActive && mounted) nav.removeRouteBelow(route);
+  }
+
+  /// Ready to zoom: home's anchor is known and settled, or we gave up.
+  bool get _canZoom {
+    if (_homeRoute == null) return true;
+    final anchor = SharedGlobeController.instance.homeAnchor.value;
+    if (anchor != null &&
+        _anchorChangedAt >= 0 &&
+        _clock - _anchorChangedAt >= _anchorSettle) {
+      return true;
+    }
+    return _clock - _homePushedAt > _anchorTimeout;
+  }
+
+  void _startZoom() {
+    _anchor = _found != null
+        ? SharedGlobeController.instance.homeAnchor.value
+        : null;
+    _zoomFrom = _camera.zoom;
+    setState(() => _step = _Step.zooming);
+    _zoom.forward();
+  }
+
+  double _globeBase(Size size) =>
+      math.min(size.width * 0.39, size.height * 0.36);
+
+  /// Globe centre once risen (before the final slide), in screen pixels.
+  Offset _risenCenter(Size size) =>
+      Offset(size.width / 2, size.height * (0.45 + _centerDrop));
+
+  /// Extra slide applied during the zoom: moves the user's location onto
+  /// home's anchor point.
+  Offset _slide(Size size) {
+    final anchor = _anchor;
+    if (anchor == null) return Offset.zero;
+    final e = Curves.easeInOutCubic.transform(_zoom.value);
+    return (anchor.globalPoint - _risenCenter(size)) * e;
+  }
+
   void _goHome() {
     if (_navigated || !mounted) return;
     _navigated = true;
-    // Freeze the globe where it is: home starts from this exact view.
-    _zoom.stop();
-    // Hand the globe's pose to the shared globe (other tabs / home), so
-    // the next globe the user sees continues from here.
+    // Hand the globe's pose to the shared globe (other tabs / home).
     final shared = SharedGlobeController.instance
       ..syncRotation(_camera.latitude, _camera.longitude);
     final f = _found;
     if (f != null && f.hasCoordinates) {
       shared.setHomeFocus((latitude: f.latitude, longitude: f.longitude));
-      // Where the user's location is on screen right now, and how large
-      // the map is there, so the home map can start from the same view.
-      final size = MediaQuery.sizeOf(context);
-      final rise = Curves.easeInOutCubic.transform(_rise.value);
-      final center = Offset(
-        size.width / 2,
-        size.height * 0.45 +
-            _parkOffset(size) * (1 - rise) +
-            size.height * _centerDrop * rise,
-      );
-      final radius =
-          math.min(size.width * 0.39, size.height * 0.36) * _camera.zoom;
-      final local = GlobeProjection(_camera.latitude, _camera.longitude)
-          .toScreen(f.latitude, f.longitude, center, radius);
-      final box = context.findRenderObject() as RenderBox?;
-      shared.setIntroHandoff(IntroHandoff(
-        latitude: f.latitude,
-        longitude: f.longitude,
-        globalPoint: box != null && box.hasSize
-            ? box.localToGlobal(local)
-            : local,
-        pixelsPerRadian: radius,
-      ));
+    }
+    if (_homeRoute != null) {
+      _homeShown.value = true; // fades in over the resting globe
+      return;
     }
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 450),
         pageBuilder: (_, __, ___) => MainBottomNavbar(),
-        transitionsBuilder: (_, animation, __, child) {
-          // Plain cross-fade: home's map starts from the globe's exact view
-          // (see IntroHandoff), so nothing should move or scale here.
-          return FadeTransition(
-            opacity:
-                CurvedAnimation(parent: animation, curve: Curves.easeInOut),
-            child: child,
-          );
-        },
+        transitionsBuilder: (_, animation, __, child) => FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+          child: child,
+        ),
       ),
     );
   }
@@ -290,9 +374,18 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       return;
     }
     final rise = Curves.easeInOutCubic.transform(_rise.value);
-    final zoomIn = Curves.easeInCubic.transform(_zoom.value);
-    _camera.zoom = (_parkZoom + (_centerZoom - _parkZoom) * rise) *
-        (1 + (_finalZoom - 1) * zoomIn);
+    final anchor = _anchor;
+    if (anchor != null && _step == _Step.zooming) {
+      // Ease (in and out) to exactly home's scale at the user's location.
+      final target =
+          anchor.pixelsPerRadian / math.max(_globeBase(_size), 1.0);
+      final e = Curves.easeInOutCubic.transform(_zoom.value);
+      _camera.zoom = _zoomFrom + (target - _zoomFrom) * e;
+    } else {
+      final zoomIn = Curves.easeInCubic.transform(_zoom.value);
+      _camera.zoom = (_parkZoom + (_centerZoom - _parkZoom) * rise) *
+          (1 + (_finalZoom - 1) * zoomIn);
+    }
 
     switch (_step) {
       case _Step.intro:
@@ -318,10 +411,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 normalized: MapProjection.project(f.latitude, f.longitude),
               );
               setState(() => _step = _Step.focusing);
+              // Build home now (hidden) so it can tell us its exact view.
+              _pushHomeHidden();
             } else {
               // No location: still finish with a zoom into home.
-              setState(() => _step = _Step.zooming);
-              _zoom.forward();
+              _startZoom();
             }
           }
         }
@@ -338,9 +432,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           _camera.latitude += (targetLat - _camera.latitude) * k;
           if (_step == _Step.focusing &&
               angleDelta(_camera.longitude, f.longitude).abs() < 1.5 &&
-              (_camera.latitude - targetLat).abs() < 1.5) {
-            setState(() => _step = _Step.zooming);
-            _zoom.forward();
+              (_camera.latitude - targetLat).abs() < 1.5 &&
+              _canZoom) {
+            _startZoom();
           }
         }
         break;
@@ -364,6 +458,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
+    _size = size;
     final palette = VpnMapPalette.dark;
     final data = _data;
     final f = _found;
@@ -412,16 +507,17 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           if (data != null)
             Positioned.fill(
               child: AnimatedBuilder(
-                animation: _rise,
+                animation: Listenable.merge([_rise, _zoom]),
                 builder: (context, child) {
                   // Size comes from the camera zoom (crisp lines); only the
                   // position is moved here.
                   final t = Curves.easeInOutCubic.transform(_rise.value);
                   return Transform.translate(
                     offset: Offset(
-                        0,
-                        _parkOffset(size) * (1 - t) +
-                            size.height * _centerDrop * t),
+                            0,
+                            _parkOffset(size) * (1 - t) +
+                                size.height * _centerDrop * t) +
+                        _slide(size),
                     child: child,
                   );
                 },

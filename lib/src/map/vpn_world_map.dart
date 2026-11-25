@@ -926,40 +926,35 @@ class _VpnWorldMapState extends State<VpnWorldMap>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (_userMoved && !force) return;
-      if (_takeIntroHandoff()) return;
       // Behind the globe the camera jumps; on screen it glides.
       final visible = _globeMix.value < 0.5;
-      _animateTo(_focusTarget(),
+      final target = _focusTarget();
+      _publishHomeAnchor(target);
+      _animateTo(target,
           animate: visible && (!force || _tc.value != Matrix4.identity()));
     });
   }
 
-  /// Coming from the intro globe: start from the view it ended on (same
-  /// point at the same place and size on screen), then glide to the normal
-  /// framing. Returns false when there is nothing to hand over.
-  bool _takeIntroHandoff() {
-    final shared = SharedGlobeController.instance;
-    final h = shared.introHandoff;
+  /// Publishes where the user's location sits in home's resting view (see
+  /// [SharedGlobeController.homeAnchor]) for the intro globe to zoom into.
+  void _publishHomeAnchor(MapViewTransform target) {
     final p = _provider;
     final origin = _origin;
-    if (h == null || p == null || origin == null) return false;
-    if (p.tunnelActive || _viewport.isEmpty || _mapSize.isEmpty) return false;
+    if (p == null || origin == null || p.tunnelActive || _userMoved) return;
+    if (_viewport.isEmpty || _mapSize.isEmpty) return;
     final box = context.findRenderObject() as RenderBox?;
-    if (box == null || !box.hasSize) return false;
-    shared.clearIntroHandoff();
-    final local = box.globalToLocal(h.globalPoint);
-    // Globe: pixelsPerRadian per radian of arc. Miller map: east-west scale
-    // at latitude phi is (width / 2pi) / cos(phi) per radian.
-    final cosLat = math.cos(h.latitude * math.pi / 180).clamp(0.2, 1.0);
-    final scale = (h.pixelsPerRadian * 2 * math.pi * cosLat / _mapSize.width)
-        .clamp(1.0, _maxScale * 1.5);
-    final mapPoint =
-        Offset(origin.dx * _mapSize.width, origin.dy * _mapSize.height);
-    final start = MapViewTransform(scale, local - mapPoint * scale);
-    _focus.stop();
-    _tc.value = Matrix4.fromList(start.toStorage());
-    _animateTo(_focusTarget(), animate: true);
-    return true;
+    if (box == null || !box.hasSize || !box.attached) return;
+    final local = target.toScreen(
+        Offset(origin.dx * _mapSize.width, origin.dy * _mapSize.height));
+    // Miller map: east-west scale at latitude phi is (width / 2pi) / cos(phi)
+    // pixels per radian of arc.
+    final lat = MapProjection.unproject(origin).latitude;
+    final cosLat = math.cos(lat * math.pi / 180).clamp(0.2, 1.0);
+    SharedGlobeController.instance.homeAnchor.value = HomeAnchor(
+      globalPoint: box.localToGlobal(local),
+      pixelsPerRadian:
+          target.scale * _mapSize.width / (2 * math.pi * cosLat),
+    );
   }
 
   MapViewTransform _focusTarget() {
@@ -1128,7 +1123,9 @@ class _VpnWorldMapState extends State<VpnWorldMap>
               // Resize (panel expanded/collapsed, rotation): re-frame.
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted && !_userMoved) {
-                  _animateTo(_focusTarget(), animate: false);
+                  final target = _focusTarget();
+                  _publishHomeAnchor(target);
+                  _animateTo(target, animate: false);
                 }
               });
             }

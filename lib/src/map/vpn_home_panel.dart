@@ -608,7 +608,20 @@ class _ProtectionRow extends StatelessWidget {
             ],
           ),
         ),
-        if (editable) _MiniSwitch(style: s, value: on, onChanged: onChanged),
+        // Always shown. While connecting / connected it is read-only:
+        // dimmed, and a tap only explains that BelNet must be disconnected
+        // first (the setting applies from the next connection).
+        Opacity(
+          opacity: editable ? 1.0 : 0.45,
+          child: _MiniSwitch(
+            style: s,
+            value: on,
+            onChanged: editable
+                ? onChanged
+                : (_) => showMessage(
+                    'Please disconnect BelNet to turn $title on or off.'),
+          ),
+        ),
       ],
     );
   }

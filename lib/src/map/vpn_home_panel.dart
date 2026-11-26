@@ -13,6 +13,7 @@ import 'package:belnet_mobile/src/providers/ip_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 /// Bottom panel of the home screen (V3 design): exit node, connect button,
@@ -680,6 +681,7 @@ class _ConnectButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = style;
+    if (phase == VpnMapPhase.connecting) return _ConnectingButton(style: s);
     late final String label;
     late final List<Color> fill;
     late final Color border;
@@ -776,6 +778,66 @@ class _ConnectButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The Connecting button (design animation): box, rotating green border,
+/// green wipe and the breathing BelNet shield come from a Lottie file per
+/// theme; the CONNECTING label is a normal Text on top, so it can be
+/// translated later.
+class _ConnectingButton extends StatelessWidget {
+  const _ConnectingButton({required this.style});
+
+  final VpnHomeStyle style;
+
+  /// Lottie canvas (396 x 62) and where the label starts in it: just right
+  /// of the shield, which sits at x 105-127.
+  static const double _canvasWidth = 396;
+  static const double _labelStart = 148;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = style;
+    return SizedBox(
+      height: 51,
+      child: LayoutBuilder(builder: (context, box) {
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            Lottie.asset(
+              s.dark
+                  ? 'assets/lottie/connecting_button_dark.json'
+                  : 'assets/lottie/connecting_button_light.json',
+              fit: BoxFit.fill,
+              repeat: true,
+              frameRate: FrameRate.max,
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                  left: box.maxWidth * _labelStart / _canvasWidth),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'CONNECTING',
+                  maxLines: 1,
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 4.5,
+                    color: s.dark
+                        ? const Color(0xffEBEBEB)
+                        : const Color(0xff222222),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      }),
     );
   }
 }

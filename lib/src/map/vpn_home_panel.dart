@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:belnet_mobile/country_code_list.dart';
 import 'package:belnet_mobile/node_provider.dart';
 import 'package:belnet_mobile/src/map/vpn_home_style.dart';
+import 'package:belnet_mobile/src/utils/protection_exclusive.dart';
+import 'package:belnet_mobile/src/utils/show_toast.dart';
 import 'package:belnet_mobile/src/map/vpn_map_provider.dart';
 import 'package:belnet_mobile/src/providers/ad_blocker_provider.dart';
 import 'package:belnet_mobile/src/providers/block_malware_provider.dart';
@@ -532,7 +534,9 @@ class _ProtectionRows extends StatelessWidget {
               ? '$blocked blocked this session'
               : 'ads & trackers',
           editable: editable,
-          onChanged: (v) => ads.setEnabled(v),
+          onChanged: (v) {
+            if (allowAdBlockerChange(context, v)) ads.setEnabled(v);
+          },
         ),
         const SizedBox(height: 16),
         _ProtectionRow(
@@ -542,7 +546,9 @@ class _ProtectionRows extends StatelessWidget {
           on: malware.enabled,
           detail: 'malicious & phishing sites',
           editable: editable,
-          onChanged: (v) => malware.setEnabled(v),
+          onChanged: (v) {
+            if (allowBlockMalwareChange(context, v)) malware.setEnabled(v);
+          },
         ),
       ],
     );

@@ -5,6 +5,7 @@ import 'package:belnet_mobile/src/model/theme_set_provider.dart';
 import 'package:belnet_mobile/src/providers/ad_blocker_provider.dart';
 import 'package:belnet_mobile/src/providers/loader_provider.dart';
 import 'package:belnet_mobile/src/utils/show_toast.dart';
+import 'package:belnet_mobile/src/utils/protection_exclusive.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart' show ConnectionStatus;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -137,6 +138,7 @@ class _AdBlockerScreenState extends State<AdBlockerScreen> {
       showMessage(_lockedMessage);
       return;
     }
+    if (!allowAdBlockerChange(context, value)) return;
     final ok = await adBlocker.setEnabled(value);
     if (!ok) {
       showMessage('Could not change the Ad Blocker setting. Please try again.');

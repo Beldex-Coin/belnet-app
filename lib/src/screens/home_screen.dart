@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:belnet_lib/belnet_lib.dart';
 import 'package:belnet_mobile/node_provider.dart';
@@ -17,6 +18,7 @@ import 'package:belnet_mobile/src/screens/add_exitnode_screen.dart';
 import 'package:belnet_mobile/src/utils/show_toast.dart';
 import 'package:belnet_mobile/src/vpn_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:glass_kit/glass_kit.dart';
 import 'package:provider/provider.dart';
@@ -51,6 +53,29 @@ late ChartDataController chartController;
  /// Bottom panel expanded (stats + protection); the map shrinks and hides
  /// its status block, as in the design.
  bool _panelExpanded = false;
+
+  /// Height of the home panel while collapsed (measured). The map is sized
+  /// to the space above it and does not change when the panel expands.
+  double? _collapsedPanelHeight;
+  Timer? _panelSettle;
+  double _panelHeight = 0;
+
+  /// Records the collapsed height once the panel has settled (heights
+  /// reported during the expand / collapse animation are ignored).
+  void _onPanelHeight(double h) {
+    _panelHeight = h;
+    if (_collapsedPanelHeight == null && !_panelExpanded) {
+      setState(() => _collapsedPanelHeight = h);
+      return;
+    }
+    _panelSettle?.cancel();
+    _panelSettle = Timer(const Duration(milliseconds: 350), () {
+      if (!mounted || _panelExpanded) return;
+      if (((_collapsedPanelHeight ?? -1) - _panelHeight).abs() > 0.5) {
+        setState(() => _collapsedPanelHeight = _panelHeight);
+      }
+    });
+  }
 
 
  String swapText = 'Swap to exit.bdx';
@@ -174,6 +199,7 @@ checkCanAddExitNodeEnabled()async{
 @override
   void dispose() {
     _isConnectedEventSubscription?.cancel();
+    _panelSettle?.cancel();
        WidgetsBinding.instance.removeObserver(this);
        //_bounceButtonController.dispose();
    // _videoLoaderController.dispose();
@@ -242,20 +268,39 @@ String capitalizeFirstLetter(String value) {
             const SizedBox(width: 16),
           ],
         ),
-        body: Column(
+        // The map keeps the size it has with the panel collapsed; expanding
+        // the panel opens it over the map, so the map (country, zoom,
+        // globe) does not move or rescale.
+        body: LayoutBuilder(builder: (context, area) {
+          final collapsed = _collapsedPanelHeight;
+          final mapHeight = collapsed == null
+              ? null
+              : math.max(0.0, area.maxHeight - collapsed);
+          return Stack(
           children: [
             // Map: own country while unprotected, rotating globe with the
             // real onion route while connecting, exit country when
             // protected. The status block lives inside the map.
-            Expanded(
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              height: mapHeight ?? area.maxHeight,
               child: VpnWorldMap(
                 darkTheme: appModel.darkTheme,
                 bottomInset: 70,
                 compact: _panelExpanded,
               ),
             ),
-            // Panel: its own block under the map (design).
-            DecoratedBox(
+            // Panel: its own block under the map (design); expands upwards
+            // over the map.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _MeasureHeight(
+              onHeight: _onPanelHeight,
+              child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: style.panelBackground,
                 border: Border(top: BorderSide(color: style.panelTopLine)),
@@ -271,8 +316,11 @@ String capitalizeFirstLetter(String value) {
               onExpandedChanged: (v) => setState(() => _panelExpanded = v),
               ),
             ),
+              ),
+            ),
           ],
-        ),
+          );
+        }),
       ),
     );
   }
@@ -333,3 +381,36 @@ void showCustomDialog(BuildContext context,AppModel appModel) {
 
 }
 
+/// Reports its child's height after layout (when it changes).
+class _MeasureHeight extends SingleChildRenderObjectWidget {
+  const _MeasureHeight({required this.onHeight, required Widget child})
+      : super(child: child);
+
+  final ValueChanged<double> onHeight;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderMeasureHeight(onHeight);
+
+  @override
+  void updateRenderObject(
+      BuildContext context, _RenderMeasureHeight renderObject) {
+    renderObject.onHeight = onHeight;
+  }
+}
+
+class _RenderMeasureHeight extends RenderProxyBox {
+  _RenderMeasureHeight(this.onHeight);
+
+  ValueChanged<double> onHeight;
+  double? _last;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final h = size.height;
+    if (_last == h) return;
+    _last = h;
+    WidgetsBinding.instance.addPostFrameCallback((_) => onHeight(h));
+  }
+}

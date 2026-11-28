@@ -1128,10 +1128,10 @@ class _VpnWorldMapState extends State<VpnWorldMap>
     // The focused country fills about half the width, a little right of
     // centre (design: India spans ~33%..83% of the width).
     final w = _viewport.width;
-    final padding = widget.compact
-        ? EdgeInsets.fromLTRB(w * 0.22, 16, w * 0.22, 16)
-        : EdgeInsets.fromLTRB(
-            w * 0.30, 24, w * 0.20, math.max(28.0, widget.bottomInset + 8));
+    // Same framing whether or not the home panel is expanded: the panel
+    // opens over the map instead of moving it.
+    final padding = EdgeInsets.fromLTRB(
+        w * 0.30, 24, w * 0.20, math.max(28.0, widget.bottomInset + 8));
     if (point == null) {
       return MapViewTransform.focus(
         points: [Offset(_mapSize.width / 2, _mapSize.height * 0.42)],
@@ -1246,9 +1246,7 @@ class _VpnWorldMapState extends State<VpnWorldMap>
     if (oldWidget.darkTheme != widget.darkTheme) {
       _refreshMarkerLabels();
     }
-    if ((oldWidget.bottomInset != widget.bottomInset ||
-            oldWidget.compact != widget.compact) &&
-        !_userMoved) {
+    if (oldWidget.bottomInset != widget.bottomInset && !_userMoved) {
       _scheduleFocus();
     }
   }

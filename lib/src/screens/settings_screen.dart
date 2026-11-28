@@ -100,7 +100,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     
                                   Padding(
                                     padding: const EdgeInsets.symmetric(horizontal:  8.0),
-                                    child: Text(provider.currentView == SettingsView.adBlocker ? 'Ad Blocker' : 'Split Tunneling',style: TextStyle(fontFamily: 'Poppins',fontSize: 16),),
+                                    child: Text(switch (provider.currentView) {
+                                      SettingsView.adBlocker => 'Ad Blocker',
+                                      _ => 'Split Tunneling',
+                                    },style: TextStyle(fontFamily: 'Poppins',fontSize: 16),),
                                   )
                                 ],
                               ),

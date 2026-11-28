@@ -493,6 +493,17 @@ Widget _getScreen(int index) {
                     if (loaderProvider.selectedIndex == 1 && index != 1) {
                        loaderProvider.resetChangeNode();
                       }
+                      // The Settings icon always opens the main Settings
+                      // list, not the sub-screen (Split Tunneling, Ad
+                      // Blocker) that was open when the user left.
+                      if (index == 3) {
+                        final settings = Provider.of<SettingsProvider>(
+                            context,
+                            listen: false);
+                        if (settings.currentView != SettingsView.general) {
+                          settings.showGeneral();
+                        }
+                      }
                       loaderProvider.setIndex(index);
                       } //loaderProvider.setIndex //_onItemTapped,
                     ): SizedBox.shrink(),),

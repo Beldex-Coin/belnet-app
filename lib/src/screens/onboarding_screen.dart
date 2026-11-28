@@ -12,6 +12,8 @@ import 'package:belnet_mobile/src/map/world_map_painters.dart';
 import 'package:belnet_mobile/src/providers/ip_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'package:belnet_mobile/src/utils/styles.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -486,7 +488,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     final lit = located &&
         (_step == _Step.focusing || _step == _Step.zooming);
 
-    return Scaffold(
+    // Onboarding is always dark: light status bar icons on any theme.
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: darkStatusBar,
+      child: Scaffold(
       backgroundColor: _background,
       extendBody: true,
       body: Stack(
@@ -599,16 +604,29 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 opacity: _ui,
                 child: Column(
                   children: [
-                    const Spacer(),
+                    const Spacer(flex: 3),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 36.0),
                       child: SvgPicture.asset(
                           'assets/images/dark_theme/belnet_onboard_logo.svg'),
                     ),
-                    const Spacer(flex: 5),
-                    // Splash: logo only. First launch: the tagline and
-                    // Next fade in after the splash beat. Same layout in
-                    // both, so nothing moves.
+                    const SizedBox(height: 18),
+                    // Tagline under the logo (design); shown on the splash
+                    // too.
+                    const Text(
+                      'Decentralised VPN by Beldex',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'JetBrainsMono',
+                        fontSize: 13.5,
+                        letterSpacing: 0.6,
+                        color: Color(0xffACACAC),
+                      ),
+                    ),
+                    const Spacer(flex: 10),
+                    // Splash: logo + tagline only. First launch: the box,
+                    // description and Next fade in after the splash beat.
+                    // Same layout in both, so nothing moves.
                     IgnorePointer(
                       ignoring: !_introTextShown,
                       child: AnimatedOpacity(
@@ -618,45 +636,69 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       child: Column(children: [
                     Container(
                       width: double.infinity,
-                      margin: const EdgeInsets.symmetric(horizontal: 20),
-                      padding: const EdgeInsets.all(8),
+                      margin: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 20),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.25),
+                        color: Colors.black.withOpacity(0.15),
                         border: Border.all(
                             color: const Color(0xffACACAC), width: 0.5),
                       ),
-                      child: const Column(
-                        children: [
-                          Text(
-                            'FAST & SECURE',
-                            style: TextStyle(
-                              fontFamily: 'Conthrax',
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Column(
+                          children: [
+                            Text(
+                              'FAST & SECURE',
+                              style: TextStyle(
+                                fontFamily: 'Conthrax',
+                                fontSize: 30,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xffEBEBEB),
+                                height: 1.15,
+                              ),
                             ),
-                          ),
-                          Text(
-                            'DVPN',
-                            style: TextStyle(
-                              fontFamily: 'Conthrax',
-                              color: Color(0xff8D8D8D),
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
+                            Text(
+                              'DVPN',
+                              style: TextStyle(
+                                fontFamily: 'Conthrax',
+                                color: Color(0xff8D8D8D),
+                                fontSize: 30,
+                                fontWeight: FontWeight.w700,
+                                height: 1.15,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                    SizedBox(height: size.height * 0.20 / 3),
+                    const SizedBox(height: 22),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        'Your traffic hops through Beldex Masternodes, so no one can see where you go',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 14,
+                          height: 1.4,
+                          color: Color(0xffA8A8A8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
                     GestureDetector(
                       onTap: _onNext,
                       child: Container(
-                        height: 56,
+                        height: 60,
                         width: double.infinity,
-                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        margin: const EdgeInsets.symmetric(horizontal: 24),
                         alignment: Alignment.center,
-                        color: const Color(0xFFEBEBEB),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEBEBEB),
+                          border: Border.all(
+                              color: const Color(0xff8D8D8D), width: 1),
+                        ),
                         child: const Text(
                           'Next',
                           style: TextStyle(
@@ -671,7 +713,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       ]),
                     ),
                     ),
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 32),
                   ],
                 ),
               ),
@@ -679,6 +721,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
         ],
       ),
+    ),
     );
   }
 }

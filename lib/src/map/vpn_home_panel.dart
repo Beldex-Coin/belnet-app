@@ -731,8 +731,12 @@ class _ConnectButton extends StatelessWidget {
         break;
     }
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
+    // Plain Container, not AnimatedContainer: the colour must change in the
+    // same frame as the label. The 250 ms colour animation is driven frame
+    // by frame, and on slower phones the frames right after Disconnect are
+    // busy (VPN teardown, map switching back), so the label already read
+    // CONNECT while the red background lingered for a moment or longer.
+    return Container(
       height: 51,
       decoration: BoxDecoration(
         gradient: LinearGradient(colors: fill),

@@ -1,6 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 //import 'package:flutter/material.dart';
+
+/// Status bar for each theme: transparent, with dark icons on the light
+/// theme and light icons on the dark theme.
+///
+/// The app bars are transparent, and Flutter picks the status bar icon
+/// colour from the app bar's background colour; transparent counts as
+/// "dark", so the light theme got white icons on a light page (unreadable
+/// time, Wi-Fi, network, VPN key). Setting it explicitly fixes every screen.
+const SystemUiOverlayStyle lightStatusBar = SystemUiOverlayStyle(
+  statusBarColor: Colors.transparent,
+  statusBarIconBrightness: Brightness.dark, // Android
+  statusBarBrightness: Brightness.light, // iOS
+);
+const SystemUiOverlayStyle darkStatusBar = SystemUiOverlayStyle(
+  statusBarColor: Colors.transparent,
+  statusBarIconBrightness: Brightness.light,
+  statusBarBrightness: Brightness.dark,
+);
 
 ThemeData buildLightTheme() {
   final ThemeData base = ThemeData.light(useMaterial3: true);
@@ -24,6 +43,7 @@ ThemeData buildLightTheme() {
     appBarTheme: base.appBarTheme.copyWith(
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
+      systemOverlayStyle: lightStatusBar,
     ),
   );
 }
@@ -50,6 +70,7 @@ ThemeData buildDarkTheme() {
     appBarTheme: base.appBarTheme.copyWith(
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
+      systemOverlayStyle: darkStatusBar,
     ),
   );
 }

@@ -252,6 +252,12 @@ checkShowSpalsh()async{
             title: 'Belnet App',
             debugShowCheckedModeBanner: false,
             theme: appModel.darkTheme ? buildDarkTheme() : buildLightTheme(),
+            // Status bar icons for screens without an app bar (No
+            // internet, dialogs...): dark icons on the light theme.
+            builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+              value: appModel.darkTheme ? darkStatusBar : lightStatusBar,
+              child: child ?? const SizedBox.shrink(),
+            ),
             home: canHideSplash ? MainBottomNavbar() : SplashScreens(), //BelnetHomePage()
           );
         },
